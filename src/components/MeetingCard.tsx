@@ -98,7 +98,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   if (isAfterHours && !isAvailable && status !== 'past') {
     cardClasses += ' border-orange-400';
   }
-  return <div className={`${cardClasses} mb-2 ${isAvailable && status === 'past' ? 'opacity-10' : status === 'past' ? 'opacity-50' : ''}`}>
+  return <div className={`${cardClasses} mb-2 ${status === 'past' ? 'opacity-50' : ''}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className={`${isCondensed ? 'text-lg' : 'text-2xl'} font-bold ${textColorClass}`}>

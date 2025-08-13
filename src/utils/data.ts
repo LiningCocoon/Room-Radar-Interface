@@ -116,6 +116,12 @@ export const getMeetingData = (): Meeting[] => {
   {
     name: 'Client Check-in',
     startTime: '3:00PM',
+    endTime: '3:30PM',
+    room: 'FDR',
+    status: 'upcoming'
+  }, {
+    name: 'Sales Call',
+    startTime: '3:30PM',
     endTime: '4:00PM',
     room: 'FDR',
     status: 'upcoming'
@@ -144,6 +150,35 @@ export const getMeetingData = (): Meeting[] => {
     name: 'EOD Sync',
     startTime: '5:30PM',
     endTime: '6:00PM',
+    room: 'Executive',
+    status: 'upcoming'
+  },
+  // New examples of multiple meetings in the same hour
+  // Example 1: Multiple meetings in the 10AM slot for FDR room
+  {
+    name: 'UX Workshop',
+    startTime: '10:00AM',
+    endTime: '10:30AM',
+    room: 'FDR',
+    status: 'upcoming'
+  }, {
+    name: 'Product Demo',
+    startTime: '10:40AM',
+    endTime: '11:15AM',
+    room: 'FDR',
+    status: 'upcoming'
+  },
+  // Example 2: Multiple meetings in the 3PM slot for Executive room
+  {
+    name: 'Investor Update',
+    startTime: '3:00PM',
+    endTime: '3:25PM',
+    room: 'Executive',
+    status: 'upcoming'
+  }, {
+    name: 'Leadership Sync',
+    startTime: '3:30PM',
+    endTime: '4:15PM',
     room: 'Executive',
     status: 'upcoming'
   }];

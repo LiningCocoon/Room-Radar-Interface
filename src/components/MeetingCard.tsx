@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ClockIcon, DoorOpenIcon, CalendarClockIcon } from 'lucide-react';
+import { DoorOpenIcon, StarIcon, ClockIcon } from 'lucide-react';
 import AVSupportIcon from './AVSupportIcon';
 interface Meeting {
   name: string;
@@ -8,16 +8,21 @@ interface Meeting {
   room: string;
   status?: 'active' | 'upcoming' | 'past' | 'available';
   avSupport?: boolean;
+  isHighProfile?: boolean;
 }
 interface MeetingCardProps {
   meeting: Meeting;
   currentTime: Date;
   condensed?: boolean;
+  duration?: number;
+  showDurationBadge?: boolean;
 }
 const MeetingCard: React.FC<MeetingCardProps> = ({
   meeting,
   currentTime,
-  condensed = false
+  condensed = false,
+  duration = 0,
+  showDurationBadge = false
 }) => {
   const isAvailable = meeting.name === 'Available';
   // Parse meeting times more precisely
@@ -38,6 +43,8 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   const currentTimeInMinutes = currentHour * 60 + currentMinute;
   const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
   const endTimeInMinutes = endTime ? endTime.hours * 60 + endTime.minutes : startTimeInMinutes + 60;
+  // Check if meeting is starting within 15 minutes
+  const isStartingSoon = startTimeInMinutes > currentTimeInMinutes && startTimeInMinutes - currentTimeInMinutes <= 15;
   // Determine status based on current time, with special handling for Available slots
   let status = 'upcoming';
   if (isAvailable) {
@@ -66,6 +73,10 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   const isCondensed = condensed && !isEarlyMorning && !isLateEvening && status !== 'active';
   // Base card styling - reduced padding by 20%
   let cardClasses = 'rounded-lg border text-left transition-all duration-300';
+  // Apply height based on duration for non-available meetings
+  if (!isAvailable && duration > 1) {
+    cardClasses += ` min-h-[${Math.min(duration * 100, 400)}px]`;
+  }
   // Apply styling based on status
   if (isAvailable) {
     if (status === 'past') {
@@ -75,10 +86,16 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
       // Future available slots: subtle green
       cardClasses += ' border-dashed border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 opacity-75';
     }
+  } else if (meeting.isHighProfile && status !== 'past') {
+    // VIP meeting styling (not for past meetings)
+    cardClasses += ' border-[#b50909] bg-[#e41d3d] dark:bg-[#c41d3d] dark:border-[#b50909] shadow-lg border-2';
   } else if (status === 'active') {
     cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
   } else if (status === 'past') {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
+  } else if (meeting.avSupport && isStartingSoon) {
+    // A/V needs meeting starting within 15 minutes - updated to new colors
+    cardClasses += ' border-[#fa9441] bg-[#ffbc78] dark:bg-[#ffbc78]/20 dark:border-[#fa9441] border-2';
   } else {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   }
@@ -96,15 +113,16 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
       textColorClass = 'text-green-700 dark:text-green-400';
       iconComponent = <DoorOpenIcon className={isCondensed ? 'h-4.5 w-4.5 text-green-600 dark:text-green-400' : 'h-7.5 w-7.5 text-green-600 dark:text-green-400'} />;
     }
+  } else if (meeting.isHighProfile && status !== 'past') {
+    // VIP meetings: white text but NO clock icon
+    textColorClass = 'text-white';
   } else if (status === 'active') {
     textColorClass = 'text-[#005ea2] dark:text-[#4d9eff] font-extrabold';
-    iconComponent = <ClockIcon className={isCondensed ? 'h-4.5 w-4.5 text-[#005ea2] dark:text-[#4d9eff]' : 'h-7.5 w-7.5 text-[#005ea2] dark:text-[#4d9eff]'} />;
   } else if (status === 'past') {
     textColorClass = 'text-gray-500 dark:text-gray-400';
     iconComponent = null;
   } else {
     textColorClass = 'text-black dark:text-white';
-    iconComponent = <CalendarClockIcon className={isCondensed ? 'h-4.5 w-4.5 text-black dark:text-white' : 'h-7.5 w-7.5 text-black dark:text-white'} />;
   }
   // Add a subtle indicator for early/late meetings without changing the card styling
   if ((isEarlyMorning || isLateEvening) && !isAvailable && status !== 'past' && status !== 'active') {
@@ -113,21 +131,39 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   }
   // Get AV icon color based on status
   const getAvIconColor = () => {
+    if (meeting.isHighProfile && status !== 'past') return 'text-white';
     if (status === 'active') return 'text-[#005ea2] dark:text-[#4d9eff]';
     if (status === 'past') return 'text-gray-500 dark:text-gray-400';
+    if (isStartingSoon) return 'text-[#fa9441] dark:text-[#fa9441]'; // Updated to new color
     return 'text-black dark:text-white'; // upcoming
   };
   // A/V Support icon size based on condensed state
   const avIconSize = isCondensed ? 16 : 20;
-  return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative ${status === 'past' ? 'opacity-50' : ''}`}>
-      <div className="flex justify-between items-center">
+  return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative ${status === 'past' ? 'opacity-50' : ''}`} style={!isAvailable && duration > 1 ? {
+    minHeight: `${Math.min(duration * 80, 320)}px`
+  } : {}}>
+      {/* VIP Star Icon for high profile meetings */}
+      {meeting.isHighProfile && status !== 'past' && <div className="absolute top-1 right-1 group">
+          <StarIcon size={isCondensed ? 14 : 18} className="text-white animate-pulse" aria-label="VIP meeting" />
+          {/* Tooltip */}
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+            VIP meeting
+            <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
+          </div>
+        </div>}
+      <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className={`${isCondensed ? 'text-[1.0125rem]' : 'text-[1.35rem]'} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
             {meeting.name}
           </h3>
           <p className={`${isCondensed ? 'text-[0.7875rem]' : 'text-[1.125rem]'} mt-1 dark:text-gray-200`}>
-            {meeting.startTime}
+            {!isAvailable ? `${meeting.startTime} - ${meeting.endTime}` : meeting.startTime}
           </p>
+          {/* Duration badge for long meetings */}
+          {showDurationBadge && !isAvailable && <div className="mt-2 inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium">
+              <ClockIcon size={12} className="mr-1" />
+              {duration} hour{duration !== 1 ? 's' : ''}
+            </div>}
         </div>
         <div className={`${isCondensed ? 'ml-2' : 'ml-4'} flex items-center justify-center h-full`}>
           {iconComponent}

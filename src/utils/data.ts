@@ -147,18 +147,19 @@ export const getMeetingData = (): Meeting[] => {
   },
   // 3:00 PM
   {
-    name: 'Client Check-in',
+    name: 'Long Strategy Session',
     startTime: '3:00PM',
-    endTime: '3:30PM',
+    endTime: '7:00PM',
     room: 'FDR',
     status: 'upcoming',
-    avSupport: true // Added AV Support - same time slot as Leadership Sync
+    avSupport: true // AV Support needed
   }, {
-    name: 'Sales Call',
+    name: 'Leadership Sync',
     startTime: '3:30PM',
-    endTime: '4:00PM',
-    room: 'FDR',
-    status: 'upcoming'
+    endTime: '4:15PM',
+    room: 'Executive',
+    status: 'upcoming',
+    avSupport: true // AV Support needed
   }, {
     name: 'Security Brief',
     startTime: '3:30PM',
@@ -166,15 +167,8 @@ export const getMeetingData = (): Meeting[] => {
     room: 'Breakout 2',
     status: 'upcoming'
   },
-  // Tech All-Hands removed - will show as Available
   // 5:00 PM
   {
-    name: 'Release Planning',
-    startTime: '5:00PM',
-    endTime: '6:00PM',
-    room: 'FDR',
-    status: 'upcoming'
-  }, {
     name: 'Team Retro',
     startTime: '5:00PM',
     endTime: '6:00PM',
@@ -191,36 +185,40 @@ export const getMeetingData = (): Meeting[] => {
     // AV Support needed
     isHighProfile: true // High profile meeting
   },
-  // New examples of multiple meetings in the same hour
-  // Example 1: Multiple meetings in the 10AM slot for FDR room
+  // 6:00 PM
   {
-    name: 'UX Workshop',
-    startTime: '10:00AM',
-    endTime: '10:30AM',
-    room: 'FDR',
+    name: 'Late Client Demo',
+    startTime: '6:15PM',
+    endTime: '7:00PM',
+    room: 'Breakout 1',
     status: 'upcoming',
-    avSupport: true // Added AV Support
+    avSupport: true // AV Support needed
   }, {
-    name: 'Product Demo',
-    startTime: '10:40AM',
-    endTime: '11:15AM',
-    room: 'FDR',
+    name: 'APAC Planning',
+    startTime: '6:30PM',
+    endTime: '7:15PM',
+    room: 'Breakout 2',
     status: 'upcoming'
-  },
-  // Example 2: Multiple meetings in the 3PM slot for Executive room
-  {
-    name: 'Investor Update',
-    startTime: '3:00PM',
-    endTime: '3:25PM',
+  }, {
+    name: 'Executive Debrief',
+    startTime: '6:00PM',
+    endTime: '6:45PM',
     room: 'Executive',
     status: 'upcoming',
-    avSupport: true,
-    // Added AV Support
     isHighProfile: true // High profile meeting
+  },
+  // 7:00 PM
+  {
+    name: 'After-Hours Training',
+    startTime: '7:00PM',
+    endTime: '8:00PM',
+    room: 'Breakout 1',
+    status: 'upcoming',
+    avSupport: true // AV Support needed
   }, {
-    name: 'Leadership Sync',
-    startTime: '3:30PM',
-    endTime: '4:15PM',
+    name: 'Remote Social',
+    startTime: '7:00PM',
+    endTime: '8:00PM',
     room: 'Executive',
     status: 'upcoming',
     avSupport: true // AV Support needed

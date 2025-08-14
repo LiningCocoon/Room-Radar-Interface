@@ -5,6 +5,7 @@ export interface Meeting {
   room: string;
   status?: 'active' | 'upcoming' | 'past' | 'available';
   avSupport?: boolean;
+  isHighProfile?: boolean; // New flag for VIP meetings
 }
 export const getMeetingData = (): Meeting[] => {
   return [
@@ -21,7 +22,9 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '8:00AM',
     room: 'Executive',
     status: 'active',
-    avSupport: true // AV Support needed
+    avSupport: true,
+    // AV Support needed
+    isHighProfile: true // High profile meeting
   }, {
     name: 'Remote Team Sync',
     startTime: '7:00AM',
@@ -110,7 +113,9 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '2:00PM',
     room: 'Executive',
     status: 'upcoming',
-    avSupport: true // AV Support needed
+    avSupport: true,
+    // AV Support needed
+    isHighProfile: true // High profile meeting
   }, {
     name: 'User Research',
     startTime: '12:15PM',
@@ -182,7 +187,9 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '6:00PM',
     room: 'Executive',
     status: 'upcoming',
-    avSupport: true // AV Support needed
+    avSupport: true,
+    // AV Support needed
+    isHighProfile: true // High profile meeting
   },
   // New examples of multiple meetings in the same hour
   // Example 1: Multiple meetings in the 10AM slot for FDR room
@@ -207,7 +214,9 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '3:25PM',
     room: 'Executive',
     status: 'upcoming',
-    avSupport: true // Added AV Support
+    avSupport: true,
+    // Added AV Support
+    isHighProfile: true // High profile meeting
   }, {
     name: 'Leadership Sync',
     startTime: '3:30PM',

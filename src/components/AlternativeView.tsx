@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, ClockIcon, MapPinIcon, CalendarIcon, ArrowRightIcon } from 'lucide-react';
+import { ArrowLeftIcon, ClockIcon, MapPinIcon, CalendarIcon, ArrowRightIcon, PresentationIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
+import AVSupportIcon from './AVSupportIcon';
 interface AlternativeViewProps {
   currentTime: Date;
 }
@@ -42,29 +43,29 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
       return 'upcoming';
     }
   };
+  // Get minutes until a meeting starts
+  const getMinutesUntilMeeting = (meeting: any) => {
+    const startTime = parseTime(meeting.startTime);
+    const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
+    return startTimeInMinutes - currentTimeInMinutes;
+  };
   // Filter meetings - exclude those that are more than 2 hours in the past
   const currentMeetings = meetingData.filter(meeting => getMeetingStatus(meeting) === 'active');
-  const upcomingMeetings = meetingData.filter(meeting => getMeetingStatus(meeting) === 'upcoming' || getMeetingStatus(meeting) === 'past').sort((a, b) => {
-    const aTime = parseTime(a.startTime);
-    const bTime = parseTime(b.startTime);
-    return aTime.hours * 60 + aTime.minutes - (bTime.hours * 60 + bTime.minutes);
+  // Get upcoming meetings and filter by urgency and priority
+  const upcomingMeetings = meetingData.filter(meeting => getMeetingStatus(meeting) === 'upcoming');
+  // Urgent meetings are starting within 15 minutes
+  const urgentMeetings = upcomingMeetings.filter(meeting => {
+    const minutesUntil = getMinutesUntilMeeting(meeting);
+    return minutesUntil <= 15 && minutesUntil > 0;
   });
-  // For TV display, we'll show more upcoming meetings (up to 9) instead of splitting into "next" and "later"
-  const nextMeetings = upcomingMeetings.slice(0, 9);
-  // Group upcoming meetings by room for better organization on TV display
-  const meetingsByRoom: Record<string, any[]> = {};
-  // Ensure rooms are in the specified order
-  const roomOrder = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
-  nextMeetings.forEach(meeting => {
-    if (!meetingsByRoom[meeting.room]) {
-      meetingsByRoom[meeting.room] = [];
-    }
-    meetingsByRoom[meeting.room].push(meeting);
-  });
-  // Sort the rooms according to the specified order
-  const sortedRooms = Object.keys(meetingsByRoom).sort((a, b) => {
-    return roomOrder.indexOf(a) - roomOrder.indexOf(b);
-  });
+  // Separate high profile urgent meetings
+  const highProfileUrgent = urgentMeetings.filter(m => m.isHighProfile);
+  const regularUrgent = urgentMeetings.filter(m => !m.isHighProfile);
+  // Later meetings (more than 15 minutes away)
+  const laterMeetings = upcomingMeetings.filter(meeting => {
+    const minutesUntil = getMinutesUntilMeeting(meeting);
+    return minutesUntil > 15;
+  }).slice(0, 6); // Limit to prevent overflow
   return <div className="flex-1 p-4 md:p-6 h-screen flex flex-col">
       <div className="flex flex-col md:flex-row flex-1 gap-4 md:gap-6">
         {/* Current Meetings Section - Stacked on mobile */}
@@ -82,6 +83,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                     <span className="text-lg md:text-2xl font-bold text-[#005ea2] dark:text-[#4d9eff]">
                       {meeting.room}
                     </span>
+                    {meeting.avSupport && <AVSupportIcon size={18} className="text-[#005ea2] dark:text-[#4d9eff] ml-1" />}
                   </div>
                   <h3 className="text-xl md:text-3xl font-bold mb-1 md:mb-2 dark:text-white">
                     {meeting.name}
@@ -102,7 +104,8 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
               </p>
             </div>}
         </section>
-        {/* Upcoming Meetings Section - Stacked on mobile */}
+
+        {/* Enhanced Coming Up Next Section */}
         <section className="flex-1 mt-4 md:mt-0">
           <div className="flex items-center gap-2 mb-3 md:mb-4">
             <CalendarIcon className="text-[#005ea2] dark:text-[#4d9eff]" size={24} />
@@ -110,32 +113,106 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
               Coming Up Next
             </h2>
           </div>
-          {sortedRooms.length > 0 ? <div className="grid grid-cols-1 gap-3 md:gap-4">
-              {sortedRooms.map(room => <div key={room} className="border border-gray-300 dark:border-gray-700 rounded-lg p-2 md:p-4 dark:bg-gray-800">
-                  <h3 className="text-lg md:text-xl font-semibold mb-2 text-[#005ea2] dark:text-[#4d9eff]">
-                    {room}
-                  </h3>
-                  <div className="space-y-2 md:space-y-3">
-                    {meetingsByRoom[room].map(meeting => <div key={`${meeting.name}-${meeting.startTime}`} className="flex flex-col">
-                        <h4 className="text-base md:text-xl font-bold dark:text-white">
+
+          {/* High Profile Urgent Section */}
+          {highProfileUrgent.length > 0 && <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <h2 className="text-xl md:text-2xl font-bold text-red-700 dark:text-red-400">
+                  High Priority - Starting Soon
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {highProfileUrgent.map(meeting => <div key={`${meeting.name}-${meeting.startTime}`} className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-700 rounded-lg p-4 shadow-md">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <MapPinIcon size={16} className="text-red-600 dark:text-red-400" />
+                          <span className="text-lg font-bold text-red-600 dark:text-red-400">
+                            {meeting.room}
+                          </span>
+                        </div>
+                        <h3 className="text-xl font-bold mb-1 dark:text-white">
+                          {meeting.name}
+                        </h3>
+                        <p className="text-base dark:text-gray-300">
+                          {meeting.startTime} • Starts in{' '}
+                          {getMinutesUntilMeeting(meeting)} min
+                        </p>
+                      </div>
+                      {meeting.avSupport && <AVSupportIcon size={20} className="text-red-600 dark:text-red-400 ml-2" />}
+                    </div>
+                  </div>)}
+              </div>
+            </div>}
+
+          {/* Regular Urgent Section */}
+          {regularUrgent.length > 0 && <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <ClockIcon className="text-orange-600 dark:text-orange-400" size={20} />
+                <h2 className="text-lg md:text-xl font-bold text-orange-700 dark:text-orange-400">
+                  Starting Within 15 Minutes
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {regularUrgent.map(meeting => <div key={`${meeting.name}-${meeting.startTime}`} className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <MapPinIcon size={14} className="text-orange-600 dark:text-orange-400" />
+                          <span className="font-semibold text-orange-600 dark:text-orange-400">
+                            {meeting.room}
+                          </span>
+                        </div>
+                        <h4 className="font-bold dark:text-white">
                           {meeting.name}
                         </h4>
-                        <p className="text-sm md:text-lg mt-0.5 md:mt-1 dark:text-gray-300">
-                          {meeting.startTime}{' '}
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {meeting.startTime} •{' '}
+                          {getMinutesUntilMeeting(meeting)} min
                         </p>
-                      </div>)}
-                  </div>
-                </div>)}
-            </div> : <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 md:p-6 text-center">
-              <p className="text-lg md:text-2xl font-bold text-gray-500 dark:text-gray-400">
+                      </div>
+                      {meeting.avSupport && <AVSupportIcon size={16} className="text-orange-600 dark:text-orange-400" />}
+                    </div>
+                  </div>)}
+              </div>
+            </div>}
+
+          {/* Later Meetings - Compact Grid */}
+          {laterMeetings.length > 0 && <div>
+              <div className="flex items-center gap-2 mb-3">
+                <CalendarIcon className="text-[#005ea2] dark:text-[#4d9eff]" size={20} />
+                <h2 className="text-lg md:text-xl font-bold dark:text-white">
+                  Later Today
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {laterMeetings.map(meeting => <div key={`${meeting.name}-${meeting.startTime}`} className="border border-gray-300 dark:border-gray-700 rounded-lg p-2 dark:bg-gray-800 relative">
+                    <h4 className="text-sm font-semibold dark:text-white truncate">
+                      {meeting.name}
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {meeting.startTime} • {meeting.room}
+                    </p>
+                    {meeting.avSupport && <div className="absolute top-2 right-2">
+                        <AVSupportIcon size={14} className="text-gray-500 dark:text-gray-400" />
+                      </div>}
+                  </div>)}
+              </div>
+            </div>}
+
+          {/* Empty state */}
+          {upcomingMeetings.length === 0 && <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 text-center">
+              <p className="text-xl font-bold text-gray-500 dark:text-gray-400">
                 No Upcoming Meetings
               </p>
-              <p className="text-base md:text-lg mt-1 md:mt-2 dark:text-gray-300">
+              <p className="text-lg mt-2 dark:text-gray-300">
                 All rooms available for the rest of the day
               </p>
             </div>}
         </section>
       </div>
+
       {/* Navigation Buttons */}
       <div className="mt-4 md:mt-6 mb-2 md:mb-4 flex justify-center gap-3 md:gap-4">
         <Link to="/simplified" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-1 md:gap-2 py-1.5 md:py-2 px-3 md:px-4 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-sm md:text-base">

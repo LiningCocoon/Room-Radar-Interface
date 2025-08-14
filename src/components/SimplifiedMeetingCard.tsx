@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ClockIcon, DoorOpenIcon, CalendarClockIcon } from 'lucide-react';
+import { ClockIcon, DoorOpenIcon } from 'lucide-react';
 import AVSupportIcon from './AVSupportIcon';
 interface Meeting {
   name: string;
@@ -105,8 +105,9 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     textColorClass = 'text-gray-500 dark:text-gray-400';
     iconComponent = null;
   } else {
+    // Upcoming meetings now have no icon (CalendarClockIcon removed)
     textColorClass = 'text-black dark:text-white';
-    iconComponent = <CalendarClockIcon className="h-7.5 w-7.5 text-black dark:text-white" />;
+    iconComponent = null;
   }
   // Get AV icon color based on status
   const getAvIconColor = () => {
@@ -117,10 +118,10 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   // Adjust text sizes based on time of day
   let titleSize = shouldBeSmaller && status === 'past' ? 'text-[1.5rem]' : 'text-[2rem]';
   let timeSize = shouldBeSmaller && status === 'past' ? 'text-[1.1rem]' : 'text-[1.4rem]';
-  // A/V Support icon size based on card size
-  const avIconSize = shouldBeSmaller && status === 'past' ? 20 : 24;
+  // A/V Support icon size based on card size (10% larger than before)
+  const avIconSize = shouldBeSmaller && status === 'past' ? 22 : 26.4;
   return <div className={`${cardClasses} ${status === 'past' ? 'opacity-50' : ''}`}>
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-center">
         <div className="flex-1">
           <h3 className={`${titleSize} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
             {meeting.name}
@@ -129,12 +130,10 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
             {meeting.startTime}
           </p>
         </div>
-        <div className="ml-4 flex items-center justify-center h-full">
-          {iconComponent}
-        </div>
+        <div className="ml-4">{iconComponent}</div>
       </div>
-      {/* A/V Support Icon */}
-      {meeting.avSupport && !isAvailable && <div className="absolute bottom-2 right-2">
+      {/* A/V Support Icon - Moved to bottom right with 10% larger size */}
+      {meeting.avSupport && !isAvailable && <div className="absolute bottom-1 right-1">
           <AVSupportIcon size={avIconSize} className={`${getAvIconColor()}`} />
         </div>}
     </div>;

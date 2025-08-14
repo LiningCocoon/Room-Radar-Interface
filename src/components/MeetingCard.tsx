@@ -120,7 +120,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   // A/V Support icon size based on condensed state
   const avIconSize = isCondensed ? 16 : 20;
   return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative ${status === 'past' ? 'opacity-50' : ''}`}>
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-center">
         <div className="flex-1">
           <h3 className={`${isCondensed ? 'text-[1.0125rem]' : 'text-[1.35rem]'} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
             {meeting.name}

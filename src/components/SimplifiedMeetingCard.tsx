@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import { ClockIcon, CheckIcon, DoorOpenIcon, CalendarClockIcon } from 'lucide-react';
+import AVSupportIcon from './AVSupportIcon';
 interface Meeting {
   name: string;
   startTime: string;
   endTime: string;
   room: string;
   status?: 'active' | 'upcoming' | 'past' | 'available';
+  avSupport?: boolean;
 }
 interface SimplifiedMeetingCardProps {
   meeting: Meeting;
@@ -52,11 +54,11 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     status = 'upcoming';
   }
   // Base card styling with increased horizontal padding
-  let cardClasses = 'rounded-lg border text-left transition-all duration-300 mb-2';
+  let cardClasses = 'rounded-lg border text-left transition-all duration-300 mb-2 relative';
   // Apply padding based on time of day logic
   if (shouldBeSmaller && status === 'past') {
     // Morning meetings after noon that are in the past: make them smaller
-    cardClasses += ' p-[0.7rem] opacity-40';
+    cardClasses += ' p-[0.7rem]';
   } else {
     // Regular meetings: more horizontal breathing room
     cardClasses += ' px-[1.2rem] py-[0.9rem]';
@@ -72,9 +74,13 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   } else if (status === 'active') {
     cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
   } else if (status === 'past') {
-    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 opacity-50';
+    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   } else {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
+  }
+  // Apply opacity to all past items
+  if (status === 'past') {
+    cardClasses += ' opacity-50';
   }
   let textColorClass = 'text-black dark:text-white';
   let iconComponent = null;
@@ -94,7 +100,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     iconComponent = <ClockIcon className="h-7.5 w-7.5 text-[#005ea2] dark:text-[#4d9eff]" />;
   } else if (status === 'past') {
     textColorClass = 'text-gray-500 dark:text-gray-400';
-    iconComponent = null; // Removed CheckIcon from past meetings
+    iconComponent = null;
   } else {
     textColorClass = 'text-black dark:text-white';
     iconComponent = <CalendarClockIcon className="h-7.5 w-7.5 text-black dark:text-white" />;
@@ -102,7 +108,8 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   // Adjust text sizes based on time of day
   let titleSize = shouldBeSmaller && status === 'past' ? 'text-[1.5rem]' : 'text-[2rem]';
   let timeSize = shouldBeSmaller && status === 'past' ? 'text-[1.1rem]' : 'text-[1.4rem]';
-  let roomSize = shouldBeSmaller && status === 'past' ? 'text-[0.8rem]' : 'text-[1rem]';
+  // A/V Support icon size based on card size
+  const avIconSize = shouldBeSmaller && status === 'past' ? 20 : 24;
   return <div className={cardClasses}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
@@ -112,12 +119,13 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           <p className={`${timeSize} mt-1 dark:text-gray-200`}>
             {meeting.startTime}
           </p>
-          <p className={`${roomSize} text-gray-500 dark:text-gray-400 mt-1`}>
-            {meeting.room}
-          </p>
         </div>
         <div className="ml-4 mt-1">{iconComponent}</div>
       </div>
+      {/* A/V Support Icon */}
+      {meeting.avSupport && !isAvailable && <div className="absolute bottom-2 right-2">
+          <AVSupportIcon size={avIconSize} className={`text-blue-500 dark:text-blue-400 ${status === 'past' ? 'opacity-70' : ''}`} />
+        </div>}
     </div>;
 };
 export default SimplifiedMeetingCard;

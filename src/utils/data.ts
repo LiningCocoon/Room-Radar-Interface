@@ -4,6 +4,7 @@ export interface Meeting {
   endTime: string;
   room: string;
   status?: 'active' | 'upcoming' | 'past' | 'available';
+  avSupport?: boolean;
 }
 export const getMeetingData = (): Meeting[] => {
   return [
@@ -19,7 +20,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '7:15AM',
     endTime: '8:00AM',
     room: 'Executive',
-    status: 'active'
+    status: 'active',
+    avSupport: true // AV Support needed
   }, {
     name: 'Remote Team Sync',
     startTime: '7:00AM',
@@ -55,7 +57,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '9:00AM',
     endTime: '9:45AM',
     room: 'FDR',
-    status: 'active'
+    status: 'active',
+    avSupport: true // AV Support needed
   }, {
     name: 'Vendor Call',
     startTime: '9:15AM',
@@ -103,7 +106,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '12:00PM',
     endTime: '2:00PM',
     room: 'Executive',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // AV Support needed
   }, {
     name: 'User Research',
     startTime: '12:15PM',
@@ -124,7 +128,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '2:30PM',
     endTime: '3:30PM',
     room: 'Breakout 1',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // AV Support needed
   }, {
     name: 'Incident Review',
     startTime: '2:45PM',
@@ -171,7 +176,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '5:30PM',
     endTime: '6:00PM',
     room: 'Executive',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // AV Support needed
   },
   // New examples of multiple meetings in the same hour
   // Example 1: Multiple meetings in the 10AM slot for FDR room

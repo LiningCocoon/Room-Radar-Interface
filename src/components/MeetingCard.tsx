@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import { ClockIcon, CheckIcon, DoorOpenIcon, CalendarClockIcon } from 'lucide-react';
+import AVSupportIcon from './AVSupportIcon';
 interface Meeting {
   name: string;
   startTime: string;
   endTime: string;
   room: string;
   status?: 'active' | 'upcoming' | 'past' | 'available';
+  avSupport?: boolean;
 }
 interface MeetingCardProps {
   meeting: Meeting;
@@ -70,6 +72,10 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   } else {
     cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0'; // reduced padding by 20%
   }
+  // Apply opacity to all past items
+  if (status === 'past') {
+    cardClasses += ' opacity-50';
+  }
   let textColorClass = 'text-black dark:text-white';
   let iconComponent = null;
   // Apply specific styles based on status
@@ -90,7 +96,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   } else if (status === 'past') {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     textColorClass = 'text-gray-500 dark:text-gray-400';
-    iconComponent = null; // Removed CheckIcon from past meetings
+    iconComponent = null;
   } else {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     textColorClass = 'text-black dark:text-white';
@@ -101,7 +107,9 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
     // Remove the gold color styling - use standard text color
     textColorClass = 'text-black dark:text-white';
   }
-  return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 ${status === 'past' ? 'opacity-50' : ''}`}>
+  // A/V Support icon size based on condensed state
+  const avIconSize = isCondensed ? 16 : 20;
+  return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className={`${isCondensed ? 'text-[1.0125rem]' : 'text-[1.35rem]'} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
@@ -110,14 +118,15 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
           <p className={`${isCondensed ? 'text-[0.7875rem]' : 'text-[1.125rem]'} mt-1 dark:text-gray-200`}>
             {meeting.startTime}
           </p>
-          {!isCondensed && <p className="text-[0.7875rem] text-gray-500 dark:text-gray-400 mt-1">
-              {meeting.room}
-            </p>}
         </div>
         <div className={`${isCondensed ? 'ml-2' : 'ml-4'} mt-1`}>
           {iconComponent}
         </div>
       </div>
+      {/* A/V Support Icon */}
+      {meeting.avSupport && !isAvailable && <div className="absolute bottom-1 right-1">
+          <AVSupportIcon size={avIconSize} className={`text-blue-500 dark:text-blue-400 ${status === 'past' ? 'opacity-70' : ''}`} />
+        </div>}
     </div>;
 };
 export default MeetingCard;

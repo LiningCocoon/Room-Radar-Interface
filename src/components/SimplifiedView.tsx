@@ -4,6 +4,7 @@ import { ArrowRightIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
 import SimplifiedTimeSlot from './SimplifiedTimeSlot';
 import SimplifiedMeetingCard from './SimplifiedMeetingCard';
+import { isOldMeeting, parseTime, timeToMinutes } from '../utils/timeUtils';
 interface SimplifiedViewProps {
   currentTime: Date;
 }
@@ -12,12 +13,25 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
 }) => {
   // Ensure rooms are in the specified order
   const rooms = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
-  const timeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '12:00PM', '2:00PM', '3:00PM', '5:00PM'];
-  const meetingData = getMeetingData();
+  const allTimeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '12:00PM', '2:00PM', '3:00PM', '5:00PM'];
+  // Check if a time slot should be shown (not more than 2 hours in the past)
+  const shouldShowTimeSlot = (timeSlot: string) => {
+    const slotTime = parseTime(timeSlot);
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+    const slotTimeInMinutes = slotTime.hours * 60 + slotTime.minutes;
+    // Show time slot if it's less than 2 hours in the past
+    return currentTimeInMinutes - slotTimeInMinutes < 120;
+  };
+  // Filter time slots to only show recent/current/future ones
+  const visibleTimeSlots = allTimeSlots.filter(shouldShowTimeSlot);
+  // Filter out old meetings (more than 2 hours old)
+  const recentMeetings = getMeetingData().filter(meeting => !isOldMeeting(meeting, currentTime));
   // Function to get the first meeting for a room at a specific time slot
   const getFirstMeetingForRoomAndTime = (room: string, timeSlot: string) => {
     const timeHour = timeSlot.split(':')[0];
-    const meetings = meetingData.filter(meeting => meeting.room === room && meeting.startTime.split(':')[0] === timeHour);
+    const meetings = recentMeetings.filter(meeting => meeting.room === room && meeting.startTime.split(':')[0] === timeHour);
     // Return the first meeting or create an "Available" placeholder
     return meetings.length > 0 ? meetings[0] : {
       name: 'Available',
@@ -42,9 +56,9 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         </div>
       </div>
 
-      {/* Meeting Grid */}
+      {/* Meeting Grid - Only show visible time slots */}
       <div className="space-y-0 flex-1">
-        {timeSlots.map((timeSlot, index) => {
+        {visibleTimeSlots.map((timeSlot, index) => {
         // Determine background color based on index (even/odd)
         const rowBgColor = index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800';
         return <div key={timeSlot} className={`${rowBgColor} w-full py-2`}>

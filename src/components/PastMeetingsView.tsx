@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon, CheckIcon, ClockIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
+import { isOldMeeting, parseTime } from '../utils/timeUtils';
 interface PastMeetingsViewProps {
   currentTime: Date;
 }
@@ -9,29 +10,8 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
   currentTime
 }) => {
   const meetingData = getMeetingData();
-  // Parse time from meeting
-  const parseTime = (timeStr: string) => {
-    const [time, period] = timeStr.split(/(?=[AP]M)/);
-    const [hours, minutes] = time.split(':').map(num => parseInt(num));
-    const isPM = period === 'PM' && hours !== 12;
-    return {
-      hours: isPM ? hours + 12 : hours === 12 && period === 'AM' ? 0 : hours,
-      minutes: minutes || 0
-    };
-  };
-  // Calculate if a meeting is past (more than 2 hours ago)
-  const isPastMeeting = (meeting: any) => {
-    const startTime = parseTime(meeting.startTime);
-    const currentHour = currentTime.getHours();
-    const currentMinute = currentTime.getMinutes();
-    // Convert times to minutes for easier comparison
-    const currentTimeInMinutes = currentHour * 60 + currentMinute;
-    const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
-    // Meeting is past if it started more than 2 hours ago
-    return currentTimeInMinutes - startTimeInMinutes >= 120;
-  };
   // Filter past meetings (more than 2 hours old)
-  const pastMeetings = meetingData.filter(meeting => meeting.name !== 'Available' && isPastMeeting(meeting)).sort((a, b) => {
+  const pastMeetings = meetingData.filter(meeting => meeting.name !== 'Available' && isOldMeeting(meeting, currentTime)).sort((a, b) => {
     // Sort by most recent first
     const aTime = parseTime(a.startTime);
     const bTime = parseTime(b.startTime);

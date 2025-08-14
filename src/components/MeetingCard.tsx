@@ -38,10 +38,16 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   const currentTimeInMinutes = currentHour * 60 + currentMinute;
   const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
   const endTimeInMinutes = endTime ? endTime.hours * 60 + endTime.minutes : startTimeInMinutes + 60;
-  // Determine status based on current time, ignoring any hardcoded status
+  // Determine status based on current time, with special handling for Available slots
   let status = 'upcoming';
   if (isAvailable) {
-    status = 'available';
+    // For Available slots, check if this time slot is in the past
+    if (currentTimeInMinutes > startTimeInMinutes + 60) {
+      // Past the end of this hour slot
+      status = 'past';
+    } else {
+      status = 'available';
+    }
   } else if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
     // Meeting is currently happening
     status = 'active';
@@ -60,6 +66,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   const isCondensed = condensed && !isEarlyMorning && !isLateEvening && status !== 'active';
   // Base card styling - reduced padding by 20%
   let cardClasses = 'rounded-lg border text-left transition-all duration-300';
+  // Apply styling based on status
   if (isAvailable) {
     if (status === 'past') {
       // Past available slots should match other past events
@@ -68,34 +75,34 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
       // Future available slots: subtle green
       cardClasses += ' border-dashed border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 opacity-75';
     }
-    cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0';
+  } else if (status === 'active') {
+    cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
+  } else if (status === 'past') {
+    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   } else {
-    cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0'; // reduced padding by 20%
+    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   }
-  // Apply opacity to all past items is now moved to the final return div
+  cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0';
+  // Apply text color and icon based on status
   let textColorClass = 'text-black dark:text-white';
   let iconComponent = null;
-  // Apply specific styles based on status
   if (isAvailable) {
     if (status === 'past') {
       // Past available slots should have gray text and icon
       textColorClass = 'text-gray-500 dark:text-gray-400';
-      iconComponent = null;
+      iconComponent = <CheckIcon className={isCondensed ? 'h-4.5 w-4.5 text-gray-500 dark:text-gray-400' : 'h-7.5 w-7.5 text-gray-500 dark:text-gray-400'} />;
     } else {
       // Future available slots with subtle green styling
       textColorClass = 'text-green-700 dark:text-green-400';
       iconComponent = <DoorOpenIcon className={isCondensed ? 'h-4.5 w-4.5 text-green-600 dark:text-green-400' : 'h-7.5 w-7.5 text-green-600 dark:text-green-400'} />;
     }
   } else if (status === 'active') {
-    cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
     textColorClass = 'text-[#005ea2] dark:text-[#4d9eff] font-extrabold';
     iconComponent = <ClockIcon className={isCondensed ? 'h-4.5 w-4.5 text-[#005ea2] dark:text-[#4d9eff]' : 'h-7.5 w-7.5 text-[#005ea2] dark:text-[#4d9eff]'} />;
   } else if (status === 'past') {
-    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     textColorClass = 'text-gray-500 dark:text-gray-400';
     iconComponent = null;
   } else {
-    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     textColorClass = 'text-black dark:text-white';
     iconComponent = <CalendarClockIcon className={isCondensed ? 'h-4.5 w-4.5 text-black dark:text-white' : 'h-7.5 w-7.5 text-black dark:text-white'} />;
   }

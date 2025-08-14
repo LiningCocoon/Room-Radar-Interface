@@ -42,10 +42,16 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const isMorningMeeting = startTime.hours < 12;
   // Determine if this meeting should be smaller based on time of day
   const shouldBeSmaller = isPastNoon && isMorningMeeting && !isAvailable;
-  // Determine status based on current time
+  // Determine status based on current time with special handling for Available slots
   let status = 'upcoming';
   if (isAvailable) {
-    status = 'available';
+    // For Available slots, check if this time slot is in the past
+    if (currentTimeInMinutes > startTimeInMinutes + 60) {
+      // Past the end of this hour slot
+      status = 'past';
+    } else {
+      status = 'available';
+    }
   } else if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
     status = 'active';
   } else if (currentTimeInMinutes >= endTimeInMinutes) {
@@ -63,6 +69,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     // Regular meetings: more horizontal breathing room
     cardClasses += ' px-[1.2rem] py-[0.9rem]';
   }
+  // Apply styling based on status
   if (isAvailable) {
     if (status === 'past') {
       // Past available slots: gray and muted
@@ -78,15 +85,14 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   } else {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   }
-  // Apply opacity to all past items is now moved to the final return div
+  // Apply text color and icon based on status
   let textColorClass = 'text-black dark:text-white';
   let iconComponent = null;
-  // Apply specific styles based on status
   if (isAvailable) {
     if (status === 'past') {
       // Past available slots: gray and muted
       textColorClass = 'text-gray-500 dark:text-gray-400';
-      iconComponent = null;
+      iconComponent = <CheckIcon className="h-7.5 w-7.5 text-gray-500 dark:text-gray-400" />;
     } else {
       // Future available slots: subtle green
       textColorClass = 'text-green-700 dark:text-green-400';

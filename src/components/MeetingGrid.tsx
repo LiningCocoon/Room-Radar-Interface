@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRightIcon } from 'lucide-react';
 import TimeSlot from './TimeSlot';
 import MeetingCard from './MeetingCard';
 import { getMeetingData } from '../utils/data';
@@ -8,8 +10,9 @@ interface MeetingGridProps {
 const MeetingGrid: React.FC<MeetingGridProps> = ({
   currentTime
 }) => {
+  // Ensure rooms are in the specified order
   const rooms = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
-  const timeSlots = ['8:00AM', '9:00AM', '10:00AM', '12:00PM', '2:00PM', '3:00PM', '5:00PM'];
+  const timeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '12:00PM', '2:00PM', '3:00PM', '5:00PM'];
   const meetingData = getMeetingData();
   const currentHour = currentTime.getHours();
   // Determine if a time slot should be condensed
@@ -30,34 +33,49 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
     // If 2 or fewer meetings in this slot, condense it
     return meetingsInSlot.length <= 2;
   };
-  return <div className="flex-1 p-4 overflow-auto">
-      {/* Room Headers */}
-      <div className="grid grid-cols-5 gap-4 mb-4 sticky top-0 bg-white z-10">
-        <div className="col-span-1"></div>
-        {rooms.map(room => <div key={room} className="col-span-1">
-            <h2 className="text-3xl font-bold text-center py-4">{room}</h2>
-          </div>)}
+  return <div className="flex-1 p-2 overflow-auto flex flex-col">
+      {/* Room headers are now in the Header component */}
+      <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 pb-1">
+        <div className="grid grid-cols-5 gap-2">
+          <div className="col-span-1"></div>
+          {/* Room headers removed from here and moved to Header.tsx */}
+        </div>
       </div>
       {/* Meeting Grid */}
-      <div className="space-y-2">
-        {timeSlots.map(timeSlot => {
+      <div className="space-y-0 flex-1">
+        {timeSlots.map((timeSlot, index) => {
         const condensed = isCondensedTimeSlot(timeSlot);
-        return <div key={timeSlot} className={`grid grid-cols-5 gap-4 ${condensed ? 'mb-2' : 'mb-6'}`}>
-              <TimeSlot time={timeSlot} currentTime={currentTime} condensed={condensed} />
-              {rooms.map(room => {
-            const meetings = meetingData.filter(meeting => meeting.room === room && meeting.startTime.split(':')[0] === timeSlot.split(':')[0]);
-            return <div key={`${room}-${timeSlot}`} className="col-span-1">
-                    {meetings.length > 0 ? meetings.map(meeting => <MeetingCard key={`${meeting.name}-${meeting.startTime}`} meeting={meeting} currentTime={currentTime} condensed={condensed} />) : <MeetingCard meeting={{
-                name: 'Available',
-                startTime: timeSlot,
-                endTime: '',
-                room: room,
-                status: 'available'
-              }} currentTime={currentTime} condensed={condensed} />}
-                  </div>;
-          })}
+        // Determine background color based on index (even/odd)
+        const rowBgColor = index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800';
+        return <div key={timeSlot} className={`${rowBgColor} w-full ${condensed ? 'py-1' : 'py-2'}`}>
+              <div className="grid grid-cols-5 gap-4">
+                <TimeSlot time={timeSlot} currentTime={currentTime} condensed={condensed} />
+                {rooms.map(room => {
+              const meetings = meetingData.filter(meeting => meeting.room === room && meeting.startTime.split(':')[0] === timeSlot.split(':')[0]);
+              return <div key={`${room}-${timeSlot}`} className="col-span-1">
+                      {meetings.length > 0 ? meetings.map(meeting => <MeetingCard key={`${meeting.name}-${meeting.startTime}`} meeting={meeting} currentTime={currentTime} condensed={condensed} />) : <MeetingCard meeting={{
+                  name: 'Available',
+                  startTime: timeSlot,
+                  endTime: '',
+                  room: room,
+                  status: 'available'
+                }} currentTime={currentTime} condensed={condensed} />}
+                    </div>;
+            })}
+              </div>
             </div>;
       })}
+      </div>
+      {/* View Buttons */}
+      <div className="mt-4 mb-2 flex justify-center gap-4">
+        <Link to="/alternative" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
+          <span>Try alternative view</span>
+          <ArrowRightIcon size={16} />
+        </Link>
+        <Link to="/simplified" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
+          <span>Try simplified view</span>
+          <ArrowRightIcon size={16} />
+        </Link>
       </div>
     </div>;
 };

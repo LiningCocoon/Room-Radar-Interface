@@ -7,6 +7,26 @@ export interface Meeting {
 }
 export const getMeetingData = (): Meeting[] => {
   return [
+  // 7:00 AM (New time slot)
+  {
+    name: 'Early Planning',
+    startTime: '7:00AM',
+    endTime: '7:45AM',
+    room: 'FDR',
+    status: 'active'
+  }, {
+    name: 'Executive Breakfast',
+    startTime: '7:15AM',
+    endTime: '8:00AM',
+    room: 'Executive',
+    status: 'active'
+  }, {
+    name: 'Remote Team Sync',
+    startTime: '7:00AM',
+    endTime: '7:30AM',
+    room: 'Breakout 1',
+    status: 'active'
+  },
   // 8:00 AM
   {
     name: 'Ops Kickoff',

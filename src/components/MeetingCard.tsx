@@ -50,64 +50,69 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
     // Meeting hasn't started yet
     status = 'upcoming';
   }
-  // Check if this is an after-hours meeting (6PM or later or before 9AM)
-  const isAfterHours = startTime.hours >= 18 || startTime.hours < 9; // 6PM or later, or before 9AM
-  // Never condense active meetings or after-hours meetings
-  const isCondensed = condensed && !isAfterHours && status !== 'active';
-  // Base card styling
+  // Check if this is an early morning meeting (before 9AM)
+  const isEarlyMorning = startTime.hours < 9;
+  // Check if this is a late evening meeting (6PM or later)
+  const isLateEvening = startTime.hours >= 18;
+  // Never condense active meetings or early/late meetings
+  const isCondensed = condensed && !isEarlyMorning && !isLateEvening && status !== 'active';
+  // Base card styling - reduced padding by 20%
   let cardClasses = 'rounded-lg border text-left transition-all duration-300';
   if (isAvailable) {
     if (status === 'past') {
       // Past available slots should match other past events
-      cardClasses += ' border-gray-300 bg-white';
+      cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     } else {
       // Future available slots keep the green styling
-      cardClasses += ' border-dashed border-[#00a91c] bg-[#f0fff4]';
+      cardClasses += ' border-dashed border-[#00a91c] bg-[#f0fff4] dark:bg-[#0a2e18] dark:border-[#2c9d42]';
     }
-    cardClasses += isCondensed ? ' p-2' : ' p-4';
+    cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0';
   } else {
-    cardClasses += isCondensed ? ' p-2' : ' p-4'; // consistent padding for all cards
+    cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0'; // reduced padding by 20%
   }
-  let textColorClass = 'text-black';
+  let textColorClass = 'text-black dark:text-white';
   let iconComponent = null;
   // Apply specific styles based on status
   if (isAvailable) {
     if (status === 'past') {
       // Past available slots should have gray text and icon
-      textColorClass = 'text-gray-500';
-      iconComponent = <CheckIcon className={isCondensed ? 'h-4 w-4 text-gray-500' : 'h-7 w-7 text-gray-500'} />;
+      textColorClass = 'text-gray-500 dark:text-gray-400';
+      iconComponent = <CheckIcon className={isCondensed ? 'h-4.5 w-4.5 text-gray-500 dark:text-gray-400' : 'h-7.5 w-7.5 text-gray-500 dark:text-gray-400'} />;
     } else {
       // Future available slots keep the green styling
-      textColorClass = 'text-[#00a91c]';
-      iconComponent = <DoorOpenIcon className={isCondensed ? 'h-4 w-4 text-[#00a91c]' : 'h-7 w-7 text-[#00a91c]'} />;
+      textColorClass = 'text-[#00a91c] dark:text-[#2c9d42]';
+      iconComponent = <DoorOpenIcon className={isCondensed ? 'h-4.5 w-4.5 text-[#00a91c] dark:text-[#2c9d42]' : 'h-7.5 w-7.5 text-[#00a91c] dark:text-[#2c9d42]'} />;
     }
   } else if (status === 'active') {
-    cardClasses += ' border-[#005ea2] bg-[#e6f3ff] shadow-lg border-2';
-    textColorClass = 'text-[#005ea2] font-extrabold';
-    iconComponent = <ClockIcon className={isCondensed ? 'h-4 w-4 text-[#005ea2]' : 'h-7 w-7 text-[#005ea2]'} />;
+    cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
+    textColorClass = 'text-[#005ea2] dark:text-[#4d9eff] font-extrabold';
+    iconComponent = <ClockIcon className={isCondensed ? 'h-4.5 w-4.5 text-[#005ea2] dark:text-[#4d9eff]' : 'h-7.5 w-7.5 text-[#005ea2] dark:text-[#4d9eff]'} />;
   } else if (status === 'past') {
-    cardClasses += ' border-gray-300 bg-white';
-    textColorClass = 'text-gray-500';
-    iconComponent = <CheckIcon className={isCondensed ? 'h-4 w-4 text-gray-500' : 'h-7 w-7 text-gray-500'} />;
+    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
+    textColorClass = 'text-gray-500 dark:text-gray-400';
+    iconComponent = <CheckIcon className={isCondensed ? 'h-4.5 w-4.5 text-gray-500 dark:text-gray-400' : 'h-7.5 w-7.5 text-gray-500 dark:text-gray-400'} />;
   } else {
-    cardClasses += ' border-gray-300 bg-white';
-    textColorClass = 'text-black';
-    iconComponent = <CalendarClockIcon className={isCondensed ? 'h-4 w-4 text-black' : 'h-7 w-7 text-black'} />;
+    cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
+    textColorClass = 'text-black dark:text-white';
+    iconComponent = <CalendarClockIcon className={isCondensed ? 'h-4.5 w-4.5 text-black dark:text-white' : 'h-7.5 w-7.5 text-black dark:text-white'} />;
   }
-  // Highlight after-hours meetings
-  if (isAfterHours && !isAvailable && status !== 'past') {
-    cardClasses += ' border-orange-400';
+  // Add a subtle indicator for early/late meetings without changing the card styling
+  if ((isEarlyMorning || isLateEvening) && !isAvailable && status !== 'past' && status !== 'active') {
+    // Remove the gold color styling - use standard text color
+    textColorClass = 'text-black dark:text-white';
   }
-  return <div className={`${cardClasses} mb-2 ${status === 'past' ? 'opacity-50' : ''}`}>
+  return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 ${status === 'past' ? 'opacity-50' : ''}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h3 className={`${isCondensed ? 'text-lg' : 'text-2xl'} font-bold ${textColorClass}`}>
+          <h3 className={`${isCondensed ? 'text-[1.0125rem]' : 'text-[1.35rem]'} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
             {meeting.name}
           </h3>
-          <p className={`${isCondensed ? 'text-sm' : 'text-xl'} mt-1`}>
+          <p className={`${isCondensed ? 'text-[0.7875rem]' : 'text-[1.125rem]'} mt-1 dark:text-gray-200`}>
             {meeting.startTime}
           </p>
-          {!isCondensed && <p className="text-sm text-gray-500 mt-1">{meeting.room}</p>}
+          {!isCondensed && <p className="text-[0.7875rem] text-gray-500 dark:text-gray-400 mt-1">
+              {meeting.room}
+            </p>}
         </div>
         <div className={`${isCondensed ? 'ml-2' : 'ml-4'} mt-1`}>
           {iconComponent}

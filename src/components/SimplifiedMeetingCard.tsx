@@ -78,10 +78,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   } else {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   }
-  // Apply opacity to all past items
-  if (status === 'past') {
-    cardClasses += ' opacity-50';
-  }
+  // Apply opacity to all past items is now moved to the final return div
   let textColorClass = 'text-black dark:text-white';
   let iconComponent = null;
   // Apply specific styles based on status
@@ -105,12 +102,18 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     textColorClass = 'text-black dark:text-white';
     iconComponent = <CalendarClockIcon className="h-7.5 w-7.5 text-black dark:text-white" />;
   }
+  // Get AV icon color based on status
+  const getAvIconColor = () => {
+    if (status === 'active') return 'text-[#005ea2] dark:text-[#4d9eff]';
+    if (status === 'past') return 'text-gray-500 dark:text-gray-400';
+    return 'text-black dark:text-white'; // upcoming
+  };
   // Adjust text sizes based on time of day
   let titleSize = shouldBeSmaller && status === 'past' ? 'text-[1.5rem]' : 'text-[2rem]';
   let timeSize = shouldBeSmaller && status === 'past' ? 'text-[1.1rem]' : 'text-[1.4rem]';
   // A/V Support icon size based on card size
   const avIconSize = shouldBeSmaller && status === 'past' ? 20 : 24;
-  return <div className={cardClasses}>
+  return <div className={`${cardClasses} ${status === 'past' ? 'opacity-50' : ''}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className={`${titleSize} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
@@ -124,7 +127,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
       </div>
       {/* A/V Support Icon */}
       {meeting.avSupport && !isAvailable && <div className="absolute bottom-2 right-2">
-          <AVSupportIcon size={avIconSize} className={`text-blue-500 dark:text-blue-400 ${status === 'past' ? 'opacity-70' : ''}`} />
+          <AVSupportIcon size={avIconSize} className={`${getAvIconColor()}`} />
         </div>}
     </div>;
 };

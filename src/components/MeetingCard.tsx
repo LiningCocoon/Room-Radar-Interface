@@ -72,10 +72,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   } else {
     cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0'; // reduced padding by 20%
   }
-  // Apply opacity to all past items
-  if (status === 'past') {
-    cardClasses += ' opacity-50';
-  }
+  // Apply opacity to all past items is now moved to the final return div
   let textColorClass = 'text-black dark:text-white';
   let iconComponent = null;
   // Apply specific styles based on status
@@ -107,9 +104,15 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
     // Remove the gold color styling - use standard text color
     textColorClass = 'text-black dark:text-white';
   }
+  // Get AV icon color based on status
+  const getAvIconColor = () => {
+    if (status === 'active') return 'text-[#005ea2] dark:text-[#4d9eff]';
+    if (status === 'past') return 'text-gray-500 dark:text-gray-400';
+    return 'text-black dark:text-white'; // upcoming
+  };
   // A/V Support icon size based on condensed state
   const avIconSize = isCondensed ? 16 : 20;
-  return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative`}>
+  return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative ${status === 'past' ? 'opacity-50' : ''}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className={`${isCondensed ? 'text-[1.0125rem]' : 'text-[1.35rem]'} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
@@ -125,7 +128,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
       </div>
       {/* A/V Support Icon */}
       {meeting.avSupport && !isAvailable && <div className="absolute bottom-1 right-1">
-          <AVSupportIcon size={avIconSize} className={`text-blue-500 dark:text-blue-400 ${status === 'past' ? 'opacity-70' : ''}`} />
+          <AVSupportIcon size={avIconSize} className={`${getAvIconColor()}`} />
         </div>}
     </div>;
 };

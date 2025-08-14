@@ -12,9 +12,10 @@ const AVSupportIcon: React.FC<AVSupportIconProps> = ({
   // when accounting for the 8px of total padding (4px on each side)
   const innerSize = typeof size === 'number' ? size - 8 : size;
   return <div className="p-1" style={{
-    display: 'inline-flex'
+    display: 'inline-flex',
+    borderRadius: '50%'
   }}>
-      <PresentationIcon size={innerSize} className={className} />
+      <PresentationIcon size={innerSize} className={className} aria-label="Audio/Visual Support Required" />
     </div>;
 };
 export default AVSupportIcon;

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ClockIcon, CheckIcon, DoorOpenIcon, CalendarClockIcon } from 'lucide-react';
+import { ClockIcon, DoorOpenIcon, CalendarClockIcon } from 'lucide-react';
 import AVSupportIcon from './AVSupportIcon';
 interface Meeting {
   name: string;
@@ -88,9 +88,9 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   let iconComponent = null;
   if (isAvailable) {
     if (status === 'past') {
-      // Past available slots should have gray text and icon
+      // Past available slots should have gray text but NO icon
       textColorClass = 'text-gray-500 dark:text-gray-400';
-      iconComponent = <CheckIcon className={isCondensed ? 'h-4.5 w-4.5 text-gray-500 dark:text-gray-400' : 'h-7.5 w-7.5 text-gray-500 dark:text-gray-400'} />;
+      // No icon for past available slots
     } else {
       // Future available slots with subtle green styling
       textColorClass = 'text-green-700 dark:text-green-400';
@@ -129,7 +129,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
             {meeting.startTime}
           </p>
         </div>
-        <div className={`${isCondensed ? 'ml-2' : 'ml-4'} mt-1`}>
+        <div className={`${isCondensed ? 'ml-2' : 'ml-4'} flex items-center justify-center h-full`}>
           {iconComponent}
         </div>
       </div>

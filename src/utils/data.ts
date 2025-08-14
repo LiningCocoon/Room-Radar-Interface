@@ -27,7 +27,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '7:00AM',
     endTime: '7:30AM',
     room: 'Breakout 1',
-    status: 'active'
+    status: 'active',
+    avSupport: true // Added AV Support - same time slot as Executive Breakfast
   },
   // 8:00 AM
   {
@@ -64,7 +65,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '9:15AM',
     endTime: '10:00AM',
     room: 'Executive',
-    status: 'active'
+    status: 'active',
+    avSupport: true // Added AV Support - same time slot as Standup & Priorities
   }, {
     name: 'Hiring Panel',
     startTime: '9:30AM',
@@ -94,7 +96,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '12:00PM',
     endTime: '1:00PM',
     room: 'FDR',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // Added AV Support - same time slot as Quarterly Planning
   }, {
     name: 'Budget Review',
     startTime: '12:30PM',
@@ -143,7 +146,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '3:00PM',
     endTime: '3:30PM',
     room: 'FDR',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // Added AV Support - same time slot as Leadership Sync
   }, {
     name: 'Sales Call',
     startTime: '3:30PM',
@@ -170,7 +174,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '5:00PM',
     endTime: '6:00PM',
     room: 'Breakout 1',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // Added AV Support - same time slot as EOD Sync
   }, {
     name: 'EOD Sync',
     startTime: '5:30PM',
@@ -186,7 +191,8 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '10:00AM',
     endTime: '10:30AM',
     room: 'FDR',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // Added AV Support
   }, {
     name: 'Product Demo',
     startTime: '10:40AM',
@@ -200,12 +206,14 @@ export const getMeetingData = (): Meeting[] => {
     startTime: '3:00PM',
     endTime: '3:25PM',
     room: 'Executive',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // Added AV Support
   }, {
     name: 'Leadership Sync',
     startTime: '3:30PM',
     endTime: '4:15PM',
     room: 'Executive',
-    status: 'upcoming'
+    status: 'upcoming',
+    avSupport: true // AV Support needed
   }];
 };

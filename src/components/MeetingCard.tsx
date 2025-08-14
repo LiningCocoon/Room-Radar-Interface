@@ -63,8 +63,8 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
       // Past available slots should match other past events
       cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     } else {
-      // Future available slots keep the green styling
-      cardClasses += ' border-dashed border-[#00a91c] bg-[#f0fff4] dark:bg-[#0a2e18] dark:border-[#2c9d42]';
+      // Future available slots: subtle green
+      cardClasses += ' border-dashed border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 opacity-75';
     }
     cardClasses += isCondensed ? ' p-[0.54rem] ml-0' : ' p-[0.9rem] ml-0';
   } else {
@@ -77,11 +77,11 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
     if (status === 'past') {
       // Past available slots should have gray text and icon
       textColorClass = 'text-gray-500 dark:text-gray-400';
-      iconComponent = <CheckIcon className={isCondensed ? 'h-4.5 w-4.5 text-gray-500 dark:text-gray-400' : 'h-7.5 w-7.5 text-gray-500 dark:text-gray-400'} />;
+      iconComponent = null;
     } else {
-      // Future available slots keep the green styling
-      textColorClass = 'text-[#00a91c] dark:text-[#2c9d42]';
-      iconComponent = <DoorOpenIcon className={isCondensed ? 'h-4.5 w-4.5 text-[#00a91c] dark:text-[#2c9d42]' : 'h-7.5 w-7.5 text-[#00a91c] dark:text-[#2c9d42]'} />;
+      // Future available slots with subtle green styling
+      textColorClass = 'text-green-700 dark:text-green-400';
+      iconComponent = <DoorOpenIcon className={isCondensed ? 'h-4.5 w-4.5 text-green-600 dark:text-green-400' : 'h-7.5 w-7.5 text-green-600 dark:text-green-400'} />;
     }
   } else if (status === 'active') {
     cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
@@ -90,7 +90,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   } else if (status === 'past') {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     textColorClass = 'text-gray-500 dark:text-gray-400';
-    iconComponent = <CheckIcon className={isCondensed ? 'h-4.5 w-4.5 text-gray-500 dark:text-gray-400' : 'h-7.5 w-7.5 text-gray-500 dark:text-gray-400'} />;
+    iconComponent = null; // Removed CheckIcon from past meetings
   } else {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
     textColorClass = 'text-black dark:text-white';

@@ -9,18 +9,11 @@ export const ThemeProvider: React.FC<{
 }> = ({
   children
 }) => {
-  // Initialize with system preference, but don't try to use localStorage
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Start with light mode
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
   useEffect(() => {
-    // Apply dark mode class to html element
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {

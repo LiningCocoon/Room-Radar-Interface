@@ -9,13 +9,9 @@ export const ThemeProvider: React.FC<{
 }> = ({
   children
 }) => {
-  // Check if user has a saved preference or use system preference as default
+  // Initialize with system preference, but don't try to use localStorage
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        return savedTheme === 'dark';
-      }
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
@@ -27,10 +23,8 @@ export const ThemeProvider: React.FC<{
     // Apply dark mode class to html element
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
   return <ThemeContext.Provider value={{

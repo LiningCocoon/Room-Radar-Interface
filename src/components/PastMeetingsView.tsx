@@ -112,14 +112,9 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
           Showing meetings that ended 2+ hours ago
         </div>
       </div>
-      {/* Navigation Buttons - Fixed link for mobile using useIsMobile hook */}
+      {/* Navigation Buttons - Fixed to use consistent routing on mobile and desktop */}
       <div className="mt-auto mb-2 flex justify-center">
-        <Link to={window.innerWidth < 768 ? '/alternative' : '/simplified'} className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-3 py-3 px-5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold" onClick={e => {
-        // Force the link to respect the current viewport width
-        e.preventDefault();
-        const isMobile = window.innerWidth < 768;
-        window.location.href = isMobile ? '/alternative' : '/simplified';
-      }}>
+        <Link to={window.innerWidth < 768 ? '/alternative' : '/simplified'} className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-3 py-3 px-5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold">
           <ArrowLeftIcon size={24} />
           <span className="md:inline hidden">Back to simplified view</span>
           <span className="md:hidden inline">Back to dashboard</span>

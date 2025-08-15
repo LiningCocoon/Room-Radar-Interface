@@ -468,7 +468,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                         </div>
                       </div> : nextInRoom ? <div>
                         <div className="text-xl font-medium mt-2 text-green-700 dark:text-green-400">
-                          Available
+                          Available now
                         </div>
                         <div className="text-lg text-gray-600 dark:text-gray-300">
                           Next: {nextInRoom.startTime}
@@ -533,7 +533,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
           <ArrowLeftIcon size={20} />
           <span>Simplified view</span>
         </Link>
-        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold">
+        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
           <span>Past meetings</span>
           <ArrowRightIcon size={20} />
         </Link>

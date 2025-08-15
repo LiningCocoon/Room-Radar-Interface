@@ -29,10 +29,10 @@ const Header: React.FC<HeaderProps> = ({
   // Room headers
   const rooms = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
   return <div className="w-full sticky top-0 z-[10000]">
-      <div className="bg-[#1a2235] dark:bg-gray-800 text-white py-4 px-5 relative">
+      <div className="bg-[#1a2235] dark:bg-gray-800 text-white py-3 px-5 relative">
         {/* Desktop layout */}
         <div className="hidden sm:flex sm:flex-row sm:items-center relative">
-          <div className="text-3xl font-bold">{formattedTime}</div>
+          <div className="text-2xl font-bold">{formattedTime}</div>
           <div className="text-2xl font-bold absolute left-1/2 transform -translate-x-1/2">
             {formattedDate}
           </div>
@@ -40,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({
             <button onClick={toggleDarkMode} className="p-1 rounded-full hover:bg-[#004b81] dark:hover:bg-gray-700 transition-colors mr-2" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
               {isDarkMode ? <SunIcon className="h-6 w-6 text-yellow-300" /> : <MoonIcon className="h-6 w-6 text-white" />}
             </button>
-            <h1 className="text-xl font-bold text-white">ROOM RADAR</h1>
+            <h1 className="text-2xl font-bold text-white">ROOM RADAR</h1>
           </div>
         </div>
         {/* Mobile layout - with 25% smaller text */}
@@ -68,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({
       margin: '0px',
       height: '0px',
       overflow: 'hidden',
-      padding: '0px'
+      padding: '0 0 0 0'
     }}></div>}
     </div>;
 };

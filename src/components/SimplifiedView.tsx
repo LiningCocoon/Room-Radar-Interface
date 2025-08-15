@@ -147,7 +147,7 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           <span>Try alternative view</span>
           <ArrowRightIcon size={16} />
         </Link>
-        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
+        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
           <span>Past meetings</span>
           <ArrowRightIcon size={16} />
         </Link>

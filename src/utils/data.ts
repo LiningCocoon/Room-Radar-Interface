@@ -12,14 +12,14 @@ export const getMeetingData = (): Meeting[] => {
   // 7:00 AM (New time slot)
   {
     name: 'Early Planning',
-    startTime: '7:00AM',
-    endTime: '7:45AM',
+    startTime: '07:00',
+    endTime: '07:45',
     room: 'JFK',
     status: 'active'
   }, {
     name: 'Executive Breakfast',
-    startTime: '7:15AM',
-    endTime: '8:00AM',
+    startTime: '07:15',
+    endTime: '08:00',
     room: 'Executive',
     status: 'active',
     avSupport: true,
@@ -30,8 +30,8 @@ export const getMeetingData = (): Meeting[] => {
   // 8:00 AM
   {
     name: 'Ops Kickoff',
-    startTime: '8:00AM',
-    endTime: '8:45AM',
+    startTime: '08:00',
+    endTime: '08:45',
     room: 'JFK',
     status: 'past'
   },
@@ -39,23 +39,23 @@ export const getMeetingData = (): Meeting[] => {
   // Support Handoff removed - will show as Available
   {
     name: 'Team Sync',
-    startTime: '8:00AM',
-    endTime: '8:30AM',
+    startTime: '08:00',
+    endTime: '08:30',
     room: 'Breakout 2',
     status: 'past'
   },
   // 9:00 AM
   {
     name: 'Standup & Priorities',
-    startTime: '9:00AM',
-    endTime: '9:45AM',
+    startTime: '09:00',
+    endTime: '09:45',
     room: 'JFK',
     status: 'active',
     avSupport: true // AV Support needed
   }, {
     name: 'Vendor Call',
-    startTime: '9:15AM',
-    endTime: '10:00AM',
+    startTime: '09:15',
+    endTime: '10:00',
     room: 'Executive',
     status: 'active',
     avSupport: true
@@ -69,21 +69,21 @@ export const getMeetingData = (): Meeting[] => {
   // 12:00 PM
   {
     name: 'Design Critique',
-    startTime: '12:00PM',
-    endTime: '1:00PM',
+    startTime: '12:00',
+    endTime: '13:00',
     room: 'JFK',
     status: 'upcoming',
     avSupport: true
   }, {
     name: 'Budget Review',
-    startTime: '12:30PM',
-    endTime: '1:30PM',
+    startTime: '12:30',
+    endTime: '13:30',
     room: 'Breakout 2',
     status: 'upcoming'
   }, {
     name: 'Quarterly Planning',
-    startTime: '12:00PM',
-    endTime: '2:00PM',
+    startTime: '12:00',
+    endTime: '14:00',
     room: 'Executive',
     status: 'upcoming',
     avSupport: true,
@@ -95,38 +95,38 @@ export const getMeetingData = (): Meeting[] => {
   // Client Prep removed - will show as Available
   {
     name: 'Data Sync',
-    startTime: '2:00PM',
-    endTime: '2:45PM',
+    startTime: '14:00',
+    endTime: '14:45',
     room: 'Executive',
     status: 'upcoming'
   },
   // Adding new meetings at 2:00 PM
   {
     name: 'Product Demo',
-    startTime: '2:00PM',
-    endTime: '3:00PM',
+    startTime: '14:00',
+    endTime: '15:00',
     room: 'JFK',
     status: 'upcoming',
     avSupport: true
   }, {
     name: 'UX Workshop',
-    startTime: '2:30PM',
-    endTime: '3:30PM',
+    startTime: '14:30',
+    endTime: '15:30',
     room: 'Breakout 1',
     status: 'upcoming'
   },
   // 3:00 PM - Adding new meetings
   {
     name: 'Strategy Session',
-    startTime: '3:00PM',
-    endTime: '4:30PM',
+    startTime: '15:00',
+    endTime: '16:30',
     room: 'Breakout 2',
     status: 'upcoming',
     avSupport: true
   }, {
     name: 'Client Meeting',
-    startTime: '3:15PM',
-    endTime: '4:00PM',
+    startTime: '15:15',
+    endTime: '16:00',
     room: 'Executive',
     status: 'upcoming',
     isHighProfile: true
@@ -134,23 +134,23 @@ export const getMeetingData = (): Meeting[] => {
   // 4:00 PM - Adding new meeting
   {
     name: 'Tech Review',
-    startTime: '4:00PM',
-    endTime: '5:00PM',
+    startTime: '16:00',
+    endTime: '17:00',
     room: 'JFK',
     status: 'upcoming'
   },
   // 5:00 PM
   {
     name: 'Team Retro',
-    startTime: '5:00PM',
-    endTime: '6:00PM',
+    startTime: '17:00',
+    endTime: '18:00',
     room: 'Breakout 1',
     status: 'upcoming',
     avSupport: true
   }, {
     name: 'EOD Sync',
-    startTime: '5:30PM',
-    endTime: '6:00PM',
+    startTime: '17:30',
+    endTime: '18:00',
     room: 'Executive',
     status: 'upcoming',
     avSupport: true,
@@ -160,21 +160,21 @@ export const getMeetingData = (): Meeting[] => {
   // 6:00 PM
   {
     name: 'Late Client Demo',
-    startTime: '6:15PM',
-    endTime: '7:00PM',
+    startTime: '18:15',
+    endTime: '19:00',
     room: 'Breakout 1',
     status: 'upcoming',
     avSupport: true // AV Support needed
   }, {
     name: 'APAC Planning',
-    startTime: '6:30PM',
-    endTime: '7:15PM',
+    startTime: '18:30',
+    endTime: '19:15',
     room: 'Breakout 2',
     status: 'upcoming'
   }, {
     name: 'Executive Debrief',
-    startTime: '6:00PM',
-    endTime: '6:45PM',
+    startTime: '18:00',
+    endTime: '18:45',
     room: 'Executive',
     status: 'upcoming',
     isHighProfile: true // High profile meeting
@@ -182,8 +182,8 @@ export const getMeetingData = (): Meeting[] => {
   // 7:00 PM
   {
     name: 'After-Hours Training',
-    startTime: '7:00PM',
-    endTime: '8:00PM',
+    startTime: '19:00',
+    endTime: '20:00',
     room: 'Breakout 1',
     status: 'upcoming',
     avSupport: true // AV Support needed

@@ -32,6 +32,7 @@ const MobileRedirect = () => {
 };
 export function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isYesterday, setIsYesterday] = useState(false);
   const isMobile = useIsMobile();
   useEffect(() => {
     const timer = setInterval(() => {
@@ -39,17 +40,20 @@ export function App() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+  const toggleDay = () => {
+    setIsYesterday(!isYesterday);
+  };
   return <ThemeProvider>
       <Router>
         <div className="flex flex-col w-full min-h-screen bg-white dark:bg-gray-900 dark:text-white">
-          <Header currentTime={currentTime} />
+          <Header currentTime={currentTime} isYesterday={isYesterday} onToggleDay={toggleDay} />
           <MobileRedirect />
           <Routes>
             {/* Redirect from root to the appropriate view based on device */}
             <Route path="/" element={<Navigate to={isMobile ? '/alternative' : '/simplified'} replace />} />
-            <Route path="/simplified" element={<SimplifiedView currentTime={currentTime} />} />
-            <Route path="/alternative" element={<AlternativeView currentTime={currentTime} />} />
-            <Route path="/past-meetings" element={<PastMeetingsView currentTime={currentTime} />} />
+            <Route path="/simplified" element={<SimplifiedView currentTime={currentTime} isYesterday={isYesterday} />} />
+            <Route path="/alternative" element={<AlternativeView currentTime={currentTime} isYesterday={isYesterday} />} />
+            <Route path="/past-meetings" element={<PastMeetingsView currentTime={currentTime} isYesterday={isYesterday} />} />
           </Routes>
         </div>
       </Router>

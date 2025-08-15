@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRightIcon, ClockIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
@@ -7,32 +7,70 @@ import SimplifiedMeetingCard from './SimplifiedMeetingCard';
 import { isOldMeeting, parseTime, timeToMinutes } from '../utils/timeUtils';
 interface SimplifiedViewProps {
   currentTime: Date;
+  isYesterday?: boolean;
 }
 const SimplifiedView: React.FC<SimplifiedViewProps> = ({
-  currentTime
+  currentTime,
+  isYesterday = false
 }) => {
-  // Ensure rooms are in the specified order
-  const rooms = ['JFK', 'Executive', 'Breakout 1', 'Breakout 2'];
-  const allTimeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '11:00AM', '12:00PM', '1:00PM', '2:00PM', '3:00PM', '4:00PM', '5:00PM', '6:00PM', '7:00PM'];
-  // Check if a time slot should be shown (not more than 2 hours in the past)
-  const shouldShowTimeSlot = (timeSlot: string) => {
-    const slotTime = parseTime(timeSlot);
+  // Updated room names: Reordered to put Small after Executive and before Breakout A
+  const rooms = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
+  // Updated time slots to military time
+  const allTimeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
+  // Reference for auto-scrolling
+  const scrollTargetRef = useRef<HTMLDivElement>(null);
+  // Function to calculate the 2-hour cutoff time slot
+  const getTwoHourCutoffTimeSlot = () => {
     const currentHour = currentTime.getHours();
     const currentMinute = currentTime.getMinutes();
-    const currentTimeInMinutes = currentHour * 60 + currentMinute;
-    const slotTimeInMinutes = slotTime.hours * 60 + slotTime.minutes;
-    // Show time slot if it's less than 2 hours in the past
-    return currentTimeInMinutes - slotTimeInMinutes < 120;
+    const twoHoursAgo = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
+    const cutoffHour = twoHoursAgo.getHours();
+    // Find the matching time slot
+    const cutoffTimeSlot = allTimeSlots.find(slot => {
+      const hourPart = parseInt(slot.split(':')[0]);
+      return hourPart === cutoffHour;
+    });
+    return cutoffTimeSlot;
   };
-  // Filter time slots to only show recent/current/future ones
-  const visibleTimeSlots = allTimeSlots.filter(shouldShowTimeSlot);
-  // Filter out old meetings (more than 2 hours old)
-  const recentMeetings = getMeetingData().filter(meeting => !isOldMeeting(meeting, currentTime));
+  // Auto-scroll to the 2-hour cutoff on load (only for current day view)
+  useEffect(() => {
+    if (!isYesterday) {
+      const cutoffTimeSlot = getTwoHourCutoffTimeSlot();
+      if (cutoffTimeSlot && scrollTargetRef.current) {
+        // Small delay to ensure DOM is fully rendered
+        setTimeout(() => {
+          scrollTargetRef.current?.scrollIntoView({
+            behavior: 'instant',
+            block: 'start'
+          });
+        }, 100);
+      }
+    }
+  }, [isYesterday]);
+  // Use all time slots
+  const displayTimeSlots = allTimeSlots;
+  // Get meetings data
+  const allMeetings = getMeetingData();
+  // Convert legacy room names to new names for compatibility
+  const convertedMeetings = allMeetings.map(meeting => {
+    let newRoom = meeting.room;
+    if (meeting.room === 'Breakout 1') newRoom = 'Breakout A';
+    if (meeting.room === 'Breakout 2') newRoom = 'Breakout B';
+    return {
+      ...meeting,
+      room: newRoom
+    };
+  });
   // Find the first VIP meeting across all rooms and time slots
-  const allVipMeetings = recentMeetings.filter(m => m.isHighProfile);
+  const allVipMeetings = convertedMeetings.filter(m => m.isHighProfile);
   const firstVipMeeting = allVipMeetings.length > 0 ? allVipMeetings[0] : null;
   // Helper to get hour from time string
   const getHourFromTimeString = (timeStr: string) => {
+    // For military time format
+    if (timeStr.includes(':') && !timeStr.includes('AM') && !timeStr.includes('PM')) {
+      return parseInt(timeStr.split(':')[0]);
+    }
+    // For AM/PM format
     const time = parseTime(timeStr);
     return time.hours;
   };
@@ -57,10 +95,9 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     return Math.round((endMinutes - startMinutes) / 60);
   };
   // Function to get the meeting for a room at a specific time slot
-  // This handles meetings that span multiple hours
   const getMeetingForRoomAndTime = (room: string, timeSlot: string) => {
     // Get all meetings for this room
-    const roomMeetings = recentMeetings.filter(meeting => meeting.room === room);
+    const roomMeetings = convertedMeetings.filter(meeting => meeting.room === room);
     // Find meetings that start in or span across this time slot
     const relevantMeetings = roomMeetings.filter(meeting => meetingSpansTimeSlot(meeting, timeSlot));
     if (relevantMeetings.length === 0) {
@@ -77,14 +114,13 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     return relevantMeetings[0];
   };
   // Determine if a meeting should be displayed in this time slot
-  // We only want to show a meeting card at its starting time slot
   const shouldDisplayMeetingInTimeSlot = (meeting: any, timeSlot: string) => {
     if (meeting.name === 'Available') return true;
     const meetingStartHour = getHourFromTimeString(meeting.startTime);
     const timeSlotHour = getHourFromTimeString(timeSlot);
     return meetingStartHour === timeSlotHour;
   };
-  // NEW: Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
+  // Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
   const getStartPositionInHour = (meeting: any) => {
     if (meeting.name === 'Available') return 'top';
     const minutesPart = parseTime(meeting.startTime).minutes;
@@ -95,11 +131,11 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
       <div className="fixed top-[52px] left-0 right-0 z-[9999] border-b border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 shadow-md" style={{
       padding: '0.5rem 0.75rem' // Reduced padding by ~15%
     }}>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-6 gap-2">
           {/* Empty first column to align with time slots */}
           <div className="col-span-1"></div>
-          {/* Room headers in columns 2-5 */}
-          {rooms.map(room => <div key={room} className="col-span-1 flex justify-center">
+          {/* Room headers in columns 2-6 */}
+          {rooms.map(room => <div key={room} className="col-span-1 flex justify-center items-center">
               <h2 className="text-[2.4rem] font-bold dark:text-white">
                 {room}
               </h2>
@@ -109,16 +145,16 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
 
       {/* Add padding to prevent content from being hidden under the fixed header */}
       <div className="pt-[80px]">
-        {' '}
-        {/* Reduced padding to match the smaller header */}
-        {/* Meeting Grid - Only show visible time slots */}
+        {/* Meeting Grid - Show all time slots */}
         <div className="space-y-0 flex-1">
-          {visibleTimeSlots.map((timeSlot, index) => {
+          {displayTimeSlots.map((timeSlot, index) => {
           // Determine background color based on index (even/odd)
           const rowBgColor = index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800';
-          return <div key={timeSlot} className={`${rowBgColor} w-full py-2`}>
-                <div className="grid grid-cols-5 gap-2">
-                  <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} />
+          // Determine if this is the cutoff slot for auto-scrolling
+          const isCutoffSlot = !isYesterday && timeSlot === getTwoHourCutoffTimeSlot();
+          return <div key={timeSlot} className={`${rowBgColor} w-full py-2`} ref={isCutoffSlot ? scrollTargetRef : null}>
+                <div className="grid grid-cols-6 gap-2">
+                  <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
                   {rooms.map(room => {
                 const meeting = getMeetingForRoomAndTime(room, timeSlot);
                 // Skip rendering if this is a continuation of a multi-hour meeting
@@ -132,7 +168,7 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
                 // Determine vertical position based on start time
                 const startPosition = getStartPositionInHour(meeting);
                 return <div key={`${room}-${timeSlot}`} className={`col-span-1 relative ${startPosition === 'bottom' ? 'pt-10' : ''}`}>
-                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} />
+                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} militaryTime={true} isYesterday={isYesterday} />
                       </div>;
               })}
                 </div>

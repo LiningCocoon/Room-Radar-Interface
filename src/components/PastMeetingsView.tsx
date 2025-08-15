@@ -6,13 +6,25 @@ import { isOldMeeting, parseTime } from '../utils/timeUtils';
 import AVSupportIcon from './AVSupportIcon';
 interface PastMeetingsViewProps {
   currentTime: Date;
+  isYesterday?: boolean;
 }
 const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
-  currentTime
+  currentTime,
+  isYesterday = false
 }) => {
   const meetingData = getMeetingData();
+  // Convert legacy room names to new names
+  const convertedMeetings = meetingData.map(meeting => {
+    let newRoom = meeting.room;
+    if (meeting.room === 'Breakout 1') newRoom = 'Breakout A';
+    if (meeting.room === 'Breakout 2') newRoom = 'Breakout B';
+    return {
+      ...meeting,
+      room: newRoom
+    };
+  });
   // Filter past meetings (more than 2 hours old)
-  const pastMeetings = meetingData.filter(meeting => meeting.name !== 'Available' && isOldMeeting(meeting, currentTime)).sort((a, b) => {
+  const pastMeetings = convertedMeetings.filter(meeting => meeting.name !== 'Available' && isOldMeeting(meeting, currentTime)).sort((a, b) => {
     // Sort by most recent first
     const aTime = parseTime(a.startTime);
     const bTime = parseTime(b.startTime);
@@ -20,10 +32,16 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
   });
   // Group past meetings by room
   const meetingsByRoom: Record<string, any[]> = {};
-  const roomOrder = ['JFK', 'Executive', 'Breakout 1', 'Breakout 2'];
+  // Updated room order with Small after Executive
+  const roomOrder = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
   roomOrder.forEach(room => {
     meetingsByRoom[room] = pastMeetings.filter(meeting => meeting.room === room);
   });
+  // Convert time to military format
+  const formatTimeToMilitary = (timeStr: string) => {
+    const time = parseTime(timeStr);
+    return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
+  };
   return <div className="flex-1 p-3 overflow-hidden flex flex-col">
       <div className="mb-4">
         <div className="flex items-center gap-3 mb-3">
@@ -69,7 +87,8 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
                       </div>
                     </td>
                     <td className="p-3 border-2 border-gray-400 dark:border-gray-500 text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                      {meeting.startTime} - {meeting.endTime}
+                      {formatTimeToMilitary(meeting.startTime)} -{' '}
+                      {formatTimeToMilitary(meeting.endTime)}
                     </td>
                     <td className="p-3 border-2 border-gray-400 dark:border-gray-500 text-center">
                       {meeting.avSupport && <div className="flex justify-center">
@@ -91,7 +110,7 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
       {/* Room Summary Section - Improved mobile layout */}
       <div className="mb-4">
         <h3 className="text-xl font-bold mb-2 dark:text-white">Room Summary</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-base">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-base">
           {roomOrder.map(room => {
           const roomMeetings = meetingsByRoom[room] || [];
           return <div key={room} className="border-2 border-gray-400 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800">

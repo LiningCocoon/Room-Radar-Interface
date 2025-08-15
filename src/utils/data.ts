@@ -14,7 +14,7 @@ export const getMeetingData = (): Meeting[] => {
     name: 'Early Planning',
     startTime: '7:00AM',
     endTime: '7:45AM',
-    room: 'FDR',
+    room: 'JFK',
     status: 'active'
   }, {
     name: 'Executive Breakfast',
@@ -25,28 +25,17 @@ export const getMeetingData = (): Meeting[] => {
     avSupport: true,
     // AV Support needed
     isHighProfile: true // High profile meeting
-  }, {
-    name: 'Remote Team Sync',
-    startTime: '7:00AM',
-    endTime: '7:30AM',
-    room: 'Breakout 1',
-    status: 'active',
-    avSupport: true // Added AV Support - same time slot as Executive Breakfast
   },
+  // Removed: Remote Team Sync - creating a low activity window at 7AM for Breakout 1
   // 8:00 AM
   {
     name: 'Ops Kickoff',
     startTime: '8:00AM',
     endTime: '8:45AM',
-    room: 'FDR',
-    status: 'past'
-  }, {
-    name: 'Daily Briefing',
-    startTime: '8:15AM',
-    endTime: '8:45AM',
-    room: 'Executive',
+    room: 'JFK',
     status: 'past'
   },
+  // Removed: Daily Briefing - creating a low activity window at 8AM for Executive
   // Support Handoff removed - will show as Available
   {
     name: 'Team Sync',
@@ -60,7 +49,7 @@ export const getMeetingData = (): Meeting[] => {
     name: 'Standup & Priorities',
     startTime: '9:00AM',
     endTime: '9:45AM',
-    room: 'FDR',
+    room: 'JFK',
     status: 'active',
     avSupport: true // AV Support needed
   }, {
@@ -69,38 +58,22 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '10:00AM',
     room: 'Executive',
     status: 'active',
-    avSupport: true // Added AV Support - same time slot as Standup & Priorities
-  }, {
-    name: 'Hiring Panel',
-    startTime: '9:30AM',
-    endTime: '10:30AM',
-    room: 'Breakout 1',
-    status: 'active'
+    avSupport: true
   },
+  // Removed: Hiring Panel - creating a low activity window at 9AM for Breakout 1
   // QA Standup removed - will show as Available
-  // 10:00 AM
-  {
-    name: 'Sprint Planning',
-    startTime: '10:00AM',
-    endTime: '11:00AM',
-    room: 'Executive',
-    status: 'upcoming'
-  }, {
-    name: 'API Review',
-    startTime: '10:15AM',
-    endTime: '11:15AM',
-    room: 'Breakout 1',
-    status: 'upcoming'
-  },
+  // 10:00 AM - Creating a low activity window from 10-11AM
+  // Removed: Sprint Planning
+  // Removed: API Review
   // Product Strategy removed - will show as Available
   // 12:00 PM
   {
     name: 'Design Critique',
     startTime: '12:00PM',
     endTime: '1:00PM',
-    room: 'FDR',
+    room: 'JFK',
     status: 'upcoming',
-    avSupport: true // Added AV Support - same time slot as Quarterly Planning
+    avSupport: true
   }, {
     name: 'Budget Review',
     startTime: '12:30PM',
@@ -116,13 +89,8 @@ export const getMeetingData = (): Meeting[] => {
     avSupport: true,
     // AV Support needed
     isHighProfile: true // High profile meeting
-  }, {
-    name: 'User Research',
-    startTime: '12:15PM',
-    endTime: '1:15PM',
-    room: 'Breakout 1',
-    status: 'upcoming'
   },
+  // Removed: User Research - creating a low activity window at 12PM for Breakout 1
   // 2:00 PM
   // Client Prep removed - will show as Available
   {
@@ -131,40 +99,44 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '2:45PM',
     room: 'Executive',
     status: 'upcoming'
+  },
+  // Adding new meetings at 2:00 PM
+  {
+    name: 'Product Demo',
+    startTime: '2:00PM',
+    endTime: '3:00PM',
+    room: 'JFK',
+    status: 'upcoming',
+    avSupport: true
   }, {
-    name: 'Roadmap Update',
+    name: 'UX Workshop',
     startTime: '2:30PM',
     endTime: '3:30PM',
     room: 'Breakout 1',
-    status: 'upcoming',
-    avSupport: true // AV Support needed
-  }, {
-    name: 'Incident Review',
-    startTime: '2:45PM',
-    endTime: '3:45PM',
-    room: 'Breakout 2',
     status: 'upcoming'
   },
-  // 3:00 PM
+  // 3:00 PM - Adding new meetings
   {
-    name: 'Long Strategy Session',
+    name: 'Strategy Session',
     startTime: '3:00PM',
-    endTime: '7:00PM',
-    room: 'FDR',
-    status: 'upcoming',
-    avSupport: true // AV Support needed
-  }, {
-    name: 'Leadership Sync',
-    startTime: '3:30PM',
-    endTime: '4:15PM',
-    room: 'Executive',
-    status: 'upcoming',
-    avSupport: true // AV Support needed
-  }, {
-    name: 'Security Brief',
-    startTime: '3:30PM',
     endTime: '4:30PM',
     room: 'Breakout 2',
+    status: 'upcoming',
+    avSupport: true
+  }, {
+    name: 'Client Meeting',
+    startTime: '3:15PM',
+    endTime: '4:00PM',
+    room: 'Executive',
+    status: 'upcoming',
+    isHighProfile: true
+  },
+  // 4:00 PM - Adding new meeting
+  {
+    name: 'Tech Review',
+    startTime: '4:00PM',
+    endTime: '5:00PM',
+    room: 'JFK',
     status: 'upcoming'
   },
   // 5:00 PM
@@ -174,7 +146,7 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '6:00PM',
     room: 'Breakout 1',
     status: 'upcoming',
-    avSupport: true // Added AV Support - same time slot as EOD Sync
+    avSupport: true
   }, {
     name: 'EOD Sync',
     startTime: '5:30PM',
@@ -215,12 +187,7 @@ export const getMeetingData = (): Meeting[] => {
     room: 'Breakout 1',
     status: 'upcoming',
     avSupport: true // AV Support needed
-  }, {
-    name: 'Remote Social',
-    startTime: '7:00PM',
-    endTime: '8:00PM',
-    room: 'Executive',
-    status: 'upcoming',
-    avSupport: true // AV Support needed
-  }];
+  }
+  // Removed: Remote Social - creating a low activity window at 7PM for Executive
+  ];
 };

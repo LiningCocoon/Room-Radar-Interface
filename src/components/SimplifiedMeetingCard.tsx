@@ -71,10 +71,10 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   // Apply padding based on time of day logic
   if (shouldBeSmaller && status === 'past') {
     // Morning meetings after noon that are in the past: make them smaller
-    cardClasses += ' p-[0.7rem]';
+    cardClasses += ' p-[0.6rem]';
   } else {
-    // Regular meetings: more horizontal breathing room
-    cardClasses += ' px-[1.2rem] py-[0.9rem]';
+    // Regular meetings: reduced horizontal padding to prevent text wrapping
+    cardClasses += ' px-[0.9rem] py-[0.8rem]';
   }
   // Apply styling based on status and special conditions
   if (isAvailable) {
@@ -112,7 +112,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
       iconComponent = <DoorOpenIcon className="h-7.5 w-7.5 text-green-600 dark:text-green-400" />;
     }
   } else if (meeting.isHighProfile && status !== 'past') {
-    // VIP meetings: white text but NO clock icon
+    // VIP meetings: white text in both light and dark mode for better contrast
     textColorClass = 'text-white';
   } else if (status === 'active') {
     textColorClass = 'text-[#005ea2] dark:text-[#4d9eff] font-extrabold';
@@ -133,11 +133,11 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     return 'text-black dark:text-white'; // default for upcoming
   };
   // Adjust text sizes based on time of day
-  let titleSize = shouldBeSmaller && status === 'past' ? 'text-[1.5rem]' : 'text-[2rem]';
-  let timeSize = shouldBeSmaller && status === 'past' ? 'text-[1.1rem]' : 'text-[1.4rem]';
+  let titleSize = shouldBeSmaller && status === 'past' ? 'text-[1.4rem]' : 'text-[1.8rem]';
+  let timeSize = shouldBeSmaller && status === 'past' ? 'text-[1.1rem]' : 'text-[1.3rem]';
   // A/V Support icon size based on card size (10% larger than before)
   const avIconSize = shouldBeSmaller && status === 'past' ? 22 : 26.4;
-  return <div className={`${cardClasses} ${status === 'past' ? 'opacity-50' : ''}`} style={!isAvailable && duration > 1 ? {
+  return <div className={`${cardClasses} ${status === 'past' ? 'opacity-35' : ''}`} style={!isAvailable && duration > 1 ? {
     minHeight: `${Math.min(duration * 80, 320)}px`
   } : {}}>
       {/* VIP Star Icon for high profile meetings */}
@@ -150,12 +150,12 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           </div>
         </div>}
       <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <h3 className={`${titleSize} font-bold ${meeting.isHighProfile && status !== 'past' ? 'text-white' : isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
+        <div className="flex-1 pr-2">
+          <h3 className={`${titleSize} font-bold leading-tight ${meeting.isHighProfile && status !== 'past' ? 'text-white' : isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
             {meeting.name}
           </h3>
-          <p className={`${timeSize} mt-1 ${meeting.isHighProfile && status !== 'past' ? 'text-white opacity-90' : 'dark:text-gray-200'}`}>
-            {!isAvailable ? `${meeting.startTime} - ${meeting.endTime}` : meeting.startTime}
+          <p className={`${timeSize} mt-0.5 ${meeting.isHighProfile && status !== 'past' ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
+            {!isAvailable ? `${meeting.startTime}` : meeting.startTime}
           </p>
           {/* Duration badge for long meetings */}
           {showDurationBadge && !isAvailable && <div className="mt-2 inline-flex items-center px-2.5 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium">
@@ -163,7 +163,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
               {duration} hour{duration !== 1 ? 's' : ''}
             </div>}
         </div>
-        <div className="ml-4">{iconComponent}</div>
+        <div className="ml-2">{iconComponent}</div>
       </div>
       {/* A/V Support Icon */}
       {meeting.avSupport && !isAvailable && <div className="absolute bottom-1 right-1">

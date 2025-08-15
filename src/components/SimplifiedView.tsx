@@ -12,8 +12,8 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
   currentTime
 }) => {
   // Ensure rooms are in the specified order
-  const rooms = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
-  const allTimeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '12:00PM', '2:00PM', '3:00PM', '5:00PM', '6:00PM', '7:00PM'];
+  const rooms = ['JFK', 'Executive', 'Breakout 1', 'Breakout 2'];
+  const allTimeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '11:00AM', '12:00PM', '1:00PM', '2:00PM', '3:00PM', '4:00PM', '5:00PM', '6:00PM', '7:00PM'];
   // Check if a time slot should be shown (not more than 2 hours in the past)
   const shouldShowTimeSlot = (timeSlot: string) => {
     const slotTime = parseTime(timeSlot);
@@ -73,22 +73,8 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         status: 'available'
       };
     }
-    // If there's a meeting, check if it's a VIP meeting
-    const meeting = relevantMeetings[0];
-    if (meeting.isHighProfile) {
-      // Only show this VIP meeting if it's the first VIP meeting overall
-      if (firstVipMeeting && meeting.name === firstVipMeeting.name && meeting.startTime === firstVipMeeting.startTime && meeting.room === firstVipMeeting.room) {
-        return meeting;
-      } else {
-        // Otherwise, return a non-VIP version of this meeting
-        return {
-          ...meeting,
-          isHighProfile: false
-        };
-      }
-    }
-    // No VIP meetings, return the meeting
-    return meeting;
+    // Return the meeting with its original VIP status
+    return relevantMeetings[0];
   };
   // Determine if a meeting should be displayed in this time slot
   // We only want to show a meeting card at its starting time slot
@@ -98,9 +84,11 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const timeSlotHour = getHourFromTimeString(timeSlot);
     return meetingStartHour === timeSlotHour;
   };
-  return <div className="flex-1 p-2 overflow-auto flex flex-col">
-      {/* Room headers - Added with 20% larger text */}
-      <div className="border-b border-gray-300 py-2 px-3 bg-white dark:bg-gray-900 dark:border-gray-700 mb-2">
+  return <div className="flex-1 p-2 overflow-auto flex flex-col h-full">
+      {/* Fixed header positioned directly below the main header with reduced padding */}
+      <div className="fixed top-[52px] left-0 right-0 z-[9999] border-b border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 shadow-md" style={{
+      padding: '0.5rem 0.75rem' // Reduced padding by ~15%
+    }}>
         <div className="grid grid-cols-5 gap-2">
           {/* Empty first column to align with time slots */}
           <div className="col-span-1"></div>
@@ -113,43 +101,48 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         </div>
       </div>
 
-      {/* Meeting Grid - Only show visible time slots */}
-      <div className="space-y-0 flex-1">
-        {visibleTimeSlots.map((timeSlot, index) => {
-        // Determine background color based on index (even/odd)
-        const rowBgColor = index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800';
-        return <div key={timeSlot} className={`${rowBgColor} w-full py-2`}>
-              <div className="grid grid-cols-5 gap-2">
-                <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} />
-                {rooms.map(room => {
-              const meeting = getMeetingForRoomAndTime(room, timeSlot);
-              // Skip rendering if this is a continuation of a multi-hour meeting
-              // (except for the starting time slot)
-              if (!shouldDisplayMeetingInTimeSlot(meeting, timeSlot)) {
-                return <div key={`${room}-${timeSlot}-empty`} className="col-span-1"></div>;
-              }
-              // Calculate meeting duration for badges
-              const duration = getMeetingDurationHours(meeting);
-              const isLongMeeting = duration >= 2;
-              return <div key={`${room}-${timeSlot}`} className="col-span-1">
-                      <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} />
-                    </div>;
-            })}
-              </div>
-            </div>;
-      })}
+      {/* Add padding to prevent content from being hidden under the fixed header */}
+      <div className="pt-[80px]">
+        {' '}
+        {/* Reduced padding to match the smaller header */}
+        {/* Meeting Grid - Only show visible time slots */}
+        <div className="space-y-0 flex-1">
+          {visibleTimeSlots.map((timeSlot, index) => {
+          // Determine background color based on index (even/odd)
+          const rowBgColor = index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800';
+          return <div key={timeSlot} className={`${rowBgColor} w-full py-2`}>
+                <div className="grid grid-cols-5 gap-2">
+                  <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} />
+                  {rooms.map(room => {
+                const meeting = getMeetingForRoomAndTime(room, timeSlot);
+                // Skip rendering if this is a continuation of a multi-hour meeting
+                // (except for the starting time slot)
+                if (!shouldDisplayMeetingInTimeSlot(meeting, timeSlot)) {
+                  return <div key={`${room}-${timeSlot}-empty`} className="col-span-1"></div>;
+                }
+                // Calculate meeting duration for badges
+                const duration = getMeetingDurationHours(meeting);
+                const isLongMeeting = duration >= 2;
+                return <div key={`${room}-${timeSlot}`} className="col-span-1">
+                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} />
+                      </div>;
+              })}
+                </div>
+              </div>;
+        })}
+        </div>
       </div>
 
-      {/* Navigation Buttons */}
+      {/* Navigation Buttons - hide simplified view link on mobile */}
       <div className="mt-4 mb-2 flex justify-center gap-4">
-        <Link to="/alternative" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
+        <Link to="/alternative" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
           <span>Try alternative view</span>
           <ArrowRightIcon size={16} />
         </Link>
-        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
+        <a href="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
           <span>Past meetings</span>
           <ArrowRightIcon size={16} />
-        </Link>
+        </a>
       </div>
     </div>;
 };

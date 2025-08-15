@@ -9,7 +9,7 @@ export const ThemeProvider: React.FC<{
 }> = ({
   children
 }) => {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Start with light mode
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true); // Start with dark mode
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };

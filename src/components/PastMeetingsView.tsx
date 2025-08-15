@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, CheckIcon } from 'lucide-react';
+import { ArrowLeftIcon, CheckIcon, StarIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
 import { isOldMeeting, parseTime } from '../utils/timeUtils';
 import AVSupportIcon from './AVSupportIcon';
@@ -20,7 +20,7 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
   });
   // Group past meetings by room
   const meetingsByRoom: Record<string, any[]> = {};
-  const roomOrder = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
+  const roomOrder = ['JFK', 'Executive', 'Breakout 1', 'Breakout 2'];
   roomOrder.forEach(room => {
     meetingsByRoom[room] = pastMeetings.filter(meeting => meeting.room === room);
   });
@@ -32,7 +32,7 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
             Past Meetings (2+ hours ago)
           </h2>
         </div>
-        {pastMeetings.length > 0 ? <div className="overflow-hidden">
+        {pastMeetings.length > 0 ? <div className="overflow-x-auto">
             <table className="w-full border-collapse text-lg">
               <thead>
                 <tr className="bg-gray-200 dark:bg-gray-700">
@@ -56,7 +56,17 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
                       {meeting.room}
                     </td>
                     <td className="p-3 border-2 border-gray-400 dark:border-gray-500 font-medium">
-                      {meeting.name}
+                      <div className="flex items-center">
+                        {meeting.name}
+                        {meeting.isHighProfile && <span className="ml-2 group relative">
+                            <StarIcon size={18} className="text-[#c05600] dark:text-[#ffbe2e]" aria-label="VIP meeting" />
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+                              VIP meeting
+                              <div className="absolute top-full left-2 border-4 border-transparent border-t-gray-800"></div>
+                            </div>
+                          </span>}
+                      </div>
                     </td>
                     <td className="p-3 border-2 border-gray-400 dark:border-gray-500 text-gray-600 dark:text-gray-400 whitespace-nowrap">
                       {meeting.startTime} - {meeting.endTime}
@@ -78,10 +88,10 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
             </p>
           </div>}
       </div>
-      {/* Room Summary Section - Increased size */}
+      {/* Room Summary Section - Improved mobile layout */}
       <div className="mb-4">
         <h3 className="text-xl font-bold mb-2 dark:text-white">Room Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-base">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-base">
           {roomOrder.map(room => {
           const roomMeetings = meetingsByRoom[room] || [];
           return <div key={room} className="border-2 border-gray-400 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800">
@@ -102,11 +112,17 @@ const PastMeetingsView: React.FC<PastMeetingsViewProps> = ({
           Showing meetings that ended 2+ hours ago
         </div>
       </div>
-      {/* Navigation Buttons - Increased size */}
+      {/* Navigation Buttons - Fixed link for mobile using useIsMobile hook */}
       <div className="mt-auto mb-2 flex justify-center">
-        <Link to="/simplified" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-3 py-3 px-5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold">
+        <Link to={window.innerWidth < 768 ? '/alternative' : '/simplified'} className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-3 py-3 px-5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold" onClick={e => {
+        // Force the link to respect the current viewport width
+        e.preventDefault();
+        const isMobile = window.innerWidth < 768;
+        window.location.href = isMobile ? '/alternative' : '/simplified';
+      }}>
           <ArrowLeftIcon size={24} />
-          <span>Back to simplified view</span>
+          <span className="md:inline hidden">Back to simplified view</span>
+          <span className="md:hidden inline">Back to dashboard</span>
         </Link>
       </div>
     </div>;

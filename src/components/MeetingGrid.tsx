@@ -12,8 +12,8 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
   currentTime
 }) => {
   // Ensure rooms are in the specified order
-  const rooms = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
-  const timeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '12:00PM', '2:00PM', '3:00PM', '5:00PM', '6:00PM', '7:00PM'];
+  const rooms = ['JFK', 'Executive', 'Breakout 1', 'Breakout 2'];
+  const timeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '11:00AM', '12:00PM', '1:00PM', '2:00PM', '3:00PM', '4:00PM', '5:00PM', '6:00PM', '7:00PM'];
   const meetingData = getMeetingData();
   const currentHour = currentTime.getHours();
   // Find the first VIP meeting across all meetings

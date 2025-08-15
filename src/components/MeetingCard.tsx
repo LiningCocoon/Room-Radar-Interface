@@ -16,13 +16,15 @@ interface MeetingCardProps {
   condensed?: boolean;
   duration?: number;
   showDurationBadge?: boolean;
+  startPosition?: 'top' | 'bottom';
 }
 const MeetingCard: React.FC<MeetingCardProps> = ({
   meeting,
   currentTime,
   condensed = false,
   duration = 0,
-  showDurationBadge = false
+  showDurationBadge = false,
+  startPosition = 'top'
 }) => {
   const isAvailable = meeting.name === 'Available';
   // Parse meeting times more precisely
@@ -139,6 +141,11 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   };
   // A/V Support icon size based on condensed state
   const avIconSize = isCondensed ? 16 : 20;
+  // Get the exact minute part of the meeting start time for display
+  const getMinuteDisplay = () => {
+    const minutes = parseTime(meeting.startTime).minutes;
+    return minutes === 0 ? ':00' : `:${minutes}`;
+  };
   return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative ${status === 'past' ? 'opacity-50' : ''}`} style={!isAvailable && duration > 1 ? {
     minHeight: `${Math.min(duration * 80, 320)}px`
   } : {}}>
@@ -159,6 +166,10 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
           <p className={`${isCondensed ? 'text-[0.7875rem]' : 'text-[1.125rem]'} mt-1 dark:text-gray-200`}>
             {!isAvailable ? `${meeting.startTime} - ${meeting.endTime}` : meeting.startTime}
           </p>
+          {/* Show exact minute for non-available meetings to help visualize the placement */}
+          {!isAvailable && !isCondensed && startPosition === 'bottom' && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Starts at{getMinuteDisplay()}
+            </div>}
           {/* Duration badge for long meetings */}
           {showDurationBadge && !isAvailable && <div className="mt-2 inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium">
               <ClockIcon size={12} className="mr-1" />

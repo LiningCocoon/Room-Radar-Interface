@@ -29,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({
   // Room headers
   const rooms = ['FDR', 'Executive', 'Breakout 1', 'Breakout 2'];
   return <div className="w-full sticky top-0 z-[10000]">
-      <div className="bg-[#1a2235] dark:bg-gray-800 text-white p-3">
+      <div className="bg-[#1a2235] dark:bg-gray-800 text-white py-4 px-5 relative">
         {/* Desktop layout */}
         <div className="hidden sm:flex sm:flex-row sm:items-center relative">
           <div className="text-3xl font-bold">{formattedTime}</div>
@@ -43,32 +43,22 @@ const Header: React.FC<HeaderProps> = ({
             <h1 className="text-xl font-bold text-white">ROOM RADAR</h1>
           </div>
         </div>
-        {/* Mobile layout - precisely matching the attached image */}
-        <div className="sm:hidden flex flex-col relative pb-2">
-          {/* ROOM RADAR title */}
-          <h1 className="text-5xl font-bold text-white mb-2">ROOM RADAR</h1>
-          {/* Date below title */}
-          <div className="text-2xl font-normal text-white">{formattedDate}</div>
-          {/* Custom sun icon in bottom right */}
-          <div className="absolute bottom-1 right-1">
-            <button onClick={toggleDarkMode} className="flex items-center justify-center rounded-full p-1" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
-              {isDarkMode ? <div className="w-10 h-10 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-6 h-6 bg-yellow-300 rounded-full"></div>
-                    <div className="absolute inset-0">
-                      {/* Sun rays */}
-                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-3 bg-yellow-300"></div>
-                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-1 h-3 bg-yellow-300"></div>
-                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 h-1 w-3 bg-yellow-300"></div>
-                      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 h-1 w-3 bg-yellow-300"></div>
-                      {/* Diagonal rays */}
-                      <div className="absolute top-1 left-1 transform -translate-x-1/2 -translate-y-1/2 w-1 h-2 bg-yellow-300 rotate-45"></div>
-                      <div className="absolute top-1 right-1 transform translate-x-1/2 -translate-y-1/2 w-1 h-2 bg-yellow-300 -rotate-45"></div>
-                      <div className="absolute bottom-1 left-1 transform -translate-x-1/2 translate-y-1/2 w-1 h-2 bg-yellow-300 -rotate-45"></div>
-                      <div className="absolute bottom-1 right-1 transform translate-x-1/2 translate-y-1/2 w-1 h-2 bg-yellow-300 rotate-45"></div>
-                    </div>
-                  </div>
-                </div> : <MoonIcon className="h-8 w-8 text-white" />}
+        {/* Mobile layout - with 25% smaller text */}
+        <div className="sm:hidden flex flex-col">
+          <div className="flex justify-between items-start">
+            <div>
+              {/* ROOM RADAR title with 25% smaller text */}
+              <h1 className="text-[1.65rem] font-bold text-white leading-tight">
+                ROOM RADAR
+              </h1>
+              {/* Date with 25% smaller text */}
+              <div className="text-[0.975rem] font-normal text-white mt-0">
+                {formattedDate}
+              </div>
+            </div>
+            {/* Sun/Moon icon positioned in top right - keeping the same size */}
+            <button onClick={toggleDarkMode} className="p-0" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+              {isDarkMode ? <SunIcon className="h-6 w-6 text-yellow-300" /> : <MoonIcon className="h-6 w-6 text-white" />}
             </button>
           </div>
         </div>

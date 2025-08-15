@@ -16,7 +16,7 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
   const timeSlots = ['7:00AM', '8:00AM', '9:00AM', '10:00AM', '11:00AM', '12:00PM', '1:00PM', '2:00PM', '3:00PM', '4:00PM', '5:00PM', '6:00PM', '7:00PM'];
   const meetingData = getMeetingData();
   const currentHour = currentTime.getHours();
-  // Find the first VIP meeting across all meetings
+  // Find the first VIP meeting overall
   const allVipMeetings = meetingData.filter(m => m.isHighProfile);
   const firstVipMeeting = allVipMeetings.length > 0 ? allVipMeetings[0] : null;
   // Determine if a time slot should be condensed
@@ -101,6 +101,12 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
     const timeSlotHour = getHourFromTimeString(timeSlot);
     return meetingStartHour === timeSlotHour;
   };
+  // NEW: Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
+  const getStartPositionInHour = (meeting: any) => {
+    if (meeting.name === 'Available') return 'top';
+    const minutesPart = parseTime(meeting.startTime).minutes;
+    return minutesPart < 30 ? 'top' : 'bottom';
+  };
   return <div className="flex-1 p-2 overflow-auto flex flex-col">
       {/* Room headers are now in the Header component */}
       <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 pb-1">
@@ -131,8 +137,10 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
               // Calculate meeting duration for badges
               const duration = getMeetingDurationHours(meeting);
               const isLongMeeting = duration >= 2;
-              return <div key={`${room}-${timeSlot}`} className="col-span-1">
-                      <MeetingCard key={`${meeting.name}-${meeting.startTime}`} meeting={meeting} currentTime={currentTime} condensed={condensed} duration={duration} showDurationBadge={isLongMeeting} />
+              // Determine vertical position based on start time
+              const startPosition = getStartPositionInHour(meeting);
+              return <div key={`${room}-${timeSlot}`} className={`col-span-1 relative ${!condensed && startPosition === 'bottom' ? 'pt-10' : ''}`}>
+                      <MeetingCard key={`${meeting.name}-${meeting.startTime}`} meeting={meeting} currentTime={currentTime} condensed={condensed} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} />
                     </div>;
             })}
               </div>

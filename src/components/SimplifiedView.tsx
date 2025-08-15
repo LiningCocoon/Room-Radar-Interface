@@ -84,6 +84,12 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const timeSlotHour = getHourFromTimeString(timeSlot);
     return meetingStartHour === timeSlotHour;
   };
+  // NEW: Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
+  const getStartPositionInHour = (meeting: any) => {
+    if (meeting.name === 'Available') return 'top';
+    const minutesPart = parseTime(meeting.startTime).minutes;
+    return minutesPart < 30 ? 'top' : 'bottom';
+  };
   return <div className="flex-1 p-2 overflow-auto flex flex-col h-full">
       {/* Fixed header positioned directly below the main header with reduced padding */}
       <div className="fixed top-[52px] left-0 right-0 z-[9999] border-b border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 shadow-md" style={{
@@ -123,8 +129,10 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
                 // Calculate meeting duration for badges
                 const duration = getMeetingDurationHours(meeting);
                 const isLongMeeting = duration >= 2;
-                return <div key={`${room}-${timeSlot}`} className="col-span-1">
-                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} />
+                // Determine vertical position based on start time
+                const startPosition = getStartPositionInHour(meeting);
+                return <div key={`${room}-${timeSlot}`} className={`col-span-1 relative ${startPosition === 'bottom' ? 'pt-10' : ''}`}>
+                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} />
                       </div>;
               })}
                 </div>
@@ -139,10 +147,10 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           <span>Try alternative view</span>
           <ArrowRightIcon size={16} />
         </Link>
-        <a href="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
+        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800">
           <span>Past meetings</span>
           <ArrowRightIcon size={16} />
-        </a>
+        </Link>
       </div>
     </div>;
 };

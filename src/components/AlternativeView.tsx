@@ -222,7 +222,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
         return `after ${formatHour(h).replace(':00', '')}`;
       }
     }
-    return 'limited today';
+    return 'Limited today';
   }, [calculateMeetingDensity, currentTime]);
   // NEW: Find safe window text
   const safeWindowText = useMemo(() => {
@@ -314,12 +314,12 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
               </div>
             </div>
           </div>
-          {/* Break Time Info - Moved utensils icon to top right */}
+          {/* Break Time Info - Moved utensils icon to top right and text 2px left on mobile */}
           <div className="md:w-64 w-full bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 relative">
             <UtensilsIcon size={20} className="text-green-500 absolute top-3 right-3" />
-            <div className="pr-7">
+            <div className="pr-7 sm:pl-0 pl-[2px]">
               <div className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                Best time for break:
+                Best break time:
               </div>
               <div className="text-xl font-bold text-green-600 dark:text-green-400">
                 {findBestBreakTime}
@@ -527,16 +527,16 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
         </div>
       </div>
 
-      {/* Navigation Buttons - Hide simplified view link on mobile */}
+      {/* Navigation Buttons - Make Past Meetings link work on mobile */}
       <div className="mt-auto mb-3 flex justify-center gap-3">
         <Link to="/simplified" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
           <ArrowLeftIcon size={20} />
           <span>Simplified view</span>
         </Link>
-        <a href="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold">
+        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold">
           <span>Past meetings</span>
           <ArrowRightIcon size={20} />
-        </a>
+        </Link>
       </div>
     </div>;
 };

@@ -15,12 +15,14 @@ interface SimplifiedMeetingCardProps {
   currentTime: Date;
   duration?: number;
   showDurationBadge?: boolean;
+  startPosition?: 'top' | 'bottom';
 }
 const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   meeting,
   currentTime,
   duration = 0,
-  showDurationBadge = false
+  showDurationBadge = false,
+  startPosition = 'top'
 }) => {
   const isAvailable = meeting.name === 'Available';
   // Parse meeting times more precisely
@@ -137,6 +139,11 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   let timeSize = shouldBeSmaller && status === 'past' ? 'text-[1.1rem]' : 'text-[1.3rem]';
   // A/V Support icon size based on card size (10% larger than before)
   const avIconSize = shouldBeSmaller && status === 'past' ? 22 : 26.4;
+  // Get the exact minute part of the meeting start time for display
+  const getMinuteDisplay = () => {
+    const minutes = parseTime(meeting.startTime).minutes;
+    return minutes === 0 ? ':00' : `:${minutes}`;
+  };
   return <div className={`${cardClasses} ${status === 'past' ? 'opacity-35' : ''}`} style={!isAvailable && duration > 1 ? {
     minHeight: `${Math.min(duration * 80, 320)}px`
   } : {}}>
@@ -157,6 +164,10 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           <p className={`${timeSize} mt-0.5 ${meeting.isHighProfile && status !== 'past' ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
             {!isAvailable ? `${meeting.startTime}` : meeting.startTime}
           </p>
+          {/* Show exact minute for non-available meetings to help visualize the placement */}
+          {!isAvailable && startPosition === 'bottom' && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Starts at{getMinuteDisplay()}
+            </div>}
           {/* Duration badge for long meetings */}
           {showDurationBadge && !isAvailable && <div className="mt-2 inline-flex items-center px-2.5 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium">
               <ClockIcon size={14} className="mr-1" />

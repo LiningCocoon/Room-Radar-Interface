@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, UtensilsIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, UtensilsIcon, PhoneCallIcon, UsersIcon, CalendarIcon, SunIcon, MoonIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
 import AVSupportIcon from './AVSupportIcon';
 import { parseTime } from '../utils/timeUtils';
+import { useTheme } from './ThemeContext';
 interface AlternativeViewProps {
   currentTime: Date;
   isYesterday?: boolean;
@@ -12,6 +13,25 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   currentTime,
   isYesterday = false
 }) => {
+  const {
+    isDarkMode,
+    toggleDarkMode
+  } = useTheme();
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  // Update current time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+  // Format current time as HH:MM:SS in military time (24-hour format)
+  const formattedTime = currentDateTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
   // State for tracking the selected date
   const [selectedDate, setSelectedDate] = useState<Date>(isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime));
   // Initialize the selected date once on component mount
@@ -25,7 +45,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   const isYesterdayView = selectedDate.toDateString() === new Date(new Date().setDate(new Date().getDate() - 1)).toDateString();
   const isTomorrowView = selectedDate.toDateString() === new Date(new Date().setDate(new Date().getDate() + 1)).toDateString();
   const isViewingPastDay = selectedDate < new Date(new Date().setHours(0, 0, 0, 0));
-  // Format the selected date in a short, readable format
+  // Format the selected date to match SimplifiedView format (short format)
   const formattedDate = selectedDate.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -346,47 +366,54 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     isActive: false
   }];
   return <div className="flex-1 overflow-auto flex flex-col h-full">
-      {/* Removing the fixed header that's overlapping with the main app header */}
-      {/* Adjust padding since we're now only using the main app header */}
-      <div className="p-3 flex flex-col h-full">
-        {/* Add date display at the top of the content area */}
-        <div className="flex items-center mb-3">
-          <h2 className="text-3xl font-bold dark:text-white mr-6">
-            {formattedDate}
-          </h2>
-          {isToday && <div className="px-3 py-1 text-lg bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-md">
+      {/* Header with Room Radar title and theme toggle */}
+      <div className="bg-[#1a2235] dark:bg-gray-900 text-white py-3 px-5 sticky top-0 z-[10000] flex items-center justify-between" data-id="element-164">
+        {/* Left section with live timestamp in military time */}
+        <div className="text-2xl font-bold">{formattedTime}</div>
+        {/* Center section with date */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-bold">
+          {formattedDate}
+          {isToday && <span className="ml-2 px-2 py-0.5 text-sm bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-md">
               Today
-            </div>}
+            </span>}
         </div>
+        {/* Right section with title and theme toggle */}
+        <div className="flex items-center">
+          <button onClick={toggleDarkMode} className="p-1 rounded-full hover:bg-[#004b81] dark:hover:bg-gray-700 transition-colors mr-3" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+            {isDarkMode ? <SunIcon className="h-6 w-6 text-yellow-300" /> : <MoonIcon className="h-6 w-6 text-white" />}
+          </button>
+          <h1 className="text-2xl font-bold text-white">Room Radar</h1>
+        </div>
+      </div>
 
+      {/* Main content area */}
+      <div className="p-3 flex flex-col h-full">
         {/* Unified Dashboard with Meeting Density and Break Time */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-3 p-3">
           <div className="flex flex-col md:flex-row gap-3">
             {/* Meeting Density Graph - Takes more space on desktop */}
             <div className="flex-1">
+              {/* Icons above the timeline */}
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  07:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  09:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  11:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  13:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  15:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  17:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  19:00
-                </span>
+                {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => {
+                // Add calendar icon for meeting-heavy slots (12-14 Quarterly Planning)
+                if (hour === 12 || hour === 13) {
+                  return <span key={`icon-${hour}`} className="flex justify-center">
+                          <CalendarIcon size={14} className="text-gray-600 dark:text-gray-300" />
+                        </span>;
+                }
+                // Add phone icon for call-dense slots (13:30-17:00)
+                else if (hour === 14 || hour === 15 || hour === 16) {
+                  return <span key={`icon-${hour}`} className="flex justify-center">
+                          <PhoneCallIcon size={14} className="text-gray-600 dark:text-gray-300" />
+                        </span>;
+                }
+                // Empty placeholder for other slots
+                return <span key={`icon-${hour}`} className="w-4"></span>;
+              })}
               </div>
+
+              {/* Timeline bar */}
               <div className="relative h-6 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden flex">
                 {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => {
                 const density = calculateMeetingDensity[hour];
@@ -422,10 +449,38 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                       </div>;
               })}
               </div>
+
+              {/* Timeline labels moved below the bar */}
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  07:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  09:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  11:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  13:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  15:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  17:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  19:00
+                </span>
+              </div>
+
+              {/* Rest of the timeline UI remains unchanged */}
               <div className="flex h-4 mt-0.5">
                 {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => <div key={`vip-${hour}`} className="flex-1 flex justify-center"></div>)}
               </div>
-              {/* Updated legend with better mobile responsiveness */}
+
+              {/* Legend remains unchanged */}
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-5 mt-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">
                 {!isViewingPastDay ? <>
                     <div className="flex items-center px-0.5 sm:px-1">
@@ -450,7 +505,8 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                   </div>}
               </div>
             </div>
-            {/* Break Time Info - Moved utensils icon to top right and text 2px left on mobile */}
+
+            {/* Break Time Info remains unchanged */}
             <div className="md:w-64 w-full bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 relative">
               <UtensilsIcon size={20} className="text-green-500 absolute top-3 right-3" />
               <div className="pr-7 sm:pl-0 pl-[2px]">

@@ -25,6 +25,10 @@ const Header: React.FC<HeaderProps> = ({
     month: 'long',
     day: 'numeric'
   });
+  // If we're on the alternative view, don't render the header content
+  if (isAlternativeView) {
+    return null;
+  }
   return <div className="w-full sticky top-0 z-[10000]">
       <div className="bg-[#1a2235] dark:bg-gray-800 text-white py-3 px-5 relative">
         {/* Desktop layout */}
@@ -49,16 +53,16 @@ const Header: React.FC<HeaderProps> = ({
             <button onClick={toggleDarkMode} className="p-1 rounded-full hover:bg-[#004b81] dark:hover:bg-gray-700 transition-colors mr-2" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
               {isDarkMode ? <SunIcon className="h-6 w-6 text-yellow-300" /> : <MoonIcon className="h-6 w-6 text-white" />}
             </button>
-            <h1 className="text-2xl font-bold text-white">ROOM RADAR</h1>
+            <h1 className="text-2xl font-bold text-white">Room Radar</h1>
           </div>
         </div>
         {/* Mobile layout - with 25% smaller text */}
         <div className="sm:hidden flex flex-col">
           <div className="flex justify-between items-start">
             <div>
-              {/* ROOM RADAR title with 25% smaller text */}
+              {/* Room Radar title with 25% smaller text - changed from all caps to title case */}
               <h1 className="text-[1.65rem] font-bold text-white leading-tight">
-                ROOM RADAR
+                Room Radar
               </h1>
               {/* Date with 25% smaller text */}
               <div className="flex items-center">
@@ -85,12 +89,12 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
       {/* Only render room headers when NOT on the alternative view */}
-      {!isAlternativeView && <div className="border-b border-gray-300 px-3 bg-white dark:bg-gray-900 dark:border-gray-700" data-id="element-61" style={{
+      <div className="border-b border-gray-300 px-3 bg-white dark:bg-gray-900 dark:border-gray-700" data-id="element-164" style={{
       margin: '0px',
       height: '0px',
       overflow: 'hidden',
       padding: '0 0 0 0'
-    }}></div>}
+    }}></div>
     </div>;
 };
 export default Header;

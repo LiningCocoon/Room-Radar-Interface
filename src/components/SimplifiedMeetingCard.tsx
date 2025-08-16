@@ -92,16 +92,10 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   } else {
     status = 'upcoming';
   }
-  // Base card styling with increased padding for better visibility
+  // Base card styling with fixed 8px padding as requested
   let cardClasses = 'rounded-lg border text-left transition-all duration-300 mb-2 relative';
-  // Apply padding based on time of day logic
-  if (shouldBeSmaller && status === 'past') {
-    // Morning meetings after noon that are in the past: make them smaller
-    cardClasses += ' p-[0.8rem]';
-  } else {
-    // Regular meetings: increased padding for better visibility
-    cardClasses += ' px-[1.2rem] py-[1rem]';
-  }
+  // Apply fixed 8px padding (p-2 in Tailwind)
+  cardClasses += ' p-2';
   // Apply styling based on status and special conditions
   if (isAvailable) {
     if (status === 'past' || isYesterday) {
@@ -181,9 +175,9 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   return <div className={`${cardClasses} ${status === 'past' || isYesterday ? 'opacity-35' : ''}`} style={!isAvailable && duration > 1 ? {
     minHeight: `${Math.min(duration * 80, 320)}px`
   } : {}}>
-      {/* VIP Star Icon for high profile meetings - Increased for better visibility */}
+      {/* VIP Star Icon for high profile meetings - Positioned to avoid padding clash */}
       {meeting.isHighProfile && status !== 'past' && !isYesterday && <div className="absolute top-1 right-1 group">
-          <StarIcon size={28} className="text-white animate-pulse" aria-label="VIP meeting" />
+          <StarIcon size={24} className="text-white animate-pulse" aria-label="VIP meeting" />
           {/* Tooltip */}
           <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
             VIP meeting
@@ -191,7 +185,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           </div>
         </div>}
       <div className="flex justify-between items-start">
-        <div className="flex-1 pr-2">
+        <div className="flex-1 pr-6">
           <h3 className={`${titleSize} font-bold leading-tight ${meeting.isHighProfile && status !== 'past' && !isYesterday ? 'text-white' : isAvailable || status === 'active' && !isYesterday ? textColorClass : 'text-black dark:text-white'}`}>
             {meeting.name}
           </h3>
@@ -199,18 +193,18 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           {(!isAvailable || isAvailable && status !== 'past' && !isYesterday) && <p className={`${timeSize} mt-0.5 ${meeting.isHighProfile && status !== 'past' && !isYesterday ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
               {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}
             </p>}
-          {/* Chair information for JFK and Executive rooms - increased font size */}
-          {showChair && <div className="mt-1 text-xl text-gray-600 dark:text-gray-400 font-medium">
-              Chair: {chairName}
+          {/* Chair information as a chip/badge - updated for better visibility and to avoid clashing */}
+          {showChair && <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-lg font-medium shadow-sm">
+              <span className="mr-1">👤</span> {chairName}
             </div>}
-          {/* Duration badge for long meetings */}
-          {showDurationBadge && !isAvailable && !isYesterday && <div className="mt-2 inline-flex items-center px-2.5 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-lg font-medium">
-              <ClockIcon size={18} className="mr-1" />
+          {/* Duration badge for long meetings - positioned to avoid clashing */}
+          {showDurationBadge && !isAvailable && !isYesterday && <div className="mt-2 inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-lg font-medium">
+              <ClockIcon size={16} className="mr-1" />
               {duration} hour{duration !== 1 ? 's' : ''}
             </div>}
         </div>
       </div>
-      {/* A/V Support Icon */}
+      {/* A/V Support Icon - positioned to avoid padding clash */}
       {meeting.avSupport && !isAvailable && <div className="absolute bottom-1 right-1">
           <AVSupportIcon size={avIconSize} className={`${getAvIconColor()}`} />
         </div>}

@@ -89,8 +89,8 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
       cardClasses += ' border-dashed border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 opacity-75';
     }
   } else if (meeting.isHighProfile && status !== 'past') {
-    // VIP meeting styling (not for past meetings)
-    cardClasses += ' border-[#b50909] bg-[#e41d3d] dark:bg-[#c41d3d] dark:border-[#b50909] shadow-lg border-2';
+    // VIP meeting styling (not for past meetings) - UPDATED to USWDS Red 50v
+    cardClasses += ' border-[#b50909] bg-[#d83933] dark:bg-[#b50909] dark:border-[#b50909] shadow-lg border-2';
   } else if (status === 'active') {
     cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
   } else if (status === 'past') {
@@ -146,6 +146,22 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
     const minutes = parseTime(meeting.startTime).minutes;
     return minutes === 0 ? ':00' : `:${minutes}`;
   };
+  // Mock chair data - in a real app, this would come from the meeting data
+  const getChairName = () => {
+    if (meeting.room === 'JFK' || meeting.room === 'Executive') {
+      if (meeting.name.includes('Planning')) return 'Sarah Johnson';
+      if (meeting.name.includes('Review')) return 'Michael Chen';
+      if (meeting.name.includes('Sync')) return 'David Wilson';
+      if (meeting.name.includes('Meeting')) return 'Emily Parker';
+      if (meeting.name.includes('Demo')) return 'Robert Taylor';
+      return 'Alex Rodriguez';
+    }
+    return null;
+  };
+  const chairName = getChairName();
+  const showChair = chairName && !isAvailable && status === 'upcoming';
+  // Increased font sizes by 10% for title
+  const titleFontSize = isCondensed ? 'text-[1.11rem]' : 'text-[1.49rem]'; // Increased from text-[1.0125rem]/text-[1.35rem]
   return <div className={`${cardClasses} mb-2 ml-0.5 mr-1.5 md:ml-1 md:mr-2 lg:ml-1.5 lg:mr-3 relative ${status === 'past' ? 'opacity-50' : ''}`} style={!isAvailable && duration > 1 ? {
     minHeight: `${Math.min(duration * 80, 320)}px`
   } : {}}>
@@ -160,12 +176,16 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
         </div>}
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h3 className={`${isCondensed ? 'text-[1.0125rem]' : 'text-[1.35rem]'} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
+          <h3 className={`${titleFontSize} font-bold ${isAvailable || status === 'active' ? textColorClass : 'text-black dark:text-white'}`}>
             {meeting.name}
           </h3>
           <p className={`${isCondensed ? 'text-[0.7875rem]' : 'text-[1.125rem]'} mt-1 dark:text-gray-200`}>
             {!isAvailable ? `${meeting.startTime} - ${meeting.endTime}` : meeting.startTime}
           </p>
+          {/* Chair information with increased font size by 25% */}
+          {showChair && <div className="mt-1 text-[1.25rem] text-gray-600 dark:text-gray-400 font-medium">
+              Chair: {chairName}
+            </div>}
           {/* Show exact minute for non-available meetings to help visualize the placement */}
           {!isAvailable && !isCondensed && startPosition === 'bottom' && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Starts at{getMinuteDisplay()}

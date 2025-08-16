@@ -1,6 +1,7 @@
 import React from 'react';
-import { StarIcon, ClockIcon } from 'lucide-react';
+import { DoorOpenIcon, StarIcon, ClockIcon } from 'lucide-react';
 import AVSupportIcon from './AVSupportIcon';
+import { getAbbreviation } from '../utils/abbreviations';
 interface Meeting {
   name: string;
   startTime: string;
@@ -10,21 +11,25 @@ interface Meeting {
   avSupport?: boolean;
   isHighProfile?: boolean;
 }
-interface SimplifiedMeetingCardProps {
+interface ProportionalMeetingCardProps {
   meeting: Meeting;
   currentTime: Date;
+  height: number;
+  width: number;
+  top: number;
+  left: number;
   duration?: number;
-  showDurationBadge?: boolean;
-  startPosition?: 'top' | 'bottom';
   militaryTime?: boolean;
   isYesterday?: boolean;
 }
-const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
+const ProportionalMeetingCard: React.FC<ProportionalMeetingCardProps> = ({
   meeting,
   currentTime,
+  height,
+  width,
+  top,
+  left,
   duration = 0,
-  showDurationBadge = false,
-  startPosition = 'top',
   militaryTime = false,
   isYesterday = false
 }) => {
@@ -66,12 +71,6 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const endTimeInMinutes = endTime ? endTime.hours * 60 + endTime.minutes : startTimeInMinutes + 60;
   // Check if meeting is starting within 15 minutes
   const isStartingSoon = startTimeInMinutes > currentTimeInMinutes && startTimeInMinutes - currentTimeInMinutes <= 15;
-  // Check if current time is past noon (12PM)
-  const isPastNoon = currentHour >= 12;
-  // Check if this is a morning meeting (before noon)
-  const isMorningMeeting = startTime.hours < 12;
-  // Determine if this meeting should be smaller based on time of day
-  const shouldBeSmaller = isPastNoon && isMorningMeeting && !isAvailable;
   // Determine status based on current time with special handling for Available slots
   // If viewing yesterday, all meetings are considered past
   let status = 'upcoming';
@@ -92,16 +91,61 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   } else {
     status = 'upcoming';
   }
-  // Base card styling with increased padding for better visibility
-  let cardClasses = 'rounded-lg border text-left transition-all duration-300 mb-2 relative';
-  // Apply padding based on time of day logic
-  if (shouldBeSmaller && status === 'past') {
-    // Morning meetings after noon that are in the past: make them smaller
-    cardClasses += ' p-[0.8rem]';
-  } else {
-    // Regular meetings: increased padding for better visibility
-    cardClasses += ' px-[1.2rem] py-[1rem]';
-  }
+  // Determine text size and content based on card height
+  // Increase all text sizes by 30%
+  const getTextSizing = () => {
+    // Very short cards (< 40px)
+    if (height < 40) {
+      return {
+        titleClass: 'text-sm font-bold truncate',
+        timeClass: 'hidden',
+        chairClass: 'hidden',
+        showTime: false,
+        showChair: false,
+        showDuration: false,
+        name: getAbbreviation(meeting.name, 8)
+      };
+    }
+    // Short cards (40-80px)
+    else if (height < 80) {
+      return {
+        titleClass: 'text-base font-bold truncate',
+        timeClass: 'text-sm',
+        chairClass: 'hidden',
+        showTime: true,
+        showChair: false,
+        showDuration: false,
+        name: getAbbreviation(meeting.name, 15)
+      };
+    }
+    // Medium cards (80-120px)
+    else if (height < 120) {
+      return {
+        titleClass: 'text-xl font-bold line-clamp-2',
+        timeClass: 'text-lg',
+        chairClass: 'text-sm',
+        showTime: true,
+        showChair: true,
+        showDuration: false,
+        name: getAbbreviation(meeting.name, 25)
+      };
+    }
+    // Long cards (120px+)
+    else {
+      return {
+        titleClass: 'text-2xl font-bold',
+        timeClass: 'text-xl',
+        chairClass: 'text-lg',
+        showTime: true,
+        showChair: true,
+        showDuration: true,
+        name: meeting.name
+      };
+    }
+  };
+  const textSizing = getTextSizing();
+  // Base card styling
+  let cardClasses = 'rounded-lg border text-left transition-all duration-300 absolute';
   // Apply styling based on status and special conditions
   if (isAvailable) {
     if (status === 'past' || isYesterday) {
@@ -112,38 +156,32 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
       cardClasses += ' border-dashed border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 opacity-75';
     }
   } else if (meeting.isHighProfile && status !== 'past' && !isYesterday) {
-    // VIP meeting styling (not for past meetings) - UPDATED to USWDS Red 50v
+    // VIP meeting styling
     cardClasses += ' border-[#b50909] bg-[#d83933] dark:bg-[#b50909] dark:border-[#b50909] shadow-lg border-2';
   } else if (status === 'active' && !isYesterday) {
     cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
   } else if (status === 'past' || isYesterday) {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   } else if (meeting.avSupport && isStartingSoon && !isYesterday) {
-    // A/V needs meeting starting within 15 minutes - updated to new colors
+    // A/V needs meeting starting within 15 minutes
     cardClasses += ' border-[#fa9441] bg-[#ffbc78] dark:bg-[#ffbc78]/20 dark:border-[#fa9441] border-2';
   } else {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   }
-  // Apply text color and icon based on status
+  // Apply text color based on status
   let textColorClass = 'text-black dark:text-white';
   if (isAvailable) {
     if (status === 'past' || isYesterday) {
-      // Past available slots: gray and muted, but NO icon
       textColorClass = 'text-gray-500 dark:text-gray-400';
     } else {
-      // Future available slots: subtle green text but NO DOOR ICON
       textColorClass = 'text-green-700 dark:text-green-400';
     }
   } else if (meeting.isHighProfile && status !== 'past' && !isYesterday) {
-    // VIP meetings: white text in both light and dark mode for better contrast
     textColorClass = 'text-white';
   } else if (status === 'active' && !isYesterday) {
     textColorClass = 'text-[#005ea2] dark:text-[#4d9eff] font-extrabold';
   } else if (status === 'past' || isYesterday) {
     textColorClass = 'text-gray-500 dark:text-gray-400';
-  } else {
-    // Upcoming meetings: no icon
-    textColorClass = 'text-black dark:text-white';
   }
   // Get AV icon color based on status and conditions
   const getAvIconColor = () => {
@@ -151,17 +189,17 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     if (meeting.isHighProfile && status !== 'past') return 'text-white';
     if (status === 'active') return 'text-[#005ea2] dark:text-[#4d9eff]';
     if (status === 'past') return 'text-gray-500 dark:text-gray-400';
-    if (isStartingSoon) return 'text-[#fa9441] dark:text-[#fa9441]'; // Updated to new color
-    return 'text-black dark:text-white'; // default for upcoming
+    if (isStartingSoon) return 'text-[#fa9441] dark:text-[#fa9441]';
+    return 'text-black dark:text-white';
   };
-  // SIGNIFICANTLY LARGER text sizes for better readability from afar
-  let titleSize = shouldBeSmaller && (status === 'past' || isYesterday) ? 'text-2xl' // Smaller but still readable
-  : 'text-3xl'; // Very large for main meetings
-  let timeSize = shouldBeSmaller && (status === 'past' || isYesterday) ? 'text-xl' // Smaller but still readable
-  : 'text-2xl'; // Large for time display
-  // A/V Support icon size based on card size (larger for better visibility)
-  const avIconSize = shouldBeSmaller && (status === 'past' || isYesterday) ? 28 : 34;
-  // Updated chair name function to use the specified names in rotation
+  // A/V Support icon size based on card height (30% larger)
+  const getAvIconSize = () => {
+    if (height < 40) return 16;
+    if (height < 80) return 21;
+    if (height < 120) return 26;
+    return 31;
+  };
+  // Chair name function
   const getChairName = () => {
     if (meeting.room === 'JFK' || meeting.room === 'Executive') {
       // Use the meeting name to determine which chair name to use
@@ -177,43 +215,50 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     return null;
   };
   const chairName = getChairName();
-  const showChair = chairName && !isAvailable && status === 'upcoming' && !isYesterday;
-  return <div className={`${cardClasses} ${status === 'past' || isYesterday ? 'opacity-35' : ''}`} style={!isAvailable && duration > 1 ? {
-    minHeight: `${Math.min(duration * 80, 320)}px`
-  } : {}}>
-      {/* VIP Star Icon for high profile meetings - Increased for better visibility */}
-      {meeting.isHighProfile && status !== 'past' && !isYesterday && <div className="absolute top-1 right-1 group">
-          <StarIcon size={28} className="text-white animate-pulse" aria-label="VIP meeting" />
-          {/* Tooltip */}
-          <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-            VIP meeting
-            <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
-          </div>
-        </div>}
-      <div className="flex justify-between items-start">
-        <div className="flex-1 pr-2">
-          <h3 className={`${titleSize} font-bold leading-tight ${meeting.isHighProfile && status !== 'past' && !isYesterday ? 'text-white' : isAvailable || status === 'active' && !isYesterday ? textColorClass : 'text-black dark:text-white'}`}>
-            {meeting.name}
+  const showChair = chairName && !isAvailable && status === 'upcoming' && !isYesterday && textSizing.showChair;
+  // Calculate padding based on card height
+  const getPadding = () => {
+    if (height < 40) return 'p-1.5';
+    if (height < 80) return 'p-2';
+    if (height < 120) return 'p-2.5';
+    return 'p-4';
+  };
+  return <div className={`${cardClasses} ${status === 'past' || isYesterday ? 'opacity-35' : ''} ${getPadding()}`} style={{
+    top: `${top}px`,
+    left: `${left}px`,
+    width: `${width}px`,
+    height: `${height}px`
+  }} title={meeting.name !== textSizing.name ? meeting.name : undefined}>
+      {/* VIP Star Icon for high profile meetings */}
+      {meeting.isHighProfile && status !== 'past' && !isYesterday && height >= 40 && <div className="absolute top-1 right-1 group">
+            <StarIcon size={height < 80 ? 16 : 21} className="text-white" aria-label="VIP meeting" />
+          </div>}
+      <div className="flex flex-col h-full justify-between">
+        <div>
+          <h3 className={`${textSizing.titleClass} ${textColorClass}`}>
+            {textSizing.name}
           </h3>
-          {/* Only show time if not a past available slot */}
-          {(!isAvailable || isAvailable && status !== 'past' && !isYesterday) && <p className={`${timeSize} mt-0.5 ${meeting.isHighProfile && status !== 'past' && !isYesterday ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
-              {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}
-            </p>}
-          {/* Chair information for JFK and Executive rooms - increased font size */}
-          {showChair && <div className="mt-1 text-xl text-gray-600 dark:text-gray-400 font-medium">
+          {/* Time display */}
+          {textSizing.showTime && (!isAvailable || isAvailable && status !== 'past' && !isYesterday) && <p className={`${textSizing.timeClass} mt-0.5 ${meeting.isHighProfile && status !== 'past' && !isYesterday ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
+                {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}
+              </p>}
+          {/* Chair information */}
+          {showChair && <div className={`${textSizing.chairClass} mt-1 text-gray-600 dark:text-gray-400 font-medium`}>
               Chair: {chairName}
             </div>}
+        </div>
+        <div className="flex justify-between items-end">
           {/* Duration badge for long meetings */}
-          {showDurationBadge && !isAvailable && !isYesterday && <div className="mt-2 inline-flex items-center px-2.5 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-lg font-medium">
-              <ClockIcon size={18} className="mr-1" />
-              {duration} hour{duration !== 1 ? 's' : ''}
+          {textSizing.showDuration && !isAvailable && !isYesterday && duration >= 2 && <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium">
+                <ClockIcon size={13} className="mr-1" />
+                {duration}h
+              </div>}
+          {/* A/V Support Icon */}
+          {meeting.avSupport && !isAvailable && height >= 40 && <div className="ml-auto">
+              <AVSupportIcon size={getAvIconSize()} className={`${getAvIconColor()}`} />
             </div>}
         </div>
       </div>
-      {/* A/V Support Icon */}
-      {meeting.avSupport && !isAvailable && <div className="absolute bottom-1 right-1">
-          <AVSupportIcon size={avIconSize} className={`${getAvIconColor()}`} />
-        </div>}
     </div>;
 };
-export default SimplifiedMeetingCard;
+export default ProportionalMeetingCard;

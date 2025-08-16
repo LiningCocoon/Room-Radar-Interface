@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRightIcon, ClockIcon } from 'lucide-react';
+import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
 import SimplifiedTimeSlot from './SimplifiedTimeSlot';
 import SimplifiedMeetingCard from './SimplifiedMeetingCard';
@@ -13,6 +13,41 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
   currentTime,
   isYesterday = false
 }) => {
+  // State for tracking the selected date
+  const [selectedDate, setSelectedDate] = useState<Date>(isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime));
+  // Initialize the selected date once on component mount
+  // but don't update it when isYesterday changes to allow manual navigation
+  useEffect(() => {
+    // Only set initial date on first render
+    const initialDate = isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime);
+    setSelectedDate(initialDate);
+  }, []); // Empty dependency array means this only runs once on mount
+  // Calculate if we're viewing today, yesterday, or another day
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+  const isViewingPastDay = selectedDate < new Date(new Date().setHours(0, 0, 0, 0));
+  // Format the selected date in a short, readable format
+  const formattedDate = selectedDate.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+  // Navigation functions
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+  const goToNextDay = () => {
+    // Only allow going to next day if we're viewing a past day
+    if (isViewingPastDay) {
+      const newDate = new Date(selectedDate);
+      newDate.setDate(selectedDate.getDate() + 1);
+      setSelectedDate(newDate);
+    }
+  };
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
   // Updated room names: Reordered to put Small after Executive and before Breakout A
   const rooms = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
   // Updated time slots to military time
@@ -22,7 +57,6 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
   // Function to calculate the 2-hour cutoff time slot
   const getTwoHourCutoffTimeSlot = () => {
     const currentHour = currentTime.getHours();
-    const currentMinute = currentTime.getMinutes();
     const twoHoursAgo = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
     const cutoffHour = twoHoursAgo.getHours();
     // Find the matching time slot
@@ -34,9 +68,9 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
   };
   // Auto-scroll to the 2-hour cutoff on load (only for current day view)
   useEffect(() => {
-    if (!isYesterday) {
+    if (isToday && scrollTargetRef.current) {
       const cutoffTimeSlot = getTwoHourCutoffTimeSlot();
-      if (cutoffTimeSlot && scrollTargetRef.current) {
+      if (cutoffTimeSlot) {
         // Small delay to ensure DOM is fully rendered
         setTimeout(() => {
           scrollTargetRef.current?.scrollIntoView({
@@ -46,9 +80,7 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         }, 100);
       }
     }
-  }, [isYesterday]);
-  // Use all time slots
-  const displayTimeSlots = allTimeSlots;
+  }, [isToday]);
   // Get meetings data
   const allMeetings = getMeetingData();
   // Convert legacy room names to new names for compatibility
@@ -129,35 +161,53 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
   // Check if this is the current time slot
   const isCurrentTimeSlot = (timeSlot: string) => {
     const timeSlotHour = parseInt(timeSlot.split(':')[0]);
-    return timeSlotHour === currentTime.getHours();
+    return timeSlotHour === currentTime.getHours() && isToday;
   };
-  return <div className="flex-1 p-2 overflow-auto flex flex-col h-full">
-      {/* Fixed header positioned directly below the main header with reduced padding */}
-      <div className="fixed top-[52px] left-0 right-0 z-[9999] border-b border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 shadow-md" style={{
-      padding: '0.5rem 0.75rem' // Reduced padding by ~15%
-    }}>
-        <div className="grid grid-cols-6 gap-2">
-          {/* Empty first column to align with time slots */}
-          <div className="col-span-1"></div>
-          {/* Room headers in columns 2-6 */}
-          {rooms.map(room => <div key={room} className="col-span-1 flex justify-center items-center">
-              <h2 className="text-[2.4rem] font-bold dark:text-white">
-                {room}
-              </h2>
-            </div>)}
+  return <div className="flex-1 overflow-auto flex flex-col h-full">
+      {/* New minimal context-aware header with vertically centered elements */}
+      <div className="fixed top-0 left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 shadow-md">
+        <div className="flex items-center px-4 py-3">
+          {/* Navigation arrows with tooltips */}
+          <button onClick={goToPreviousDay} className="p-2 mr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="View previous day" title="View previous day">
+            <ChevronLeftIcon className="h-7 w-7 text-gray-700 dark:text-gray-300" />
+          </button>
+
+          {/* Only show next day button if we're not on today */}
+          {isViewingPastDay && <button onClick={goToNextDay} className="p-2 mr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="View next day" title="View next day">
+              <ChevronRightIcon className="h-7 w-7 text-gray-700 dark:text-gray-300" />
+            </button>}
+
+          {/* Current date display - enlarged for better readability */}
+          <h2 className="text-3xl font-bold dark:text-white mr-6">
+            {formattedDate}
+          </h2>
+
+          {/* Today button - only show when not viewing today */}
+          {!isToday && <button onClick={goToToday} className="mr-6 px-3 py-1 text-lg bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors" aria-label="Return to today" title="Return to today">
+              Today
+            </button>}
+
+          {/* Room headers - using grid layout to match the content grid layout below */}
+          <div className="grid grid-cols-5 gap-2 flex-1">
+            {rooms.map(room => <div key={room} className="text-center">
+                <h2 className="text-2xl font-bold dark:text-white truncate">
+                  {room}
+                </h2>
+              </div>)}
+          </div>
         </div>
       </div>
 
       {/* Add padding to prevent content from being hidden under the fixed header */}
-      <div className="pt-[80px]">
+      <div className="pt-[70px]">
         {/* Meeting Grid - Show all time slots */}
         <div className="space-y-0 flex-1">
-          {displayTimeSlots.map((timeSlot, index) => {
+          {allTimeSlots.map((timeSlot, index) => {
           // Only use dark blue for current time slot
           const isActive = isCurrentTimeSlot(timeSlot);
           const rowBgColor = isActive ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-900';
           // Determine if this is the cutoff slot for auto-scrolling
-          const isCutoffSlot = !isYesterday && timeSlot === getTwoHourCutoffTimeSlot();
+          const isCutoffSlot = isToday && timeSlot === getTwoHourCutoffTimeSlot();
           return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800`} ref={isCutoffSlot ? scrollTargetRef : null}>
                 <div className="grid grid-cols-6 gap-2">
                   <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
@@ -174,7 +224,7 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
                 // Determine vertical position based on start time
                 const startPosition = getStartPositionInHour(meeting);
                 return <div key={`${room}-${timeSlot}`} className={`col-span-1 relative ${startPosition === 'bottom' ? 'pt-10' : ''}`}>
-                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} militaryTime={true} isYesterday={isYesterday} />
+                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} militaryTime={true} isYesterday={!isToday && isViewingPastDay} />
                       </div>;
               })}
                 </div>
@@ -183,10 +233,14 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         </div>
       </div>
 
-      {/* Navigation Buttons - hide simplified view link on mobile */}
+      {/* Navigation Buttons - Added Proportional view button */}
       <div className="mt-4 mb-2 flex justify-center gap-4">
+        <Link to="/proportional" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
+          <span>Proportional view</span>
+          <ArrowRightIcon size={16} />
+        </Link>
         <Link to="/alternative" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
-          <span>Try alternative view</span>
+          <span>Alternative view</span>
           <ArrowRightIcon size={16} />
         </Link>
         <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">

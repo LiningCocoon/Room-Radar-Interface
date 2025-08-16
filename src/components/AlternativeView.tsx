@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, ArrowRightIcon, ClockIcon, UtensilsIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, UtensilsIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
 import AVSupportIcon from './AVSupportIcon';
 import { parseTime } from '../utils/timeUtils';
@@ -12,6 +12,39 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   currentTime,
   isYesterday = false
 }) => {
+  // State for tracking the selected date
+  const [selectedDate, setSelectedDate] = useState<Date>(isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime));
+  // Initialize the selected date once on component mount
+  useEffect(() => {
+    // Only set initial date on first render
+    const initialDate = isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime);
+    setSelectedDate(initialDate);
+  }, []); // Empty dependency array means this only runs once on mount
+  // Calculate if we're viewing today, yesterday, tomorrow, or another day
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+  const isYesterdayView = selectedDate.toDateString() === new Date(new Date().setDate(new Date().getDate() - 1)).toDateString();
+  const isTomorrowView = selectedDate.toDateString() === new Date(new Date().setDate(new Date().getDate() + 1)).toDateString();
+  const isViewingPastDay = selectedDate < new Date(new Date().setHours(0, 0, 0, 0));
+  // Format the selected date in a short, readable format
+  const formattedDate = selectedDate.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+  // Navigation functions
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+  const goToNextDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() + 1);
+    setSelectedDate(newDate);
+  };
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
   const meetingData = getMeetingData();
   // Convert legacy room names to new names
   const convertedMeetings = meetingData.map(meeting => {
@@ -29,8 +62,9 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   const currentTimeInMinutes = currentHour * 60 + currentMinute;
   // Calculate meeting status
   const getMeetingStatus = (meeting: any) => {
-    // If viewing yesterday, all meetings are considered past
-    if (isYesterday) return 'past';
+    // If viewing a day other than today, adjust status accordingly
+    if (isViewingPastDay) return 'past';
+    if (isTomorrowView) return 'upcoming';
     const startTime = parseTime(meeting.startTime);
     const endTime = meeting.endTime ? parseTime(meeting.endTime) : null;
     const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
@@ -58,13 +92,13 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     return endTime.hours * 60 + endTime.minutes;
   };
   // Filter meetings by status
-  const activeMeetings = convertedMeetings.filter(m => !isYesterday && getMeetingStatus(m) === 'active');
-  const upcomingMeetings = convertedMeetings.filter(m => !isYesterday && getMeetingStatus(m) === 'upcoming');
+  const activeMeetings = convertedMeetings.filter(m => isToday && getMeetingStatus(m) === 'active');
+  const upcomingMeetings = convertedMeetings.filter(m => getMeetingStatus(m) === 'upcoming');
   // Find the first VIP meeting overall
   const allVipMeetings = convertedMeetings.filter(m => m.isHighProfile);
   const firstVipMeeting = allVipMeetings.length > 0 ? allVipMeetings[0] : null;
-  // Get all VIP meetings for today (not in the past)
-  const vipMeetingsToday = convertedMeetings.filter(m => m.isHighProfile && !isYesterday && getMeetingStatus(m) !== 'past');
+  // Get all VIP meetings for the selected day (not in the past)
+  const vipMeetingsToday = convertedMeetings.filter(m => m.isHighProfile && getMeetingStatus(m) !== 'past');
   // Process meetings to handle VIP status - only show the first VIP meeting
   const processVipStatus = (meetings: any[]) => {
     return meetings.map(meeting => {
@@ -96,14 +130,15 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   });
   const processedUpcomingMeetings = processVipStatus(upcomingMeetings);
   // Updated room names and order as requested
-  const rooms = ['FDR', 'Executive', 'Breakout A', 'Breakout B', 'Small'];
+  const rooms = ['FDR', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
   const meetingsByRoom: Record<string, any[]> = {};
   rooms.forEach(room => {
     meetingsByRoom[room] = processedUpcomingMeetings.filter(m => m.room === room);
   });
   // Find next available room and time
   const findNextAvailable = () => {
-    if (isYesterday) return null; // No "next available" for yesterday's view
+    if (isViewingPastDay) return null; // No "next available" for past days
+    if (isTomorrowView) return null; // No "next available" for future days
     // Sort all active meetings by end time
     const sortedActive = [...processedActiveMeetings].sort((a, b) => {
       const aEnd = getEndTimeInMinutes(a) || 0;
@@ -231,7 +266,8 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   };
   // Find best break times
   const findBestBreakTime = useMemo(() => {
-    if (isYesterday) return 'N/A for past day';
+    if (isViewingPastDay) return 'N/A for past day';
+    if (isTomorrowView) return 'Plan for tomorrow';
     // Current hour and next hour
     const currentHour = currentTime.getHours();
     const nextHour = currentHour + 1;
@@ -246,10 +282,11 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
       }
     }
     return 'Limited today';
-  }, [calculateMeetingDensity, currentTime, isYesterday]);
+  }, [calculateMeetingDensity, currentTime, isViewingPastDay, isTomorrowView]);
   // Find safe window text
   const safeWindowText = useMemo(() => {
-    if (isYesterday) return 'N/A for past day';
+    if (isViewingPastDay) return 'N/A for past day';
+    if (isTomorrowView) return 'Planning for tomorrow';
     if (findLowActivityWindows.length === 0) {
       return 'High activity all day';
     }
@@ -265,15 +302,15 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
       return `Low activity now until ${formatHour(nextWindow.end + 1)}`;
     }
     return `Low activity expected: ${formatHour(nextWindow.start)}–${formatHour(nextWindow.end + 1)}`;
-  }, [findLowActivityWindows, currentTime, isYesterday]);
+  }, [findLowActivityWindows, currentTime, isViewingPastDay, isTomorrowView]);
   // Convert time to military format
   const formatTimeToMilitary = (timeStr: string) => {
     if (timeStr === 'Now') return timeStr;
     const time = parseTime(timeStr);
     return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
   };
-  // For yesterday view, show all meetings as past
-  const pastDayMeetings = isYesterday ? convertedMeetings : [];
+  // For past day view, show all meetings as past
+  const pastDayMeetings = isViewingPastDay ? convertedMeetings : [];
   // Get room status for each room
   const getRoomStatus = () => {
     return rooms.map(room => {
@@ -294,7 +331,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     audience: 'Marketing, Engineering',
     startTime: '13:30',
     endTime: '14:15',
-    isActive: true
+    isActive: isToday
   }, {
     name: 'Client Presentation',
     audience: 'External, Sales',
@@ -308,188 +345,141 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     endTime: '17:00',
     isActive: false
   }];
-  return <div className="flex-1 p-3 pt-2 h-screen flex flex-col overflow-auto">
-      {/* Unified Dashboard with Meeting Density and Break Time */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-3 p-3">
-        <div className="flex flex-col md:flex-row gap-3">
-          {/* Meeting Density Graph - Takes more space on desktop */}
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                07:00
-              </span>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                09:00
-              </span>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                11:00
-              </span>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                13:00
-              </span>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                15:00
-              </span>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                17:00
-              </span>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                19:00
-              </span>
-            </div>
-            <div className="relative h-6 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden flex">
-              {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => {
-              const density = calculateMeetingDensity[hour];
-              // Updated color scheme: show red for busy OR VIP meetings
-              let bgColor = 'bg-[#4caf50] dark:bg-[#36AE7C]'; // Open - custom green
-              // If viewing yesterday, show all time slots as past (gray)
-              if (isYesterday) {
-                bgColor = 'bg-gray-300 dark:bg-gray-600';
-              } else if (density.count >= 3 || density.vip) {
-                bgColor = 'bg-[#e52207] dark:bg-[#EB5353]'; // Busy or VIP - custom red
-              } else if (density.count === 2) {
-                bgColor = 'bg-[#ffbe2e] dark:bg-[#F9D923]'; // Moderate - custom yellow
-              } else if (density.count === 1) {
-                bgColor = 'bg-[#00bde3] dark:bg-[#187498]'; // Light - custom blue
-              }
-              return <div key={hour} className={`flex-1 ${bgColor} border-r border-white dark:border-gray-800 relative`}>
-                    {density.count === 0 && !isYesterday && <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[10px] text-gray-600 dark:text-gray-300">
-                        ·
-                      </span>}
-                    {hour === currentHour && !isYesterday && <div className="absolute top-0 bottom-0 w-0.5 bg-white dark:bg-gray-300 left-1/2 transform -translate-x-1/2"></div>}
-                  </div>;
-            })}
-            </div>
-            <div className="flex h-4 mt-0.5">
-              {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => <div key={`vip-${hour}`} className="flex-1 flex justify-center"></div>)}
-            </div>
-            {/* Updated legend with better mobile responsiveness */}
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-5 mt-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">
-              {!isYesterday ? <>
-                  <div className="flex items-center px-0.5 sm:px-1">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#4caf50] dark:bg-[#36AE7C] rounded-full mr-1 sm:mr-1.5"></div>
-                    <span>Open</span>
-                  </div>
-                  <div className="flex items-center px-0.5 sm:px-1">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#00bde3] dark:bg-[#187498] rounded-full mr-1 sm:mr-1.5"></div>
-                    <span>Light</span>
-                  </div>
-                  <div className="flex items-center px-0.5 sm:px-1">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#ffbe2e] dark:bg-[#F9D923] rounded-full mr-1 sm:mr-1.5"></div>
-                    <span>Moderate</span>
-                  </div>
-                  <div className="flex items-center px-0.5 sm:px-1">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#e52207] dark:bg-[#EB5353] rounded-full mr-1 sm:mr-1.5"></div>
-                    <span>Busy or VIP</span>
-                  </div>
-                </> : <div className="flex items-center px-0.5 sm:px-1">
-                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gray-300 dark:bg-gray-600 rounded-full mr-1 sm:mr-1.5"></div>
-                  <span>Past Day</span>
-                </div>}
-            </div>
-          </div>
-          {/* Break Time Info - Moved utensils icon to top right and text 2px left on mobile */}
-          <div className="md:w-64 w-full bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 relative">
-            <UtensilsIcon size={20} className="text-green-500 absolute top-3 right-3" />
-            <div className="pr-7 sm:pl-0 pl-[2px]">
-              <div className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                Best break time:
+  return <div className="flex-1 overflow-auto flex flex-col h-full">
+      {/* Removing the fixed header that's overlapping with the main app header */}
+      {/* Adjust padding since we're now only using the main app header */}
+      <div className="p-3 flex flex-col h-full">
+        {/* Add date display at the top of the content area */}
+        <div className="flex items-center mb-3">
+          <h2 className="text-3xl font-bold dark:text-white mr-6">
+            {formattedDate}
+          </h2>
+          {isToday && <div className="px-3 py-1 text-lg bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-md">
+              Today
+            </div>}
+        </div>
+
+        {/* Unified Dashboard with Meeting Density and Break Time */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-3 p-3">
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Meeting Density Graph - Takes more space on desktop */}
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  07:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  09:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  11:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  13:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  15:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  17:00
+                </span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  19:00
+                </span>
               </div>
-              <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                {findBestBreakTime}
+              <div className="relative h-6 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden flex">
+                {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => {
+                const density = calculateMeetingDensity[hour];
+                // Updated color scheme: show red for busy OR VIP meetings
+                let bgColor = 'bg-[#4caf50] dark:bg-[#36AE7C]'; // Open - custom green
+                // If viewing a non-today view, show all time slots as past/future
+                if (isViewingPastDay) {
+                  bgColor = 'bg-gray-300 dark:bg-gray-600';
+                } else if (isTomorrowView) {
+                  // For tomorrow view, use normal colors but slightly muted
+                  if (density.count >= 3 || density.vip) {
+                    bgColor = 'bg-[#e52207]/80 dark:bg-[#EB5353]/80'; // Busy or VIP - custom red
+                  } else if (density.count === 2) {
+                    bgColor = 'bg-[#ffbe2e]/80 dark:bg-[#F9D923]/80'; // Moderate - custom yellow
+                  } else if (density.count === 1) {
+                    bgColor = 'bg-[#00bde3]/80 dark:bg-[#187498]/80'; // Light - custom blue
+                  }
+                } else if (density.count >= 3 || density.vip) {
+                  bgColor = 'bg-[#e52207] dark:bg-[#EB5353]'; // Busy or VIP - custom red
+                } else if (density.count === 2) {
+                  bgColor = 'bg-[#ffbe2e] dark:bg-[#F9D923]'; // Moderate - custom yellow
+                } else if (density.count === 1) {
+                  bgColor = 'bg-[#00bde3] dark:bg-[#187498]'; // Light - custom blue
+                }
+                return <div key={hour} className={`flex-1 ${bgColor} border-r border-white dark:border-gray-800 relative`}>
+                        {density.count === 0 && !isViewingPastDay && <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[10px] text-gray-600 dark:text-gray-300">
+                            ·
+                          </span>}
+                        {/* Updated "now" marker to match the image - a white triangle/arrow pointing up */}
+                        {hour === currentHour && isToday && <div className="absolute top-0 bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-end">
+                            <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[12px] border-l-transparent border-r-transparent border-b-white dark:border-b-white"></div>
+                          </div>}
+                      </div>;
+              })}
               </div>
-              {!isYesterday && findLowActivityWindows.length > 0 && <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Next window: {formatHour(findLowActivityWindows[0].start)}–
-                  {formatHour(findLowActivityWindows[0].end + 1)}
-                </div>}
+              <div className="flex h-4 mt-0.5">
+                {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => <div key={`vip-${hour}`} className="flex-1 flex justify-center"></div>)}
+              </div>
+              {/* Updated legend with better mobile responsiveness */}
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-5 mt-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">
+                {!isViewingPastDay ? <>
+                    <div className="flex items-center px-0.5 sm:px-1">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#4caf50] dark:bg-[#36AE7C] rounded-full mr-1 sm:mr-1.5"></div>
+                      <span>Open</span>
+                    </div>
+                    <div className="flex items-center px-0.5 sm:px-1">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#00bde3] dark:bg-[#187498] rounded-full mr-1 sm:mr-1.5"></div>
+                      <span>Light</span>
+                    </div>
+                    <div className="flex items-center px-0.5 sm:px-1">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#ffbe2e] dark:bg-[#F9D923] rounded-full mr-1 sm:mr-1.5"></div>
+                      <span>Moderate</span>
+                    </div>
+                    <div className="flex items-center px-0.5 sm:px-1">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#e52207] dark:bg-[#EB5353] rounded-full mr-1 sm:mr-1.5"></div>
+                      <span>Busy or VIP</span>
+                    </div>
+                  </> : <div className="flex items-center px-0.5 sm:px-1">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gray-300 dark:bg-gray-600 rounded-full mr-1 sm:mr-1.5"></div>
+                    <span>Past Day</span>
+                  </div>}
+              </div>
+            </div>
+            {/* Break Time Info - Moved utensils icon to top right and text 2px left on mobile */}
+            <div className="md:w-64 w-full bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 relative">
+              <UtensilsIcon size={20} className="text-green-500 absolute top-3 right-3" />
+              <div className="pr-7 sm:pl-0 pl-[2px]">
+                <div className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                  Best break time:
+                </div>
+                <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                  {findBestBreakTime}
+                </div>
+                {!isViewingPastDay && findLowActivityWindows.length > 0 && <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Next window: {formatHour(findLowActivityWindows[0].start)}–
+                    {formatHour(findLowActivityWindows[0].end + 1)}
+                  </div>}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* Main content - Updated layout with calls section in right column */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-        {isYesterday ?
-      // For yesterday view, show past meetings
-      <div className="col-span-1 md:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-              <h2 className="text-2xl font-bold mb-3 dark:text-white">
-                Yesterday's Meetings
-              </h2>
-              {pastDayMeetings.length > 0 ? <div className="space-y-3">
-                  {pastDayMeetings.map((meeting, idx) => <div key={idx} className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center">
-                            <div className="text-2xl font-bold dark:text-white">
-                              {meeting.name}
-                            </div>
-                            <div className="ml-2 text-xl text-gray-700 dark:text-gray-300 font-medium">
-                              ({meeting.room})
-                            </div>
-                          </div>
-                          <div className="text-lg text-gray-600 dark:text-gray-300 mt-1">
-                            {formatTimeToMilitary(meeting.startTime)} -{' '}
-                            {formatTimeToMilitary(meeting.endTime)}
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          {meeting.isHighProfile && <span className="text-gray-500 text-2xl mr-2">
-                              ★
-                            </span>}
-                          {meeting.avSupport && <AVSupportIcon size={30} className="text-gray-500" />}
-                        </div>
-                      </div>
-                    </div>)}
-                </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
-                  No meetings found for yesterday
-                </div>}
-            </div>
-          </div> :
-      // For current day view, show Activity in left column and Calls in right column
-      <>
-            {/* Left Column - Activity (formerly Room Status) */}
-            <div className="flex flex-col gap-3">
-              {/* Activity Section (renamed from Room Status) with 20% larger text */}
+
+        {/* Main content - Updated layout with calls section in right column */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          {isViewingPastDay ?
+        // For past view, show past meetings
+        <div className="col-span-1 md:col-span-2">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
                 <h2 className="text-2xl font-bold mb-3 dark:text-white">
-                  Activity
+                  {isYesterdayView ? "Yesterday's Meetings" : `${formattedDate} Meetings`}
                 </h2>
-                <div className="space-y-3">
-                  {roomStatuses.map(status => <div key={status.room} className={`p-3 rounded-lg ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500'}`}>
-                      <div className="flex justify-between items-center">
-                        <div className="text-2xl font-bold dark:text-white">
-                          {status.room}
-                        </div>
-                        <div className={`text-xl font-medium ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
-                          {status.status === 'busy' ? 'In Use' : 'Available'}
-                        </div>
-                      </div>
-                      {status.status === 'busy' && status.activeMeeting && <div className="text-lg text-gray-600 dark:text-gray-300 mt-2">
-                          <div className="font-medium text-xl">
-                            {status.activeMeeting.name}
-                          </div>
-                          <div>
-                            Until{' '}
-                            {formatTimeToMilitary(status.activeMeeting.endTime)}
-                          </div>
-                        </div>}
-                      {status.status === 'available' && status.nextMeeting && <div className="text-lg text-gray-600 dark:text-gray-300 mt-2">
-                          <div>Next: {status.nextMeeting.name}</div>
-                          <div>
-                            At{' '}
-                            {formatTimeToMilitary(status.nextMeeting.startTime)}
-                          </div>
-                        </div>}
-                    </div>)}
-                </div>
-              </div>
-              {/* VIP Meetings Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-                <h2 className="text-2xl font-bold mb-3 dark:text-white">
-                  VIP Meetings Today
-                </h2>
-                {vipMeetingsToday.length > 0 ? <div className="space-y-3">
-                    {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
+                {pastDayMeetings.length > 0 ? <div className="space-y-3">
+                    {pastDayMeetings.map((meeting, idx) => <div key={idx} className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400">
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center">
@@ -506,111 +496,187 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <span className="text-red-500 text-2xl mr-2 group relative">
-                              ★{/* Tooltip */}
-                              <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-                                VIP meeting
-                                <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
-                              </div>
-                            </span>
-                            {meeting.avSupport && <AVSupportIcon size={30} className="text-red-500" />}
-                          </div>
-                        </div>
-                        <div className="mt-2 flex justify-end">
-                          {getMeetingStatus(meeting) === 'active' && <div className="text-lg font-bold text-red-700 dark:text-red-300">
-                              In progress
-                            </div>}
-                          {getMeetingStatus(meeting) === 'upcoming' && <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
-                              {getTimeUntilMeeting(meeting)}
-                            </div>}
-                        </div>
-                      </div>)}
-                  </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
-                    No VIP meetings scheduled for today
-                  </div>}
-              </div>
-            </div>
-            {/* Right Column - Calls Section */}
-            <div className="flex flex-col gap-3">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-                <div className="flex items-center mb-3">
-                  <PhoneCallIcon size={24} className="text-blue-500 mr-2" />
-                  <h2 className="text-2xl font-bold dark:text-white">Calls</h2>
-                </div>
-                {callsData.length > 0 ? <div className="space-y-3">
-                    {callsData.map((call, idx) => <div key={idx} className={`p-3 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="text-2xl font-bold dark:text-white">
-                              {call.name}
-                            </div>
-                            <div className="flex items-center mt-1">
-                              <UsersIcon size={18} className="text-gray-500 dark:text-gray-400 mr-2" />
-                              <div className="text-lg text-gray-600 dark:text-gray-300">
-                                {call.audience}
-                              </div>
-                            </div>
-                            <div className="text-lg text-gray-600 dark:text-gray-300 mt-1">
-                              {call.startTime} - {call.endTime}
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            {call.isActive && <span className="bg-blue-500 text-white text-sm px-2 py-1 rounded-full">
-                                Active
+                            {meeting.isHighProfile && <span className="text-gray-500 text-2xl mr-2">
+                                ★
                               </span>}
+                            {meeting.avSupport && <AVSupportIcon size={30} className="text-gray-500" />}
                           </div>
                         </div>
                       </div>)}
                   </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
-                    No calls scheduled
+                    No meetings found for this day
                   </div>}
               </div>
-              {/* Upcoming Calls Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 flex-1">
-                <h2 className="text-2xl font-bold mb-3 dark:text-white">
-                  Call Information
-                </h2>
-                <div className="space-y-4">
-                  <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
-                    <h3 className="text-xl font-bold dark:text-white mb-2">
-                      Join Options
-                    </h3>
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="bg-blue-500 text-white p-1 rounded">
-                        <PhoneCallIcon size={16} />
-                      </div>
-                      <div className="text-lg">Main Line: 888-555-1234</div>
-                    </div>
-                    <div className="text-lg text-gray-600 dark:text-gray-300 ml-8">
-                      Meeting ID: 1234 5678
-                    </div>
+            </div> :
+        // For current or future day view, show Activity in left column and Calls in right column
+        <>
+              {/* Left Column - Activity (formerly Room Status) */}
+              <div className="flex flex-col gap-3">
+                {/* Activity Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
+                  <h2 className="text-xl font-bold mb-2 dark:text-white">
+                    Activity
+                  </h2>
+                  <div className="space-y-2">
+                    {roomStatuses.map(status => <div key={status.room} className={`p-2.5 rounded-lg ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500'}`}>
+                        <div className="flex justify-between items-center">
+                          <div className="text-xl font-bold dark:text-white">
+                            {status.room}
+                          </div>
+                          <div className={`text-lg font-medium ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
+                            {status.status === 'busy' ? 'In Use' : 'Available'}
+                          </div>
+                        </div>
+                        {status.status === 'busy' && status.activeMeeting && <div className="text-base text-gray-600 dark:text-gray-300 mt-1.5">
+                            <div className="font-medium text-lg">
+                              {status.activeMeeting.name}
+                            </div>
+                            <div>
+                              Until{' '}
+                              {formatTimeToMilitary(status.activeMeeting.endTime)}
+                            </div>
+                          </div>}
+                        {status.status === 'available' && status.nextMeeting && <div className="text-base text-gray-600 dark:text-gray-300 mt-1.5">
+                              <div>Next: {status.nextMeeting.name}</div>
+                              <div>
+                                At{' '}
+                                {formatTimeToMilitary(status.nextMeeting.startTime)}
+                              </div>
+                            </div>}
+                      </div>)}
                   </div>
-                  <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
-                    <h3 className="text-xl font-bold dark:text-white mb-2">
-                      Support
-                    </h3>
-                    <div className="text-lg text-gray-600 dark:text-gray-300">
-                      Technical issues: 888-555-4321
+                </div>
+                {/* VIP Meetings Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
+                  <h2 className="text-xl font-bold mb-2 dark:text-white">
+                    VIP Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
+                  </h2>
+                  {vipMeetingsToday.length > 0 ? <div className="space-y-2">
+                      {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="flex items-center">
+                                <div className="text-xl font-bold dark:text-white">
+                                  {meeting.name}
+                                </div>
+                                <div className="ml-2 text-lg text-gray-700 dark:text-gray-300 font-medium">
+                                  ({meeting.room})
+                                </div>
+                              </div>
+                              <div className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                                {formatTimeToMilitary(meeting.startTime)} -{' '}
+                                {formatTimeToMilitary(meeting.endTime)}
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="text-red-500 text-xl mr-2 group relative">
+                                ★{/* Tooltip */}
+                                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+                                  VIP meeting
+                                  <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
+                                </div>
+                              </span>
+                              {meeting.avSupport && <AVSupportIcon size={26} className="text-red-500" />}
+                            </div>
+                          </div>
+                          <div className="mt-1.5 flex justify-end">
+                            {getMeetingStatus(meeting) === 'active' && <div className="text-base font-bold text-red-700 dark:text-red-300">
+                                In progress
+                              </div>}
+                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-base font-bold text-gray-700 dark:text-gray-300">
+                                {getTimeUntilMeeting(meeting)}
+                              </div>}
+                          </div>
+                        </div>)}
+                    </div> : <div className="text-center py-4 text-lg text-gray-500 dark:text-gray-400">
+                      No VIP meetings scheduled{' '}
+                      {isTomorrowView ? 'for tomorrow' : 'for today'}
+                    </div>}
+                </div>
+              </div>
+              {/* Right Column - Calls Section */}
+              <div className="flex flex-col gap-3">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
+                  <div className="flex items-center mb-2">
+                    <PhoneCallIcon size={22} className="text-blue-500 mr-2" />
+                    <h2 className="text-xl font-bold dark:text-white">Calls</h2>
+                  </div>
+                  {callsData.length > 0 ? <div className="space-y-2">
+                      {callsData.map((call, idx) => <div key={idx} className={`p-2.5 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="text-xl font-bold dark:text-white">
+                                {call.name}
+                              </div>
+                              <div className="flex items-center mt-1">
+                                <UsersIcon size={16} className="text-gray-500 dark:text-gray-400 mr-1.5" />
+                                <div className="text-base text-gray-600 dark:text-gray-300">
+                                  {call.audience}
+                                </div>
+                              </div>
+                              <div className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                                {call.startTime} - {call.endTime}
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              {call.isActive && <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  Active
+                                </span>}
+                            </div>
+                          </div>
+                        </div>)}
+                    </div> : <div className="text-center py-4 text-lg text-gray-500 dark:text-gray-400">
+                      No calls scheduled
+                    </div>}
+                </div>
+                {/* Upcoming Calls Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5 flex-1">
+                  <h2 className="text-xl font-bold mb-2 dark:text-white">
+                    Call Information
+                  </h2>
+                  <div className="space-y-3">
+                    <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700">
+                      <h3 className="text-lg font-bold dark:text-white mb-1.5">
+                        Join Options
+                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="bg-blue-500 text-white p-1 rounded">
+                          <PhoneCallIcon size={14} />
+                        </div>
+                        <div className="text-base">Main Line: 888-555-1234</div>
+                      </div>
+                      <div className="text-base text-gray-600 dark:text-gray-300 ml-7">
+                        Meeting ID: 1234 5678
+                      </div>
                     </div>
-                    <div className="text-lg text-gray-600 dark:text-gray-300">
-                      Conference support: ext. 9876
+                    <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700">
+                      <h3 className="text-lg font-bold dark:text-white mb-1.5">
+                        Support
+                      </h3>
+                      <div className="text-base text-gray-600 dark:text-gray-300">
+                        Technical issues: 888-555-4321
+                      </div>
+                      <div className="text-base text-gray-600 dark:text-gray-300">
+                        Conference support: ext. 9876
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </>}
-      </div>
-      {/* Navigation Buttons - Make Past Meetings link work on mobile */}
-      <div className="mt-auto mb-3 flex justify-center gap-3">
-        <Link to="/simplified" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
-          <ArrowLeftIcon size={20} />
-          <span>Simplified view</span>
-        </Link>
-        <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
-          <span>Past meetings</span>
-          <ArrowRightIcon size={20} />
-        </Link>
+            </>}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="mt-auto mb-3 flex justify-center gap-3">
+          <Link to="/simplified" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+            <ArrowLeftIcon size={20} />
+            <span>Simplified view</span>
+          </Link>
+          <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+            <span>Past meetings</span>
+            <ArrowRightIcon size={20} />
+          </Link>
+        </div>
       </div>
     </div>;
 };

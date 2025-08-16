@@ -46,18 +46,15 @@ const SimplifiedTimeSlot: React.FC<SimplifiedTimeSlotProps> = ({
   // Determine if this slot should be smaller based on time of day
   // If it's past noon and this is a morning slot, make it 30% smaller
   const shouldBeSmaller = isPastNoon && isMorningSlot && !isActive;
-  // Increased font size by 10% (from text-3xl/text-4xl to text-[3.3rem]/text-[4.4rem])
-  // Make text 20% smaller than the original TimeSlot component
-  // And apply additional 30% reduction if it's a morning slot and current time is past noon
+  // SIGNIFICANTLY LARGER text sizes for better readability from afar
   let timeClasses = `font-bold rounded-lg transition-all duration-300 dark:text-white`;
   // Apply size based on time of day logic
   if (shouldBeSmaller) {
-    // Morning slots after noon: additional 30% smaller (from already 20% smaller)
-    timeClasses += ` text-[3.3rem] py-1.8 px-1.5`;
+    // Morning slots after noon: make them smaller but still large enough
+    timeClasses += ` text-4xl py-1 px-1.5`;
   } else {
-    // Regular simplified size (already 20% smaller than original)
-    // Reduced horizontal padding to save space
-    timeClasses += ` text-[4.4rem] py-1.8 px-2`;
+    // Regular time slots: very large and bold
+    timeClasses += ` text-5xl py-1 px-2`;
   }
   // USWDS-inspired colors for active slots with enhanced dark mode visibility
   if (isActive) {
@@ -65,9 +62,8 @@ const SimplifiedTimeSlot: React.FC<SimplifiedTimeSlotProps> = ({
   } else if (isBeforeWorkday && isFirstTimeSlot) {
     timeClasses += ` border-b-4 border-blue-400 text-[#60a5fa] dark:text-[#60a5fa] bg-blue-900/10 dark:bg-blue-900/30 px-3 py-2 rounded-lg`;
   }
-  return <div className="col-span-1 flex items-center justify-center">
-      {/* Reduced left margin to save horizontal space */}
-      <div className={`${timeClasses} -ml-4`}>{time}</div>
+  return <div className="col-span-1 flex items-start justify-center pt-2">
+      <div className={`${timeClasses}`}>{time}</div>
     </div>;
 };
 export default SimplifiedTimeSlot;

@@ -126,6 +126,11 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const minutesPart = parseTime(meeting.startTime).minutes;
     return minutesPart < 30 ? 'top' : 'bottom';
   };
+  // Check if this is the current time slot
+  const isCurrentTimeSlot = (timeSlot: string) => {
+    const timeSlotHour = parseInt(timeSlot.split(':')[0]);
+    return timeSlotHour === currentTime.getHours();
+  };
   return <div className="flex-1 p-2 overflow-auto flex flex-col h-full">
       {/* Fixed header positioned directly below the main header with reduced padding */}
       <div className="fixed top-[52px] left-0 right-0 z-[9999] border-b border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 shadow-md" style={{
@@ -148,11 +153,12 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         {/* Meeting Grid - Show all time slots */}
         <div className="space-y-0 flex-1">
           {displayTimeSlots.map((timeSlot, index) => {
-          // Determine background color based on index (even/odd)
-          const rowBgColor = index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800';
+          // Only use dark blue for current time slot
+          const isActive = isCurrentTimeSlot(timeSlot);
+          const rowBgColor = isActive ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-900';
           // Determine if this is the cutoff slot for auto-scrolling
           const isCutoffSlot = !isYesterday && timeSlot === getTwoHourCutoffTimeSlot();
-          return <div key={timeSlot} className={`${rowBgColor} w-full py-2`} ref={isCutoffSlot ? scrollTargetRef : null}>
+          return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800`} ref={isCutoffSlot ? scrollTargetRef : null}>
                 <div className="grid grid-cols-6 gap-2">
                   <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
                   {rooms.map(room => {

@@ -133,9 +133,9 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
       textColorClass = 'text-gray-500 dark:text-gray-400';
       // No icon for past available slots
     } else {
-      // Future available slots: subtle green
+      // Future available slots: subtle green text but NO DOOR ICON
       textColorClass = 'text-green-700 dark:text-green-400';
-      iconComponent = <DoorOpenIcon className="h-7.5 w-7.5 text-green-600 dark:text-green-400" />;
+      // Removed door icon as requested
     }
   } else if (meeting.isHighProfile && status !== 'past' && !isYesterday) {
     // VIP meetings: white text in both light and dark mode for better contrast
@@ -166,6 +166,20 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   : 'text-[1.57rem]'; // Increased from 1.43rem
   // A/V Support icon size based on card size (10% larger than before)
   const avIconSize = shouldBeSmaller && (status === 'past' || isYesterday) ? 24 : 29; // Increased from 22/26.4
+  // Mock chair data - in a real app, this would come from the meeting data
+  const getChairName = () => {
+    if (meeting.room === 'JFK' || meeting.room === 'Executive') {
+      if (meeting.name.includes('Planning')) return 'Sarah Johnson';
+      if (meeting.name.includes('Review')) return 'Michael Chen';
+      if (meeting.name.includes('Sync')) return 'David Wilson';
+      if (meeting.name.includes('Meeting')) return 'Emily Parker';
+      if (meeting.name.includes('Demo')) return 'Robert Taylor';
+      return 'Alex Rodriguez';
+    }
+    return null;
+  };
+  const chairName = getChairName();
+  const showChair = chairName && !isAvailable && status === 'upcoming' && !isYesterday;
   return <div className={`${cardClasses} ${status === 'past' || isYesterday ? 'opacity-35' : ''}`} style={!isAvailable && duration > 1 ? {
     minHeight: `${Math.min(duration * 80, 320)}px`
   } : {}}>
@@ -186,6 +200,10 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           <p className={`${timeSize} mt-0.5 ${meeting.isHighProfile && status !== 'past' && !isYesterday ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
             {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}
           </p>
+          {/* Chair information for JFK and Executive rooms */}
+          {showChair && <div className="mt-1 text-base text-gray-600 dark:text-gray-400 font-medium">
+              Chair: {chairName}
+            </div>}
           {/* Duration badge for long meetings */}
           {showDurationBadge && !isAvailable && !isYesterday && <div className="mt-2 inline-flex items-center px-2.5 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium">
               <ClockIcon size={14} className="mr-1" />

@@ -61,9 +61,9 @@ const SimplifiedTimeSlot: React.FC<SimplifiedTimeSlotProps> = ({
   }
   // USWDS-inspired colors for active slots with enhanced dark mode visibility
   if (isActive) {
-    timeClasses += ` border-b-4 border-blue-400 text-[#60a5fa] dark:text-[#60a5fa] bg-transparent dark:bg-blue-900/30 px-3 py-2 rounded-lg`;
+    timeClasses += ` border-b-4 border-blue-400 text-[#60a5fa] dark:text-[#60a5fa] bg-blue-900/10 dark:bg-blue-900/30 px-3 py-2 rounded-lg`;
   } else if (isBeforeWorkday && isFirstTimeSlot) {
-    timeClasses += ` border-b-4 border-blue-400 text-[#60a5fa] dark:text-[#60a5fa] bg-transparent dark:bg-blue-900/30 px-3 py-2 rounded-lg`;
+    timeClasses += ` border-b-4 border-blue-400 text-[#60a5fa] dark:text-[#60a5fa] bg-blue-900/10 dark:bg-blue-900/30 px-3 py-2 rounded-lg`;
   }
   return <div className="col-span-1 flex items-center justify-center">
       {/* Reduced left margin to save horizontal space */}

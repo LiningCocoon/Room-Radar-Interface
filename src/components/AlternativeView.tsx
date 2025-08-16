@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, ArrowRightIcon, ClockIcon, UtensilsIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, ClockIcon, UtensilsIcon, PhoneCallIcon, UsersIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
 import AVSupportIcon from './AVSupportIcon';
 import { parseTime } from '../utils/timeUtils';
@@ -18,6 +18,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     let newRoom = meeting.room;
     if (meeting.room === 'Breakout 1') newRoom = 'Breakout A';
     if (meeting.room === 'Breakout 2') newRoom = 'Breakout B';
+    if (meeting.room === 'JFK') newRoom = 'FDR'; // Rename JFK to FDR as requested
     return {
       ...meeting,
       room: newRoom
@@ -82,9 +83,20 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   };
   // Process all meetings to handle VIP status
   const processedActiveMeetings = processVipStatus(activeMeetings);
+  // Sort active meetings to show VIP and AV Support meetings first
+  const sortedActiveMeetings = [...processedActiveMeetings].sort((a, b) => {
+    // VIP meetings first
+    if (a.isHighProfile && !b.isHighProfile) return -1;
+    if (!a.isHighProfile && b.isHighProfile) return 1;
+    // Then AV Support meetings
+    if (a.avSupport && !b.avSupport) return -1;
+    if (!a.avSupport && b.avSupport) return 1;
+    // Otherwise sort by room
+    return a.room.localeCompare(b.room);
+  });
   const processedUpcomingMeetings = processVipStatus(upcomingMeetings);
-  // Updated room names with Small moved after Executive
-  const rooms = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
+  // Updated room names and order as requested
+  const rooms = ['FDR', 'Executive', 'Breakout A', 'Breakout B', 'Small'];
   const meetingsByRoom: Record<string, any[]> = {};
   rooms.forEach(room => {
     meetingsByRoom[room] = processedUpcomingMeetings.filter(m => m.room === room);
@@ -262,6 +274,40 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   };
   // For yesterday view, show all meetings as past
   const pastDayMeetings = isYesterday ? convertedMeetings : [];
+  // Get room status for each room
+  const getRoomStatus = () => {
+    return rooms.map(room => {
+      const activeInRoom = processedActiveMeetings.find(m => m.room === room);
+      const nextInRoom = processedUpcomingMeetings.filter(m => m.room === room).sort((a, b) => getMinutesUntilMeeting(a) - getMinutesUntilMeeting(b))[0];
+      return {
+        room,
+        status: activeInRoom ? 'busy' : 'available',
+        activeMeeting: activeInRoom,
+        nextMeeting: nextInRoom
+      };
+    });
+  };
+  const roomStatuses = getRoomStatus();
+  // Mock data for calls section
+  const callsData = [{
+    name: 'Product Team Sync',
+    audience: 'Marketing, Engineering',
+    startTime: '13:30',
+    endTime: '14:15',
+    isActive: true
+  }, {
+    name: 'Client Presentation',
+    audience: 'External, Sales',
+    startTime: '15:00',
+    endTime: '16:00',
+    isActive: false
+  }, {
+    name: 'Weekly Status Update',
+    audience: 'All Teams',
+    startTime: '16:30',
+    endTime: '17:00',
+    isActive: false
+  }];
   return <div className="flex-1 p-3 pt-2 h-screen flex flex-col overflow-auto">
       {/* Unified Dashboard with Meeting Density and Break Time */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-3 p-3">
@@ -360,7 +406,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
           </div>
         </div>
       </div>
-      {/* Main content - Improved mobile layout */}
+      {/* Main content - Updated layout with calls section in right column */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         {isYesterday ?
       // For yesterday view, show past meetings
@@ -399,120 +445,45 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                 </div>}
             </div>
           </div> :
-      // For current day view, show active and upcoming meetings
+      // For current day view, show Activity in left column and Calls in right column
       <>
+            {/* Left Column - Activity (formerly Room Status) */}
             <div className="flex flex-col gap-3">
+              {/* Activity Section (renamed from Room Status) with 20% larger text */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
                 <h2 className="text-2xl font-bold mb-3 dark:text-white">
-                  Active Meetings
+                  Activity
                 </h2>
-                {processedActiveMeetings.length > 0 ? <div className="space-y-3">
-                    {processedActiveMeetings.map((meeting, idx) => <div key={idx} className={`p-3 rounded-lg ${meeting.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500'}`}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center">
-                              <div className="text-2xl font-bold dark:text-white">
-                                {meeting.name}
-                              </div>
-                              <div className="ml-2 text-xl text-gray-700 dark:text-gray-300 font-medium">
-                                ({meeting.room})
-                              </div>
-                            </div>
-                            <div className="text-lg text-gray-600 dark:text-gray-300 mt-1">
-                              {formatTimeToMilitary(meeting.startTime)} -{' '}
-                              {formatTimeToMilitary(meeting.endTime)}
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            {meeting.isHighProfile && <span className="text-red-500 text-2xl mr-2 group relative">
-                                ★{/* Tooltip */}
-                                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-                                  VIP meeting
-                                  <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
-                                </div>
-                              </span>}
-                            {meeting.avSupport && <AVSupportIcon size={30} className={meeting.isHighProfile ? 'text-red-500' : 'text-blue-500'} />}
-                          </div>
-                        </div>
-                      </div>)}
-                  </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
-                    No active meetings at this time
-                  </div>}
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-                <h2 className="text-2xl font-bold mb-3 dark:text-white">
-                  Starting Soon
-                </h2>
-                {processedUpcomingMeetings.filter(m => getMinutesUntilMeeting(m) <= 30).length > 0 ? <div className="space-y-3">
-                    {processedUpcomingMeetings.filter(m => getMinutesUntilMeeting(m) <= 30).sort((a, b) => getMinutesUntilMeeting(a) - getMinutesUntilMeeting(b)).slice(0, 4).map((meeting, idx) => <div key={idx} className={`p-3 rounded-lg ${meeting.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : meeting.avSupport && getMinutesUntilMeeting(meeting) <= 15 ? 'bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="flex items-center">
-                                <div className="text-2xl font-bold dark:text-white">
-                                  {meeting.name}
-                                </div>
-                                <div className="ml-2 text-xl text-gray-700 dark:text-gray-300 font-medium">
-                                  ({meeting.room})
-                                </div>
-                              </div>
-                              <div className="text-lg text-gray-600 dark:text-gray-300 mt-1">
-                                {formatTimeToMilitary(meeting.startTime)} -{' '}
-                                {formatTimeToMilitary(meeting.endTime)}
-                              </div>
-                            </div>
-                            <div className="flex items-center">
-                              {meeting.isHighProfile && <span className="text-red-500 text-2xl mr-2">
-                                  ★
-                                </span>}
-                              {meeting.avSupport && <AVSupportIcon size={30} className={meeting.isHighProfile ? 'text-red-500' : getMinutesUntilMeeting(meeting) <= 15 ? 'text-yellow-500' : 'text-gray-500'} />}
-                            </div>
-                          </div>
-                          <div className="mt-2 flex justify-end">
-                            <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
-                              In {getMinutesUntilMeeting(meeting)} min
-                            </div>
-                          </div>
-                        </div>)}
-                  </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
-                    No meetings starting in the next 30 minutes
-                  </div>}
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-                <h2 className="text-2xl font-bold mb-3 dark:text-white">
-                  Room Availability
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {rooms.map(room => {
-                const activeInRoom = processedActiveMeetings.find(m => m.room === room);
-                const nextInRoom = processedUpcomingMeetings.filter(m => m.room === room).sort((a, b) => getMinutesUntilMeeting(a) - getMinutesUntilMeeting(b))[0];
-                return <div key={room} className={`p-3 rounded-lg ${activeInRoom ? activeInRoom.isHighProfile ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-50 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
+                <div className="space-y-3">
+                  {roomStatuses.map(status => <div key={status.room} className={`p-3 rounded-lg ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500'}`}>
+                      <div className="flex justify-between items-center">
                         <div className="text-2xl font-bold dark:text-white">
-                          {room}
-                          {activeInRoom ? ' (Busy)' : ''}
+                          {status.room}
                         </div>
-                        {activeInRoom ? <div>
-                            <div className="text-xl font-medium mt-2 dark:text-white">
-                              {activeInRoom.name}
-                            </div>
-                            <div className="text-lg text-gray-600 dark:text-gray-300">
-                              Until {formatTimeToMilitary(activeInRoom.endTime)}
-                            </div>
-                          </div> : nextInRoom ? <div>
-                            <div className="text-xl font-medium mt-2 text-green-700 dark:text-green-400">
-                              Available now
-                            </div>
-                            <div className="text-lg text-gray-600 dark:text-gray-300">
-                              Next: {formatTimeToMilitary(nextInRoom.startTime)}
-                            </div>
-                          </div> : <div className="text-xl font-medium mt-2 text-green-700 dark:text-green-400">
-                            Available All Day
-                          </div>}
-                      </div>;
-              })}
+                        <div className={`text-xl font-medium ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
+                          {status.status === 'busy' ? 'In Use' : 'Available'}
+                        </div>
+                      </div>
+                      {status.status === 'busy' && status.activeMeeting && <div className="text-lg text-gray-600 dark:text-gray-300 mt-2">
+                          <div className="font-medium text-xl">
+                            {status.activeMeeting.name}
+                          </div>
+                          <div>
+                            Until{' '}
+                            {formatTimeToMilitary(status.activeMeeting.endTime)}
+                          </div>
+                        </div>}
+                      {status.status === 'available' && status.nextMeeting && <div className="text-lg text-gray-600 dark:text-gray-300 mt-2">
+                          <div>Next: {status.nextMeeting.name}</div>
+                          <div>
+                            At{' '}
+                            {formatTimeToMilitary(status.nextMeeting.startTime)}
+                          </div>
+                        </div>}
+                    </div>)}
                 </div>
               </div>
+              {/* VIP Meetings Section */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
                 <h2 className="text-2xl font-bold mb-3 dark:text-white">
                   VIP Meetings Today
@@ -557,6 +528,75 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                   </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
                     No VIP meetings scheduled for today
                   </div>}
+              </div>
+            </div>
+            {/* Right Column - Calls Section */}
+            <div className="flex flex-col gap-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
+                <div className="flex items-center mb-3">
+                  <PhoneCallIcon size={24} className="text-blue-500 mr-2" />
+                  <h2 className="text-2xl font-bold dark:text-white">Calls</h2>
+                </div>
+                {callsData.length > 0 ? <div className="space-y-3">
+                    {callsData.map((call, idx) => <div key={idx} className={`p-3 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-2xl font-bold dark:text-white">
+                              {call.name}
+                            </div>
+                            <div className="flex items-center mt-1">
+                              <UsersIcon size={18} className="text-gray-500 dark:text-gray-400 mr-2" />
+                              <div className="text-lg text-gray-600 dark:text-gray-300">
+                                {call.audience}
+                              </div>
+                            </div>
+                            <div className="text-lg text-gray-600 dark:text-gray-300 mt-1">
+                              {call.startTime} - {call.endTime}
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            {call.isActive && <span className="bg-blue-500 text-white text-sm px-2 py-1 rounded-full">
+                                Active
+                              </span>}
+                          </div>
+                        </div>
+                      </div>)}
+                  </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
+                    No calls scheduled
+                  </div>}
+              </div>
+              {/* Upcoming Calls Section */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 flex-1">
+                <h2 className="text-2xl font-bold mb-3 dark:text-white">
+                  Call Information
+                </h2>
+                <div className="space-y-4">
+                  <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
+                    <h3 className="text-xl font-bold dark:text-white mb-2">
+                      Join Options
+                    </h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="bg-blue-500 text-white p-1 rounded">
+                        <PhoneCallIcon size={16} />
+                      </div>
+                      <div className="text-lg">Main Line: 888-555-1234</div>
+                    </div>
+                    <div className="text-lg text-gray-600 dark:text-gray-300 ml-8">
+                      Meeting ID: 1234 5678
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
+                    <h3 className="text-xl font-bold dark:text-white mb-2">
+                      Support
+                    </h3>
+                    <div className="text-lg text-gray-600 dark:text-gray-300">
+                      Technical issues: 888-555-4321
+                    </div>
+                    <div className="text-lg text-gray-600 dark:text-gray-300">
+                      Conference support: ext. 9876
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </>}

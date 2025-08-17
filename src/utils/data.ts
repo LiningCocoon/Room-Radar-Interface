@@ -6,6 +6,8 @@ export interface Meeting {
   status?: 'active' | 'upcoming' | 'past' | 'available';
   avSupport?: boolean;
   isHighProfile?: boolean; // New flag for VIP meetings
+  isCall?: boolean; // New flag for calls
+  callType?: string; // Type of call: "Conference Call", "One-on-One", etc.
 }
 export const getMeetingData = (): Meeting[] => {
   return [
@@ -26,7 +28,18 @@ export const getMeetingData = (): Meeting[] => {
     // AV Support needed
     isHighProfile: true // High profile meeting
   },
-  // Removed: Remote Team Sync - creating a low activity window at 7AM for Breakout 1
+  // Adding a VIP call at 7:30
+  {
+    name: 'Global Leadership Call',
+    startTime: '07:30',
+    endTime: '08:15',
+    room: 'Breakout A',
+    status: 'active',
+    avSupport: true,
+    isHighProfile: true,
+    isCall: true,
+    callType: 'Conference Call'
+  },
   // 8:00 AM
   {
     name: 'Ops Kickoff',
@@ -35,7 +48,6 @@ export const getMeetingData = (): Meeting[] => {
     room: 'JFK',
     status: 'past'
   },
-  // Removed: Daily Briefing - creating a low activity window at 8AM for Executive
   // Support Handoff removed - will show as Available
   {
     name: 'Team Sync',
@@ -43,6 +55,16 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '08:30',
     room: 'Breakout 2',
     status: 'past'
+  },
+  // Adding a regular call at 8:30
+  {
+    name: 'IT Support Call',
+    startTime: '08:30',
+    endTime: '09:15',
+    room: 'Small',
+    status: 'active',
+    isCall: true,
+    callType: 'Conference Call'
   },
   // 9:00 AM
   {
@@ -58,14 +80,32 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '10:00',
     room: 'Executive',
     status: 'active',
-    avSupport: true
+    avSupport: true,
+    isCall: true,
+    callType: 'Conference Call'
   },
-  // Removed: Hiring Panel - creating a low activity window at 9AM for Breakout 1
-  // QA Standup removed - will show as Available
-  // 10:00 AM - Creating a low activity window from 10-11AM
-  // Removed: Sprint Planning
-  // Removed: API Review
-  // Product Strategy removed - will show as Available
+  // 10:00 AM - VIP call
+  {
+    name: 'Board Update',
+    startTime: '10:00',
+    endTime: '11:00',
+    room: 'Executive',
+    status: 'upcoming',
+    avSupport: true,
+    isHighProfile: true,
+    isCall: true,
+    callType: 'Conference Call'
+  },
+  // 11:00 AM - Regular call
+  {
+    name: 'Marketing Strategy',
+    startTime: '11:00',
+    endTime: '11:45',
+    room: 'Breakout 1',
+    status: 'upcoming',
+    isCall: true,
+    callType: 'One-on-One'
+  },
   // 12:00 PM
   {
     name: 'Design Critique',
@@ -90,9 +130,19 @@ export const getMeetingData = (): Meeting[] => {
     // AV Support needed
     isHighProfile: true // High profile meeting
   },
-  // Removed: User Research - creating a low activity window at 12PM for Breakout 1
+  // 1:00 PM - VIP call
+  {
+    name: 'CEO All-Hands',
+    startTime: '13:00',
+    endTime: '14:00',
+    room: 'Breakout A',
+    status: 'upcoming',
+    avSupport: true,
+    isHighProfile: true,
+    isCall: true,
+    callType: 'Conference Call'
+  },
   // 2:00 PM
-  // Client Prep removed - will show as Available
   {
     name: 'Data Sync',
     startTime: '14:00',
@@ -115,6 +165,16 @@ export const getMeetingData = (): Meeting[] => {
     room: 'Breakout 1',
     status: 'upcoming'
   },
+  // 2:30 PM - Regular call
+  {
+    name: 'Partner Discussion',
+    startTime: '14:30',
+    endTime: '15:15',
+    room: 'Small',
+    status: 'upcoming',
+    isCall: true,
+    callType: 'Conference Call'
+  },
   // 3:00 PM - Adding new meetings
   {
     name: 'Strategy Session',
@@ -131,6 +191,18 @@ export const getMeetingData = (): Meeting[] => {
     status: 'upcoming',
     isHighProfile: true
   },
+  // 3:30 PM - VIP call
+  {
+    name: 'Investor Relations',
+    startTime: '15:30',
+    endTime: '16:15',
+    room: 'Breakout A',
+    status: 'upcoming',
+    avSupport: true,
+    isHighProfile: true,
+    isCall: true,
+    callType: 'Conference Call'
+  },
   // 4:00 PM - Adding new meeting
   {
     name: 'Tech Review',
@@ -138,6 +210,16 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '17:00',
     room: 'JFK',
     status: 'upcoming'
+  },
+  // 4:30 PM - Regular call
+  {
+    name: 'Support Escalation',
+    startTime: '16:30',
+    endTime: '17:15',
+    room: 'Small',
+    status: 'upcoming',
+    isCall: true,
+    callType: 'One-on-One'
   },
   // 5:00 PM
   {
@@ -156,6 +238,18 @@ export const getMeetingData = (): Meeting[] => {
     avSupport: true,
     // AV Support needed
     isHighProfile: true // High profile meeting
+  },
+  // 5:30 PM - VIP call
+  {
+    name: 'Executive Committee',
+    startTime: '17:30',
+    endTime: '18:15',
+    room: 'JFK',
+    status: 'upcoming',
+    avSupport: true,
+    isHighProfile: true,
+    isCall: true,
+    callType: 'Conference Call'
   },
   // 6:00 PM
   {
@@ -179,6 +273,16 @@ export const getMeetingData = (): Meeting[] => {
     status: 'upcoming',
     isHighProfile: true // High profile meeting
   },
+  // 6:30 PM - Regular call
+  {
+    name: 'APAC Team Call',
+    startTime: '18:30',
+    endTime: '19:15',
+    room: 'Small',
+    status: 'upcoming',
+    isCall: true,
+    callType: 'Conference Call'
+  },
   // 7:00 PM
   {
     name: 'After-Hours Training',
@@ -187,7 +291,17 @@ export const getMeetingData = (): Meeting[] => {
     room: 'Breakout 1',
     status: 'upcoming',
     avSupport: true // AV Support needed
-  }
-  // Removed: Remote Social - creating a low activity window at 7PM for Executive
-  ];
+  },
+  // 7:30 PM - VIP call
+  {
+    name: 'International Board Call',
+    startTime: '19:30',
+    endTime: '20:15',
+    room: 'Executive',
+    status: 'upcoming',
+    avSupport: true,
+    isHighProfile: true,
+    isCall: true,
+    callType: 'Conference Call'
+  }];
 };

@@ -1,0 +1,247 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { ClockIcon, AlertTriangleIcon, CheckCircleIcon, AlertCircleIcon } from 'lucide-react';
+import { getMeetingData } from '../utils/data';
+import AVSupportIcon from './AVSupportIcon';
+import { parseTime } from '../utils/timeUtils';
+interface OperationsDashboardProps {
+  currentTime: Date;
+  isYesterday?: boolean;
+}
+const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
+  currentTime,
+  isYesterday = false
+}) => {
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  // Update current time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+  // Format current time as HH:MM:SS in military time (24-hour format)
+  const formattedTime = currentDateTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  // Format the date
+  const formattedDate = currentDateTime.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+  // Updated room names (changed FDR to JFK)
+  const rooms = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
+  // Get meeting data and convert room names
+  const meetingData = getMeetingData();
+  const convertedMeetings = meetingData.map(meeting => {
+    let newRoom = meeting.room;
+    if (meeting.room === 'Breakout 1') newRoom = 'Breakout A';
+    if (meeting.room === 'Breakout 2') newRoom = 'Breakout B';
+    if (meeting.room === 'FDR') newRoom = 'JFK';
+    return {
+      ...meeting,
+      room: newRoom
+    };
+  });
+  const currentHour = currentTime.getHours();
+  const currentMinute = currentTime.getMinutes();
+  const currentTimeInMinutes = currentHour * 60 + currentMinute;
+  // Calculate meeting status
+  const getMeetingStatus = (meeting: any) => {
+    const startTime = parseTime(meeting.startTime);
+    const endTime = meeting.endTime ? parseTime(meeting.endTime) : null;
+    const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
+    const endTimeInMinutes = endTime ? endTime.hours * 60 + endTime.minutes : startTimeInMinutes + 60;
+    if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
+      return 'active';
+    } else if (currentTimeInMinutes >= endTimeInMinutes) {
+      return 'past';
+    } else {
+      return 'upcoming';
+    }
+  };
+  // Get minutes until a meeting starts or ends
+  const getMinutesUntilMeeting = (meeting: any) => {
+    const startTime = parseTime(meeting.startTime);
+    const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
+    return startTimeInMinutes - currentTimeInMinutes;
+  };
+  const getMinutesUntilMeetingEnds = (meeting: any) => {
+    if (!meeting.endTime) return 60; // Default to 1 hour if no end time
+    const endTime = parseTime(meeting.endTime);
+    const endTimeInMinutes = endTime.hours * 60 + endTime.minutes;
+    return endTimeInMinutes - currentTimeInMinutes;
+  };
+  // Filter meetings by status
+  const activeMeetings = convertedMeetings.filter(m => getMeetingStatus(m) === 'active');
+  const upcomingMeetings = convertedMeetings.filter(m => getMeetingStatus(m) === 'upcoming');
+  // Find active or soon VIP meetings
+  const activeVipMeetings = activeMeetings.filter(m => m.isHighProfile);
+  const soonVipMeetings = upcomingMeetings.filter(m => m.isHighProfile && getMinutesUntilMeeting(m) <= 10);
+  // Get room status for each room
+  const roomStatuses = useMemo(() => {
+    return rooms.map(room => {
+      const activeInRoom = activeMeetings.find(m => m.room === room);
+      const nextInRoom = upcomingMeetings.filter(m => m.room === room).sort((a, b) => getMinutesUntilMeeting(a) - getMinutesUntilMeeting(b))[0];
+      return {
+        room,
+        status: activeInRoom ? 'busy' : 'available',
+        activeMeeting: activeInRoom,
+        nextMeeting: nextInRoom,
+        isVip: activeInRoom?.isHighProfile || false,
+        needsAv: activeInRoom?.avSupport || false
+      };
+    });
+  }, [rooms, activeMeetings, upcomingMeetings]);
+  // Calculate alert status
+  const getAlertStatus = () => {
+    if (activeVipMeetings.length > 0) {
+      return {
+        type: 'vip-active',
+        message: 'VIP ACTIVE',
+        details: activeVipMeetings[0].name,
+        room: activeVipMeetings[0].room,
+        endTime: activeVipMeetings[0].endTime,
+        color: 'bg-red-600 text-white',
+        icon: <AlertCircleIcon size={32} className="text-white" />
+      };
+    } else if (soonVipMeetings.length > 0) {
+      return {
+        type: 'vip-soon',
+        message: 'VIP IN 10 MIN',
+        details: soonVipMeetings[0].name,
+        room: soonVipMeetings[0].room,
+        startTime: soonVipMeetings[0].startTime,
+        color: 'bg-red-600 text-white',
+        icon: <AlertCircleIcon size={32} className="text-white" />
+      };
+    } else if (activeMeetings.length >= 3) {
+      return {
+        type: 'busy',
+        message: 'BUSY PERIOD',
+        details: `${activeMeetings.length} active meetings`,
+        color: 'bg-yellow-500 text-black',
+        icon: <AlertTriangleIcon size={32} className="text-black" />
+      };
+    } else {
+      return {
+        type: 'normal',
+        message: 'ROOMS AVAILABLE',
+        details: `${roomStatuses.filter(r => r.status === 'available').length} rooms free`,
+        color: 'bg-green-600 text-white',
+        icon: <CheckCircleIcon size={32} className="text-white" />
+      };
+    }
+  };
+  const alertStatus = getAlertStatus();
+  // Format time to military format
+  const formatTimeToMilitary = (timeStr: string) => {
+    const time = parseTime(timeStr);
+    return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
+  };
+  // Generate upcoming changes
+  const generateUpcomingChanges = () => {
+    const changes = [];
+    // Add room status changes
+    const statusChanges = [...activeMeetings, ...upcomingMeetings].filter(m => {
+      const minutesUntil = m.endTime ? getMinutesUntilMeetingEnds(m) : getMinutesUntilMeeting(m);
+      return minutesUntil > 0 && minutesUntil < 120; // Next 2 hours
+    }).sort((a, b) => {
+      const aTime = a.endTime ? parseTime(a.endTime).hours * 60 + parseTime(a.endTime).minutes : parseTime(a.startTime).hours * 60 + parseTime(a.startTime).minutes;
+      const bTime = b.endTime ? parseTime(b.endTime).hours * 60 + parseTime(b.endTime).minutes : parseTime(b.startTime).hours * 60 + parseTime(b.startTime).minutes;
+      return aTime - bTime;
+    });
+    statusChanges.forEach(meeting => {
+      if (getMeetingStatus(meeting) === 'active') {
+        changes.push(`${formatTimeToMilitary(meeting.endTime)} - ${meeting.room} will be free`);
+      } else {
+        changes.push(`${formatTimeToMilitary(meeting.startTime)} - ${meeting.room} will be used for ${meeting.name}${meeting.isHighProfile ? ' (VIP)' : ''}`);
+      }
+    });
+    return changes.slice(0, 3); // Return at most 3 changes
+  };
+  const changes = generateUpcomingChanges();
+  return <div className="flex-1 overflow-auto flex flex-col h-full bg-gray-100 dark:bg-gray-900">
+      {/* Minimal header */}
+      <div className="bg-[#1a2235] text-white py-2 px-4 flex items-center justify-between sticky top-0 z-[10000]" style={{
+      height: '60px'
+    }}>
+        <div className="text-3xl font-bold">{formattedTime}</div>
+        <div className="text-xl font-medium">{formattedDate}</div>
+        <div className="text-lg">Room Radar</div>
+      </div>
+      <div className="p-4 flex-1 flex flex-col gap-4">
+        {/* Alert bar - Updated to show more details */}
+        <div className={`${alertStatus.color} rounded-lg shadow-lg p-4 flex items-center justify-between`} style={{
+        height: '80px'
+      }}>
+          <div className="flex items-center gap-3">
+            {alertStatus.icon}
+            <span className="text-3xl font-bold">{alertStatus.message}</span>
+          </div>
+          <div className="text-xl font-medium">
+            {alertStatus.type === 'vip-active' && <>
+                {alertStatus.details} in {alertStatus.room} until{' '}
+                {formatTimeToMilitary(alertStatus.endTime)}
+              </>}
+            {alertStatus.type === 'vip-soon' && <>
+                {alertStatus.details} in {alertStatus.room} at{' '}
+                {formatTimeToMilitary(alertStatus.startTime)}
+              </>}
+            {(alertStatus.type === 'busy' || alertStatus.type === 'normal') && <>{alertStatus.details}</>}
+          </div>
+        </div>
+        {/* Room status grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {roomStatuses.map(status => <div key={status.room} className={`rounded-lg shadow-lg p-4 ${status.isVip ? 'bg-red-100 dark:bg-red-900/30 border-l-8 border-red-600' : status.status === 'busy' ? 'bg-blue-100 dark:bg-blue-900/30 border-l-8 border-blue-600' : 'bg-green-100 dark:bg-green-900/30 border-l-8 border-green-600'}`}>
+              <div className="flex flex-col">
+                <div className="text-4xl font-bold mb-2">{status.room}</div>
+                <div className={`text-2xl font-bold ${status.isVip ? 'text-red-700 dark:text-red-400' : status.status === 'busy' ? 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
+                  {status.status === 'busy' ? 'BUSY' : 'AVAILABLE'}
+                </div>
+                {status.status === 'busy' && status.activeMeeting && <div className="mt-2">
+                    <div className="text-xl font-medium">
+                      {status.activeMeeting.name}
+                      {status.needsAv && <span className="ml-2 inline-block">
+                          <AVSupportIcon size={24} className="text-blue-600 dark:text-blue-400" />
+                        </span>}
+                    </div>
+                    <div className="text-lg">
+                      Until {formatTimeToMilitary(status.activeMeeting.endTime)}
+                      {status.isVip && <span className="ml-2 text-red-600 dark:text-red-400 font-bold text-[1.1em] bg-red-50 dark:bg-red-900/50 px-1.5 py-0.5 rounded">
+                          VIP
+                        </span>}
+                    </div>
+                  </div>}
+                {status.status === 'available' && status.nextMeeting && <div className="mt-2">
+                    <div className="text-lg">
+                      Next: {formatTimeToMilitary(status.nextMeeting.startTime)}
+                      {status.nextMeeting.isHighProfile && <span className="ml-2 text-red-600 dark:text-red-400 font-bold text-[1.1em] bg-red-50 dark:bg-red-900/50 px-1.5 py-0.5 rounded">
+                          VIP
+                        </span>}
+                    </div>
+                  </div>}
+              </div>
+            </div>)}
+        </div>
+        {/* Upcoming changes - Updated with more natural language */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+          <div className="text-2xl font-bold mb-2 dark:text-white">
+            UPCOMING CHANGES
+          </div>
+          <ul className="space-y-2">
+            {changes.map((change, index) => <li key={index} className="text-lg dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-1">
+                {change}
+              </li>)}
+            {changes.length === 0 && <li className="text-lg dark:text-gray-200">
+                No upcoming changes in the next 2 hours
+              </li>}
+          </ul>
+        </div>
+      </div>
+    </div>;
+};
+export default OperationsDashboard;

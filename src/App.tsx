@@ -4,7 +4,7 @@ import Header from './components/Header';
 import AlternativeView from './components/AlternativeView';
 import SimplifiedView from './components/SimplifiedView';
 import PastMeetingsView from './components/PastMeetingsView';
-import ProportionalMeetingView from './components/ProportionalMeetingView';
+import OperationsDashboard from './components/OperationsDashboard';
 import { ThemeProvider } from './components/ThemeContext';
 // Mobile detection hook
 function useIsMobile() {
@@ -66,7 +66,7 @@ export function App() {
             {/* Redirect from root to the appropriate view based on device */}
             <Route path="/" element={<Navigate to={isMobile ? '/alternative' : '/simplified'} replace />} />
             <Route path="/simplified" element={<SimplifiedView currentTime={currentTime} isYesterday={isYesterday} />} />
-            <Route path="/proportional" element={<ProportionalMeetingView currentTime={currentTime} isYesterday={isYesterday} />} />
+            <Route path="/operations" element={<OperationsDashboard currentTime={currentTime} isYesterday={isYesterday} />} />
             <Route path="/alternative" element={<AlternativeView currentTime={currentTime} isYesterday={isYesterday} />} />
             <Route path="/past-meetings" element={<PastMeetingsView currentTime={currentTime} isYesterday={isYesterday} />} />
           </Routes>

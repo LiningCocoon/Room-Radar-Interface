@@ -14,6 +14,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const location = useLocation();
   const isAlternativeView = location.pathname === '/alternative';
+  const isOperationsView = location.pathname === '/operations';
   const {
     isDarkMode,
     toggleDarkMode
@@ -25,8 +26,8 @@ const Header: React.FC<HeaderProps> = ({
     month: 'long',
     day: 'numeric'
   });
-  // If we're on the alternative view, don't render the header content
-  if (isAlternativeView) {
+  // If we're on the alternative view or operations view, don't render the header content
+  if (isAlternativeView || isOperationsView) {
     return null;
   }
   return <div className="w-full sticky top-0 z-[10000]">

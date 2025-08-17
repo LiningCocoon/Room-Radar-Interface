@@ -728,6 +728,10 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
             <ArrowLeftIcon size={20} />
             <span>Simplified view</span>
           </Link>
+          <Link to="/operations" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+            <span>Operations Dashboard</span>
+            <ArrowRightIcon size={20} />
+          </Link>
           <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
             <span>Past meetings</span>
             <ArrowRightIcon size={20} />

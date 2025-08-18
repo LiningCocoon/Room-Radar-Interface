@@ -71,7 +71,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     let newRoom = meeting.room;
     if (meeting.room === 'Breakout 1') newRoom = 'Breakout A';
     if (meeting.room === 'Breakout 2') newRoom = 'Breakout B';
-    if (meeting.room === 'JFK') newRoom = 'FDR'; // Rename JFK to FDR as requested
+    if (meeting.room === 'FDR') newRoom = 'JFK'; // Changed FDR to JFK
     return {
       ...meeting,
       room: newRoom
@@ -150,7 +150,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   });
   const processedUpcomingMeetings = processVipStatus(upcomingMeetings);
   // Updated room names and order as requested
-  const rooms = ['FDR', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
+  const rooms = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
   const meetingsByRoom: Record<string, any[]> = {};
   rooms.forEach(room => {
     meetingsByRoom[room] = processedUpcomingMeetings.filter(m => m.room === room);
@@ -539,52 +539,52 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center">
-                              <div className="text-2xl font-bold dark:text-white">
+                              <div className="text-[2.06rem] font-bold dark:text-white">
                                 {meeting.name}
                               </div>
-                              <div className="ml-2 text-xl text-gray-700 dark:text-gray-300 font-medium">
+                              <div className="ml-2 text-[1.86rem] text-gray-700 dark:text-gray-300 font-medium">
                                 ({meeting.room})
                               </div>
                             </div>
-                            <div className="text-lg text-gray-600 dark:text-gray-300 mt-1">
+                            <div className="text-[1.55rem] text-gray-600 dark:text-gray-300 mt-1">
                               {formatTimeToMilitary(meeting.startTime)} -{' '}
                               {formatTimeToMilitary(meeting.endTime)}
                             </div>
                           </div>
                           <div className="flex items-center">
-                            {meeting.isHighProfile && <span className="text-gray-500 text-2xl mr-2">
+                            {meeting.isHighProfile && <span className="text-gray-500 text-[2.06rem] mr-2">
                                 ★
                               </span>}
-                            {meeting.avSupport && <AVSupportIcon size={30} className="text-gray-500" />}
+                            {meeting.avSupport && <AVSupportIcon size={31} className="text-gray-500" />}
                           </div>
                         </div>
                       </div>)}
-                  </div> : <div className="text-center py-5 text-xl text-gray-500 dark:text-gray-400">
+                  </div> : <div className="text-center py-5 text-[1.86rem] text-gray-500 dark:text-gray-400">
                     No meetings found for this day
                   </div>}
               </div>
             </div> :
-        // For current or future day view, show Activity in left column and Calls in right column
+        // For current or future day view, show Room Status in left column and Calls in right column
         <>
-              {/* Left Column - Activity (formerly Room Status) */}
+              {/* Left Column - Room Status (formerly Activity) */}
               <div className="flex flex-col gap-3">
-                {/* Activity Section */}
+                {/* Room Status Section */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
-                  <h2 className="text-xl font-bold mb-2 dark:text-white">
-                    Activity
+                  <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
+                    Room Status
                   </h2>
                   <div className="space-y-2">
                     {roomStatuses.map(status => <div key={status.room} className={`p-2.5 rounded-lg ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500'}`}>
                         <div className="flex justify-between items-center">
-                          <div className="text-xl font-bold dark:text-white">
+                          <div className="text-[1.86rem] font-bold dark:text-white">
                             {status.room}
                           </div>
-                          <div className={`text-lg font-medium ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
+                          <div className={`text-[1.55rem] font-medium ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400' : 'text-green-700 dark:text-green-400'}`}>
                             {status.status === 'busy' ? 'In Use' : 'Available'}
                           </div>
                         </div>
-                        {status.status === 'busy' && status.activeMeeting && <div className="text-base text-gray-600 dark:text-gray-300 mt-1.5">
-                            <div className="font-medium text-lg">
+                        {status.status === 'busy' && status.activeMeeting && <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1.5">
+                            <div className="font-medium text-[1.55rem]">
                               {status.activeMeeting.name}
                             </div>
                             <div>
@@ -592,7 +592,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                               {formatTimeToMilitary(status.activeMeeting.endTime)}
                             </div>
                           </div>}
-                        {status.status === 'available' && status.nextMeeting && <div className="text-base text-gray-600 dark:text-gray-300 mt-1.5">
+                        {status.status === 'available' && status.nextMeeting && <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1.5">
                               <div>Next: {status.nextMeeting.name}</div>
                               <div>
                                 At{' '}
@@ -604,7 +604,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                 </div>
                 {/* VIP Meetings Section */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
-                  <h2 className="text-xl font-bold mb-2 dark:text-white">
+                  <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
                     VIP Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
                   </h2>
                   {vipMeetingsToday.length > 0 ? <div className="space-y-2">
@@ -612,39 +612,39 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="flex items-center">
-                                <div className="text-xl font-bold dark:text-white">
+                                <div className="text-[1.86rem] font-bold dark:text-white">
                                   {meeting.name}
                                 </div>
-                                <div className="ml-2 text-lg text-gray-700 dark:text-gray-300 font-medium">
+                                <div className="ml-2 text-[1.55rem] text-gray-700 dark:text-gray-300 font-medium">
                                   ({meeting.room})
                                 </div>
                               </div>
-                              <div className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                              <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
                                 {formatTimeToMilitary(meeting.startTime)} -{' '}
                                 {formatTimeToMilitary(meeting.endTime)}
                               </div>
                             </div>
                             <div className="flex items-center">
-                              <span className="text-red-500 text-xl mr-2 group relative">
+                              <span className="text-red-500 text-[1.86rem] mr-2 group relative">
                                 ★{/* Tooltip */}
                                 <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
                                   VIP meeting
                                   <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
                                 </div>
                               </span>
-                              {meeting.avSupport && <AVSupportIcon size={26} className="text-red-500" />}
+                              {meeting.avSupport && <AVSupportIcon size={27} className="text-red-500" />}
                             </div>
                           </div>
                           <div className="mt-1.5 flex justify-end">
-                            {getMeetingStatus(meeting) === 'active' && <div className="text-base font-bold text-red-700 dark:text-red-300">
+                            {getMeetingStatus(meeting) === 'active' && <div className="text-[1.38rem] font-bold text-red-700 dark:text-red-300">
                                 In progress
                               </div>}
-                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-base font-bold text-gray-700 dark:text-gray-300">
+                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[1.38rem] font-bold text-gray-700 dark:text-gray-300">
                                 {getTimeUntilMeeting(meeting)}
                               </div>}
                           </div>
                         </div>)}
-                    </div> : <div className="text-center py-4 text-lg text-gray-500 dark:text-gray-400">
+                    </div> : <div className="text-center py-4 text-[1.55rem] text-gray-500 dark:text-gray-400">
                       No VIP meetings scheduled{' '}
                       {isTomorrowView ? 'for tomorrow' : 'for today'}
                     </div>}
@@ -654,65 +654,75 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
               <div className="flex flex-col gap-3">
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
                   <div className="flex items-center mb-2">
-                    <PhoneCallIcon size={22} className="text-blue-500 mr-2" />
-                    <h2 className="text-xl font-bold dark:text-white">Calls</h2>
+                    <PhoneCallIcon size={23} className="text-blue-500 mr-2" />
+                    <h2 className="text-[1.86rem] font-bold dark:text-white">
+                      Calls
+                    </h2>
                   </div>
                   {callsData.length > 0 ? <div className="space-y-2">
-                      {callsData.map((call, idx) => <div key={idx} className={`p-2.5 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="text-xl font-bold dark:text-white">
-                                {call.name}
-                              </div>
-                              <div className="flex items-center mt-1">
-                                <UsersIcon size={16} className="text-gray-500 dark:text-gray-400 mr-1.5" />
-                                <div className="text-base text-gray-600 dark:text-gray-300">
-                                  {call.audience}
+                      {callsData.map((call, idx) => {
+                  // Determine if call is secure based on name
+                  const isSecure = call.name.includes('Board') || call.name.includes('Executive') || call.name.includes('Investor');
+                  return <div key={idx} className={`p-2.5 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="text-[1.86rem] font-bold dark:text-white">
+                                  {call.name}
+                                </div>
+                                <div className="flex items-center mt-1">
+                                  <UsersIcon size={17} className="text-gray-500 dark:text-gray-400 mr-1.5" />
+                                  <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
+                                    {call.audience}
+                                  </div>
+                                </div>
+                                <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
+                                  {call.startTime}
                                 </div>
                               </div>
-                              <div className="text-base text-gray-600 dark:text-gray-300 mt-1">
-                                {call.startTime} - {call.endTime}
+                              <div className="flex items-center">
+                                {/* Remove Active chip - blue background already indicates active status */}
+                                {/* Secure/Non-secure badge */}
+                                <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
+                                  {isSecure ? 'SECURE' : 'NON-SECURE'}
+                                </span>
                               </div>
                             </div>
-                            <div className="flex items-center">
-                              {call.isActive && <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                  Active
-                                </span>}
-                            </div>
-                          </div>
-                        </div>)}
-                    </div> : <div className="text-center py-4 text-lg text-gray-500 dark:text-gray-400">
+                          </div>;
+                })}
+                    </div> : <div className="text-center py-4 text-[1.55rem] text-gray-500 dark:text-gray-400">
                       No calls scheduled
                     </div>}
                 </div>
                 {/* Upcoming Calls Section */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5 flex-1">
-                  <h2 className="text-xl font-bold mb-2 dark:text-white">
+                  <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
                     Call Information
                   </h2>
                   <div className="space-y-3">
                     <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700">
-                      <h3 className="text-lg font-bold dark:text-white mb-1.5">
+                      <h3 className="text-[1.55rem] font-bold dark:text-white mb-1.5">
                         Join Options
                       </h3>
                       <div className="flex items-center gap-2 mb-1">
                         <div className="bg-blue-500 text-white p-1 rounded">
                           <PhoneCallIcon size={14} />
                         </div>
-                        <div className="text-base">Main Line: 888-555-1234</div>
+                        <div className="text-[1.38rem]">
+                          Main Line: 888-555-1234
+                        </div>
                       </div>
-                      <div className="text-base text-gray-600 dark:text-gray-300 ml-7">
+                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 ml-7">
                         Meeting ID: 1234 5678
                       </div>
                     </div>
                     <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700">
-                      <h3 className="text-lg font-bold dark:text-white mb-1.5">
+                      <h3 className="text-[1.55rem] font-bold dark:text-white mb-1.5">
                         Support
                       </h3>
-                      <div className="text-base text-gray-600 dark:text-gray-300">
+                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
                         Technical issues: 888-555-4321
                       </div>
-                      <div className="text-base text-gray-600 dark:text-gray-300">
+                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
                         Conference support: ext. 9876
                       </div>
                     </div>

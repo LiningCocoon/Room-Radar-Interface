@@ -188,9 +188,9 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
             </button>}
 
           {/* Room headers - using grid layout to match the content grid layout below */}
-          <div className="grid grid-cols-5 gap-2 flex-1">
+          <div className="grid grid-cols-5 gap-2 flex-1 ml-6">
             {rooms.map(room => <div key={room} className="text-center">
-                <h2 className="text-2xl font-bold dark:text-white truncate">
+                <h2 className="text-[1.575rem] font-bold dark:text-white truncate">
                   {room}
                 </h2>
               </div>)}

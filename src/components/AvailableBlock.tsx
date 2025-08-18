@@ -1,4 +1,5 @@
 import React from 'react';
+import { DoorOpenIcon } from 'lucide-react';
 interface AvailableBlockProps {
   startTime: string;
   endTime: string;
@@ -23,17 +24,15 @@ const AvailableBlock: React.FC<AvailableBlockProps> = ({
   isYesterday = false,
   militaryTime = false
 }) => {
-  // Parse time strings to get hours and minutes
+  // Parse time function
   const parseTime = (timeStr: string) => {
-    // For military time format (24-hour)
-    if (militaryTime || timeStr.includes(':') && !timeStr.includes('AM') && !timeStr.includes('PM')) {
-      const [hours, minutes] = timeStr.split(':').map(num => parseInt(num));
+    if (militaryTime && timeStr.includes(':') && !timeStr.includes('M')) {
+      const [h, m] = timeStr.split(':');
       return {
-        hours,
-        minutes: minutes || 0
+        hours: parseInt(h) || 0,
+        minutes: parseInt(m) || 0
       };
     }
-    // For AM/PM format
     const [time, period] = timeStr.split(/(?=[AP]M)/);
     const [hours, minutes] = time.split(':').map(num => parseInt(num));
     const isPM = period === 'PM' && hours !== 12;
@@ -42,73 +41,40 @@ const AvailableBlock: React.FC<AvailableBlockProps> = ({
       minutes: minutes || 0
     };
   };
-  // Format time to military format if needed
-  const formatTimeToMilitary = (timeStr: string) => {
-    if (militaryTime && (timeStr.includes('AM') || timeStr.includes('PM'))) {
+  // Format time for display
+  const formatTime = (timeStr: string) => {
+    if (militaryTime) {
       const time = parseTime(timeStr);
       return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
     }
     return timeStr;
   };
-  const start = parseTime(startTime);
-  const end = parseTime(endTime);
-  const currentHour = currentTime.getHours();
-  const currentMinute = currentTime.getMinutes();
-  // Convert to minutes for comparison
-  const startTimeInMinutes = start.hours * 60 + start.minutes;
-  const endTimeInMinutes = end.hours * 60 + end.minutes;
-  const currentTimeInMinutes = currentHour * 60 + currentMinute;
-  // Determine if this available block is in the past
-  const isPast = isYesterday || currentTimeInMinutes >= endTimeInMinutes;
+  // Determine if this block is in the past
+  const currentTimeInMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const blockStartTime = parseTime(startTime);
+  const blockStartInMinutes = blockStartTime.hours * 60 + blockStartTime.minutes;
+  const isPast = isYesterday || currentTimeInMinutes > blockStartInMinutes;
   // Base styling
-  let blockClasses = 'absolute rounded-lg border text-left transition-all duration-300';
-  // Apply styling based on past/future status
+  let blockClasses = 'rounded-lg border-dashed border-2 text-left transition-all duration-300 p-2 absolute flex flex-col justify-center items-center';
   if (isPast) {
-    blockClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 opacity-35';
+    blockClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 opacity-50';
   } else {
-    blockClasses += ' border-dashed border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 opacity-75';
+    blockClasses += ' border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600 opacity-75';
   }
-  // Determine text and padding based on height - 30% larger text
-  const getTextAndPadding = () => {
-    if (height < 40) {
-      return {
-        showText: false,
-        padding: 'p-1.5',
-        textClass: 'hidden'
-      };
-    } else if (height < 60) {
-      return {
-        showText: true,
-        padding: 'p-2',
-        textClass: 'text-sm font-medium' // Increased from text-xs
-      };
-    } else {
-      return {
-        showText: true,
-        padding: 'p-2.5',
-        textClass: 'text-base font-medium' // Increased from text-sm
-      };
-    }
-  };
-  const {
-    showText,
-    padding,
-    textClass
-  } = getTextAndPadding();
-  return <div className={`${blockClasses} ${padding}`} style={{
-    top: `${top}px`,
-    left: `${left}px`,
-    width: `${width}px`,
-    height: `${height}px`
+  const textColorClass = isPast ? 'text-gray-500 dark:text-gray-400' : 'text-green-700 dark:text-green-400';
+  return <div className={blockClasses} style={{
+    top,
+    left,
+    width,
+    height
   }}>
-      {showText && <>
-          <div className={`${textClass} ${isPast ? 'text-gray-500 dark:text-gray-400' : 'text-green-700 dark:text-green-400'}`}>
-            Available
-          </div>
-          <div className={`${textClass} mt-0.5 ${isPast ? 'text-gray-500 dark:text-gray-400' : 'text-green-700 dark:text-green-400'}`}>
-            {formatTimeToMilitary(startTime)} - {formatTimeToMilitary(endTime)}
-          </div>
-        </>}
+      {!isPast && <DoorOpenIcon className={`h-6 w-6 ${textColorClass} mb-1`} />}
+      <div className={`text-xs font-bold text-center ${textColorClass}`}>
+        Available
+      </div>
+      <div className={`text-xs text-center ${textColorClass}`}>
+        {formatTime(startTime)} - {formatTime(endTime)}
+      </div>
     </div>;
 };
 export default AvailableBlock;

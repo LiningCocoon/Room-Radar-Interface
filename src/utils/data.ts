@@ -1,307 +1,108 @@
+// Mock meeting data for the Room Radar application
 export interface Meeting {
   name: string;
   startTime: string;
   endTime: string;
   room: string;
-  status?: 'active' | 'upcoming' | 'past' | 'available';
   avSupport?: boolean;
-  isHighProfile?: boolean; // New flag for VIP meetings
-  isCall?: boolean; // New flag for calls
-  callType?: string; // Type of call: "Conference Call", "One-on-One", etc.
+  isHighProfile?: boolean;
+  isCall?: boolean;
+  callType?: string;
 }
 export const getMeetingData = (): Meeting[] => {
   return [
-  // 7:00 AM (New time slot)
+  // JFK Room meetings
   {
-    name: 'Early Planning',
-    startTime: '07:00',
-    endTime: '07:45',
+    name: 'Strategic Planning Session',
+    startTime: '9:00AM',
+    endTime: '10:30AM',
     room: 'JFK',
-    status: 'active'
+    avSupport: true,
+    isHighProfile: false
   }, {
-    name: 'Executive Breakfast',
-    startTime: '07:15',
-    endTime: '08:00',
-    room: 'Executive',
-    status: 'active',
-    avSupport: true,
-    // AV Support needed
-    isHighProfile: true // High profile meeting
-  },
-  // Adding a VIP call at 7:30
-  {
-    name: 'Global Leadership Call',
-    startTime: '07:30',
-    endTime: '08:15',
-    room: 'Breakout A',
-    status: 'active',
-    avSupport: true,
-    isHighProfile: true,
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 8:00 AM
-  {
-    name: 'Ops Kickoff',
-    startTime: '08:00',
-    endTime: '08:45',
+    name: 'Client Presentation',
+    startTime: '11:00AM',
+    endTime: '12:00PM',
     room: 'JFK',
-    status: 'past'
-  },
-  // Support Handoff removed - will show as Available
-  {
+    avSupport: true,
+    isHighProfile: true
+  }, {
     name: 'Team Sync',
-    startTime: '08:00',
-    endTime: '08:30',
-    room: 'Breakout 2',
-    status: 'past'
+    startTime: '2:00PM',
+    endTime: '3:00PM',
+    room: 'JFK',
+    avSupport: false,
+    isHighProfile: false
   },
-  // Adding a regular call at 8:30
+  // Executive Room meetings
   {
-    name: 'IT Support Call',
-    startTime: '08:30',
-    endTime: '09:15',
+    name: 'Board Review',
+    startTime: '10:00AM',
+    endTime: '11:30AM',
+    room: 'Executive',
+    avSupport: true,
+    isHighProfile: true
+  }, {
+    name: 'Executive Meeting',
+    startTime: '1:00PM',
+    endTime: '2:30PM',
+    room: 'Executive',
+    avSupport: false,
+    isHighProfile: false
+  }, {
+    name: 'Leadership Sync',
+    startTime: '4:00PM',
+    endTime: '5:00PM',
+    room: 'Executive',
+    avSupport: true,
+    isHighProfile: false
+  },
+  // Small Room meetings
+  {
+    name: 'Design Workshop',
+    startTime: '9:30AM',
+    endTime: '11:00AM',
     room: 'Small',
-    status: 'active',
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 9:00 AM
-  {
-    name: 'Standup & Priorities',
-    startTime: '09:00',
-    endTime: '09:45',
-    room: 'JFK',
-    status: 'active',
-    avSupport: true // AV Support needed
+    avSupport: false,
+    isHighProfile: false
   }, {
-    name: 'Vendor Call',
-    startTime: '09:15',
-    endTime: '10:00',
-    room: 'Executive',
-    status: 'active',
-    avSupport: true,
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 10:00 AM - VIP call
-  {
-    name: 'Board Update',
-    startTime: '10:00',
-    endTime: '11:00',
-    room: 'Executive',
-    status: 'upcoming',
-    avSupport: true,
-    isHighProfile: true,
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 11:00 AM - Regular call
-  {
-    name: 'Marketing Strategy',
-    startTime: '11:00',
-    endTime: '11:45',
-    room: 'Breakout 1',
-    status: 'upcoming',
-    isCall: true,
-    callType: 'One-on-One'
-  },
-  // 12:00 PM
-  {
-    name: 'Design Critique',
-    startTime: '12:00',
-    endTime: '13:00',
-    room: 'JFK',
-    status: 'upcoming',
-    avSupport: true
-  }, {
-    name: 'Budget Review',
-    startTime: '12:30',
-    endTime: '13:30',
-    room: 'Breakout 2',
-    status: 'upcoming'
-  }, {
-    name: 'Quarterly Planning',
-    startTime: '12:00',
-    endTime: '14:00',
-    room: 'Executive',
-    status: 'upcoming',
-    avSupport: true,
-    // AV Support needed
-    isHighProfile: true // High profile meeting
-  },
-  // 1:00 PM - VIP call
-  {
-    name: 'CEO All-Hands',
-    startTime: '13:00',
-    endTime: '14:00',
-    room: 'Breakout A',
-    status: 'upcoming',
-    avSupport: true,
-    isHighProfile: true,
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 2:00 PM
-  {
-    name: 'Data Sync',
-    startTime: '14:00',
-    endTime: '14:45',
-    room: 'Executive',
-    status: 'upcoming'
-  },
-  // Adding new meetings at 2:00 PM
-  {
     name: 'Product Demo',
-    startTime: '14:00',
-    endTime: '15:00',
-    room: 'JFK',
-    status: 'upcoming',
-    avSupport: true
-  }, {
-    name: 'UX Workshop',
-    startTime: '14:30',
-    endTime: '15:30',
-    room: 'Breakout 1',
-    status: 'upcoming'
-  },
-  // 2:30 PM - Regular call
-  {
-    name: 'Partner Discussion',
-    startTime: '14:30',
-    endTime: '15:15',
+    startTime: '1:30PM',
+    endTime: '2:30PM',
     room: 'Small',
-    status: 'upcoming',
-    isCall: true,
-    callType: 'Conference Call'
+    avSupport: true,
+    isHighProfile: false
   },
-  // 3:00 PM - Adding new meetings
+  // Breakout A meetings
   {
-    name: 'Strategy Session',
-    startTime: '15:00',
-    endTime: '16:30',
-    room: 'Breakout 2',
-    status: 'upcoming',
-    avSupport: true
+    name: 'All-Hands Meeting',
+    startTime: '8:00AM',
+    endTime: '9:00AM',
+    room: 'Breakout 1',
+    avSupport: true,
+    isHighProfile: false
   }, {
-    name: 'Client Meeting',
-    startTime: '15:15',
-    endTime: '16:00',
-    room: 'Executive',
-    status: 'upcoming',
+    name: 'Investor Relations',
+    startTime: '3:00PM',
+    endTime: '4:30PM',
+    room: 'Breakout 1',
+    avSupport: false,
     isHighProfile: true
   },
-  // 3:30 PM - VIP call
+  // Breakout B meetings
   {
-    name: 'Investor Relations',
-    startTime: '15:30',
-    endTime: '16:15',
-    room: 'Breakout A',
-    status: 'upcoming',
-    avSupport: true,
-    isHighProfile: true,
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 4:00 PM - Adding new meeting
-  {
-    name: 'Tech Review',
-    startTime: '16:00',
-    endTime: '17:00',
-    room: 'JFK',
-    status: 'upcoming'
-  },
-  // 4:30 PM - Regular call
-  {
-    name: 'Support Escalation',
-    startTime: '16:30',
-    endTime: '17:15',
-    room: 'Small',
-    status: 'upcoming',
-    isCall: true,
-    callType: 'One-on-One'
-  },
-  // 5:00 PM
-  {
-    name: 'Team Retro',
-    startTime: '17:00',
-    endTime: '18:00',
-    room: 'Breakout 1',
-    status: 'upcoming',
-    avSupport: true
-  }, {
-    name: 'EOD Sync',
-    startTime: '17:30',
-    endTime: '18:00',
-    room: 'Executive',
-    status: 'upcoming',
-    avSupport: true,
-    // AV Support needed
-    isHighProfile: true // High profile meeting
-  },
-  // 5:30 PM - VIP call
-  {
-    name: 'Executive Committee',
-    startTime: '17:30',
-    endTime: '18:15',
-    room: 'JFK',
-    status: 'upcoming',
-    avSupport: true,
-    isHighProfile: true,
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 6:00 PM
-  {
-    name: 'Late Client Demo',
-    startTime: '18:15',
-    endTime: '19:00',
-    room: 'Breakout 1',
-    status: 'upcoming',
-    avSupport: true // AV Support needed
-  }, {
-    name: 'APAC Planning',
-    startTime: '18:30',
-    endTime: '19:15',
+    name: 'Training Session',
+    startTime: '10:30AM',
+    endTime: '12:00PM',
     room: 'Breakout 2',
-    status: 'upcoming'
+    avSupport: false,
+    isHighProfile: false
   }, {
-    name: 'Executive Debrief',
-    startTime: '18:00',
-    endTime: '18:45',
-    room: 'Executive',
-    status: 'upcoming',
-    isHighProfile: true // High profile meeting
-  },
-  // 6:30 PM - Regular call
-  {
-    name: 'APAC Team Call',
-    startTime: '18:30',
-    endTime: '19:15',
-    room: 'Small',
-    status: 'upcoming',
-    isCall: true,
-    callType: 'Conference Call'
-  },
-  // 7:00 PM
-  {
-    name: 'After-Hours Training',
-    startTime: '19:00',
-    endTime: '20:00',
-    room: 'Breakout 1',
-    status: 'upcoming',
-    avSupport: true // AV Support needed
-  },
-  // 7:30 PM - VIP call
-  {
-    name: 'International Board Call',
-    startTime: '19:30',
-    endTime: '20:15',
-    room: 'Executive',
-    status: 'upcoming',
+    name: 'Partner Meeting',
+    startTime: '3:30PM',
+    endTime: '4:30PM',
+    room: 'Breakout 2',
     avSupport: true,
-    isHighProfile: true,
-    isCall: true,
-    callType: 'Conference Call'
+    isHighProfile: false
   }];
 };

@@ -1,136 +1,83 @@
-import { Meeting } from './data';
-/**
- * Parses a time string (e.g., "10:30AM") into hours and minutes
- */
-export const parseTime = (timeStr: string) => {
-  // For military time format (24-hour)
+// Time utility functions for the meeting room application
+export interface ParsedTime {
+  hours: number;
+  minutes: number;
+}
+export const parseTime = (timeStr: string): ParsedTime => {
+  // Handle military time format (HH:MM)
   if (timeStr.includes(':') && !timeStr.includes('AM') && !timeStr.includes('PM')) {
-    const [hours, minutes] = timeStr.split(':').map(num => parseInt(num));
+    const [hours, minutes] = timeStr.split(':').map(num => parseInt(num, 10));
     return {
-      hours,
+      hours: hours || 0,
       minutes: minutes || 0
     };
   }
-  // For AM/PM format
+  // Handle AM/PM format
   const [time, period] = timeStr.split(/(?=[AP]M)/);
-  const [hours, minutes] = time.split(':').map(num => parseInt(num));
+  const [hours, minutes] = time.split(':').map(num => parseInt(num, 10));
   const isPM = period === 'PM' && hours !== 12;
+  const isAM = period === 'AM' && hours === 12;
   return {
-    hours: isPM ? hours + 12 : hours === 12 && period === 'AM' ? 0 : hours,
+    hours: isPM ? hours + 12 : isAM ? 0 : hours,
     minutes: minutes || 0
   };
 };
-/**
- * Converts time to minutes for easier comparison
- */
-export const timeToMinutes = (hours: number, minutes: number) => {
-  return hours * 60 + minutes;
+export const timeToMinutes = (timeStr: string): number => {
+  const parsed = parseTime(timeStr);
+  return parsed.hours * 60 + parsed.minutes;
 };
-/**
- * Determines if a meeting is more than 2 hours old
- */
-export const isOldMeeting = (meeting: Meeting, currentTime: Date) => {
-  if (meeting.name === 'Available') return false;
-  const startTime = parseTime(meeting.startTime);
+export const isOldMeeting = (meeting: any, currentTime: Date): boolean => {
+  if (!meeting.endTime) return false;
+  const endTime = parseTime(meeting.endTime);
+  const endTimeInMinutes = endTime.hours * 60 + endTime.minutes;
   const currentTimeInMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-  const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
-  return currentTimeInMinutes - startTimeInMinutes >= 120;
+  // Meeting is old if it ended more than 2 hours ago
+  return currentTimeInMinutes - endTimeInMinutes > 120;
 };
-/**
- * Calculates the duration of a meeting in minutes
- */
-export const getMeetingDurationMinutes = (meeting: Meeting) => {
-  if (meeting.name === 'Available' || !meeting.endTime) return 60;
+export const calculateTimePosition = (timeStr: string, startHour: number, hourHeight: number): number => {
+  const time = parseTime(timeStr);
+  const totalMinutes = (time.hours - startHour) * 60 + time.minutes;
+  return totalMinutes / 60 * hourHeight;
+};
+export const getMeetingDurationMinutes = (meeting: any): number => {
+  if (!meeting.endTime) return 60; // Default 1 hour
   const startTime = parseTime(meeting.startTime);
   const endTime = parseTime(meeting.endTime);
-  const startMinutes = timeToMinutes(startTime.hours, startTime.minutes);
-  const endMinutes = timeToMinutes(endTime.hours, endTime.minutes);
+  const startMinutes = startTime.hours * 60 + startTime.minutes;
+  const endMinutes = endTime.hours * 60 + endTime.minutes;
   return endMinutes - startMinutes;
 };
-/**
- * Calculates the duration of a meeting in hours
- */
-export const getMeetingDurationHours = (meeting: Meeting) => {
-  return Math.round(getMeetingDurationMinutes(meeting) / 60);
-};
-/**
- * Calculates the vertical position based on time
- * @param time Time string (e.g., "10:30" or "10:30AM")
- * @param startHour First hour to display (e.g., 7 for 7:00AM)
- * @param hourHeight Height in pixels for one hour
- * @returns Position in pixels from the top
- */
-export const calculateTimePosition = (time: string, startHour: number = 7, hourHeight: number = 60) => {
-  const {
-    hours,
-    minutes
-  } = parseTime(time);
-  const hourDiff = hours - startHour;
-  const minutePercentage = minutes / 60;
-  return (hourDiff + minutePercentage) * hourHeight;
-};
-/**
- * Finds gaps between meetings to create available blocks
- * @param meetings Array of meetings for a specific room
- * @param startHour First hour of the day to display
- * @param endHour Last hour of the day to display
- * @returns Array of available time blocks
- */
-export const findAvailableBlocks = (meetings: Meeting[], startHour: number = 7, endHour: number = 20) => {
-  // Sort meetings by start time
-  const sortedMeetings = [...meetings].sort((a, b) => {
-    const aStart = parseTime(a.startTime);
-    const bStart = parseTime(b.startTime);
-    const aMinutes = timeToMinutes(aStart.hours, aStart.minutes);
-    const bMinutes = timeToMinutes(bStart.hours, bStart.minutes);
-    return aMinutes - bMinutes;
-  });
-  const availableBlocks: {
-    startTime: string;
-    endTime: string;
-    room: string;
-  }[] = [];
-  // Start time of the day
-  let currentTime = timeToMinutes(startHour, 0);
-  const endTime = timeToMinutes(endHour, 0);
-  // Room is the same for all meetings in this array
-  const room = sortedMeetings.length > 0 ? sortedMeetings[0].room : '';
-  // Find gaps between meetings
+export const findAvailableBlocks = (meetings: any[], startHour: number, endHour: number): any[] => {
+  const blocks: any[] = [];
+  const sortedMeetings = meetings.filter(m => m.name !== 'Available').sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+  let currentTime = startHour * 60; // in minutes
   for (const meeting of sortedMeetings) {
-    const meetingStart = parseTime(meeting.startTime);
-    const meetingStartMinutes = timeToMinutes(meetingStart.hours, meetingStart.minutes);
-    // If there's a gap before this meeting, create an available block
-    if (meetingStartMinutes > currentTime) {
-      const startHours = Math.floor(currentTime / 60);
-      const startMinutes = currentTime % 60;
-      const endHours = Math.floor(meetingStartMinutes / 60);
-      const endMinutes = meetingStartMinutes % 60;
-      availableBlocks.push({
-        startTime: `${startHours.toString().padStart(2, '0')}:${startMinutes.toString().padStart(2, '0')}`,
-        endTime: `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`,
-        room
+    const meetingStart = timeToMinutes(meeting.startTime);
+    const meetingEnd = timeToMinutes(meeting.endTime || meeting.startTime) + 60;
+    // If there's a gap before this meeting
+    if (currentTime < meetingStart) {
+      const gapStartHour = Math.floor(currentTime / 60);
+      const gapStartMinute = currentTime % 60;
+      const gapEndHour = Math.floor(meetingStart / 60);
+      const gapEndMinute = meetingStart % 60;
+      blocks.push({
+        startTime: `${gapStartHour.toString().padStart(2, '0')}:${gapStartMinute.toString().padStart(2, '0')}`,
+        endTime: `${gapEndHour.toString().padStart(2, '0')}:${gapEndMinute.toString().padStart(2, '0')}`,
+        room: meeting.room
       });
     }
-    // Update current time to the end of this meeting
-    if (meeting.endTime) {
-      const meetingEnd = parseTime(meeting.endTime);
-      currentTime = timeToMinutes(meetingEnd.hours, meetingEnd.minutes);
-    } else {
-      // If no end time, assume 1 hour
-      currentTime = meetingStartMinutes + 60;
-    }
+    currentTime = Math.max(currentTime, meetingEnd);
   }
-  // If there's time left after the last meeting, add one more available block
-  if (currentTime < endTime) {
-    const startHours = Math.floor(currentTime / 60);
-    const startMinutes = currentTime % 60;
-    const endHours = Math.floor(endTime / 60);
-    const endMinutes = endTime % 60;
-    availableBlocks.push({
-      startTime: `${startHours.toString().padStart(2, '0')}:${startMinutes.toString().padStart(2, '0')}`,
-      endTime: `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`,
-      room
+  // Add final block if there's time left
+  const endTimeMinutes = endHour * 60;
+  if (currentTime < endTimeMinutes) {
+    const finalStartHour = Math.floor(currentTime / 60);
+    const finalStartMinute = currentTime % 60;
+    blocks.push({
+      startTime: `${finalStartHour.toString().padStart(2, '0')}:${finalStartMinute.toString().padStart(2, '0')}`,
+      endTime: `${endHour.toString().padStart(2, '0')}:00`,
+      room: meetings[0]?.room || 'Unknown'
     });
   }
-  return availableBlocks;
+  return blocks;
 };

@@ -19,7 +19,7 @@ const SimplifiedTimeSlot: React.FC<SimplifiedTimeSlotProps> = ({
   // Set the text size based on whether the timeslot is past, current, or future
   // Current and future timeslots are enlarged by 15%
   const textSizeClass = isPastHour ? 'text-3xl' : 'text-[3.45rem]'; // 3xl * 1.15 = ~3.45rem
-  return <div className="col-span-1 flex items-center justify-center p-2">
+  return <div className="col-span-1 flex items-start justify-center p-2">
       <div className={`${textSizeClass} font-bold ${isCurrentHour ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
         {time}
       </div>

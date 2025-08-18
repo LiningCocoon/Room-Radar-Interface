@@ -388,143 +388,6 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
 
       {/* Main content area */}
       <div className="p-3 flex flex-col h-full">
-        {/* Unified Dashboard with Meeting Density and Break Time */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-3 p-3">
-          <div className="flex flex-col md:flex-row gap-3">
-            {/* Meeting Density Graph - Takes more space on desktop */}
-            <div className="flex-1">
-              {/* Icons above the timeline */}
-              <div className="flex items-center justify-between mb-1">
-                {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => {
-                // Add calendar icon for meeting-heavy slots (12-14 Quarterly Planning)
-                if (hour === 12 || hour === 13) {
-                  return <span key={`icon-${hour}`} className="flex justify-center">
-                          <CalendarIcon size={14} className="text-gray-600 dark:text-gray-300" />
-                        </span>;
-                }
-                // Add phone icon for call-dense slots (13:30-17:00)
-                else if (hour === 14 || hour === 15 || hour === 16) {
-                  return <span key={`icon-${hour}`} className="flex justify-center">
-                          <PhoneCallIcon size={14} className="text-gray-600 dark:text-gray-300" />
-                        </span>;
-                }
-                // Empty placeholder for other slots
-                return <span key={`icon-${hour}`} className="w-4"></span>;
-              })}
-              </div>
-
-              {/* Timeline bar */}
-              <div className="relative h-6 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden flex">
-                {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => {
-                const density = calculateMeetingDensity[hour];
-                // Updated color scheme: show red for busy OR VIP meetings
-                let bgColor = 'bg-[#4caf50] dark:bg-[#36AE7C]'; // Open - custom green
-                // If viewing a non-today view, show all time slots as past/future
-                if (isViewingPastDay) {
-                  bgColor = 'bg-gray-300 dark:bg-gray-600';
-                } else if (isTomorrowView) {
-                  // For tomorrow view, use normal colors but slightly muted
-                  if (density.count >= 3 || density.vip) {
-                    bgColor = 'bg-[#e52207]/80 dark:bg-[#EB5353]/80'; // Busy or VIP - custom red
-                  } else if (density.count === 2) {
-                    bgColor = 'bg-[#ffbe2e]/80 dark:bg-[#F9D923]/80'; // Moderate - custom yellow
-                  } else if (density.count === 1) {
-                    bgColor = 'bg-[#00bde3]/80 dark:bg-[#187498]/80'; // Light - custom blue
-                  }
-                } else if (density.count >= 3 || density.vip) {
-                  bgColor = 'bg-[#e52207] dark:bg-[#EB5353]'; // Busy or VIP - custom red
-                } else if (density.count === 2) {
-                  bgColor = 'bg-[#ffbe2e] dark:bg-[#F9D923]'; // Moderate - custom yellow
-                } else if (density.count === 1) {
-                  bgColor = 'bg-[#00bde3] dark:bg-[#187498]'; // Light - custom blue
-                }
-                return <div key={hour} className={`flex-1 ${bgColor} border-r border-white dark:border-gray-800 relative`}>
-                        {density.count === 0 && !isViewingPastDay && <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[10px] text-gray-600 dark:text-gray-300">
-                            ·
-                          </span>}
-                        {/* Updated "now" marker to match the image - a white triangle/arrow pointing up */}
-                        {hour === currentHour && isToday && <div className="absolute top-0 bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-end">
-                            <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[12px] border-l-transparent border-r-transparent border-b-white dark:border-b-white"></div>
-                          </div>}
-                      </div>;
-              })}
-              </div>
-
-              {/* Timeline labels moved below the bar */}
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  07:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  09:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  11:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  13:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  15:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  17:00
-                </span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  19:00
-                </span>
-              </div>
-
-              {/* Rest of the timeline UI remains unchanged */}
-              <div className="flex h-4 mt-0.5">
-                {[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(hour => <div key={`vip-${hour}`} className="flex-1 flex justify-center"></div>)}
-              </div>
-
-              {/* Legend remains unchanged */}
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-5 mt-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">
-                {!isViewingPastDay ? <>
-                    <div className="flex items-center px-0.5 sm:px-1">
-                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#4caf50] dark:bg-[#36AE7C] rounded-full mr-1 sm:mr-1.5"></div>
-                      <span>Open</span>
-                    </div>
-                    <div className="flex items-center px-0.5 sm:px-1">
-                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#00bde3] dark:bg-[#187498] rounded-full mr-1 sm:mr-1.5"></div>
-                      <span>Light</span>
-                    </div>
-                    <div className="flex items-center px-0.5 sm:px-1">
-                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#ffbe2e] dark:bg-[#F9D923] rounded-full mr-1 sm:mr-1.5"></div>
-                      <span>Moderate</span>
-                    </div>
-                    <div className="flex items-center px-0.5 sm:px-1">
-                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#e52207] dark:bg-[#EB5353] rounded-full mr-1 sm:mr-1.5"></div>
-                      <span>Busy or VIP</span>
-                    </div>
-                  </> : <div className="flex items-center px-0.5 sm:px-1">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gray-300 dark:bg-gray-600 rounded-full mr-1 sm:mr-1.5"></div>
-                    <span>Past Day</span>
-                  </div>}
-              </div>
-            </div>
-
-            {/* Break Time Info remains unchanged */}
-            <div className="md:w-64 w-full bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 relative">
-              <UtensilsIcon size={20} className="text-green-500 absolute top-3 right-3" />
-              <div className="pr-7 sm:pl-0 pl-[2px]">
-                <div className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                  Best break time:
-                </div>
-                <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                  {findBestBreakTime}
-                </div>
-                {!isViewingPastDay && findLowActivityWindows.length > 0 && <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Next window: {formatHour(findLowActivityWindows[0].start)}–
-                    {formatHour(findLowActivityWindows[0].end + 1)}
-                  </div>}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Main content - Updated layout with calls section in right column */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           {isViewingPastDay ?
@@ -678,9 +541,18 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                 <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
                                   {call.startTime}
                                 </div>
+                                {/* Conference bridge details */}
+                                <div className="mt-2 text-[1.38rem] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-1.5 rounded border border-gray-200 dark:border-gray-600">
+                                  <div className="flex items-center">
+                                    <PhoneCallIcon size={14} className="text-blue-500 mr-1.5" />
+                                    <span>Dial-in: 888-555-{1000 + idx}</span>
+                                  </div>
+                                  <div className="ml-6">
+                                    Meeting ID: {10000 + idx * 1111}
+                                  </div>
+                                </div>
                               </div>
                               <div className="flex items-center">
-                                {/* Remove Active chip - blue background already indicates active status */}
                                 {/* Secure/Non-secure badge */}
                                 <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
                                   {isSecure ? 'SECURE' : 'NON-SECURE'}
@@ -692,41 +564,6 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                     </div> : <div className="text-center py-4 text-[1.55rem] text-gray-500 dark:text-gray-400">
                       No calls scheduled
                     </div>}
-                </div>
-                {/* Upcoming Calls Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5 flex-1">
-                  <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
-                    Call Information
-                  </h2>
-                  <div className="space-y-3">
-                    <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700">
-                      <h3 className="text-[1.55rem] font-bold dark:text-white mb-1.5">
-                        Join Options
-                      </h3>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="bg-blue-500 text-white p-1 rounded">
-                          <PhoneCallIcon size={14} />
-                        </div>
-                        <div className="text-[1.38rem]">
-                          Main Line: 888-555-1234
-                        </div>
-                      </div>
-                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 ml-7">
-                        Meeting ID: 1234 5678
-                      </div>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700">
-                      <h3 className="text-[1.55rem] font-bold dark:text-white mb-1.5">
-                        Support
-                      </h3>
-                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
-                        Technical issues: 888-555-4321
-                      </div>
-                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
-                        Conference support: ext. 9876
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </>}

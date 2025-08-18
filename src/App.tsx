@@ -5,6 +5,7 @@ import AlternativeView from './components/AlternativeView';
 import SimplifiedView from './components/SimplifiedView';
 import PastMeetingsView from './components/PastMeetingsView';
 import OperationsDashboard from './components/OperationsDashboard';
+import OpsMUI from './components/OpsMUI';
 import { ThemeProvider } from './components/ThemeContext';
 // Conditional Header component
 const ConditionalHeader = ({
@@ -13,7 +14,7 @@ const ConditionalHeader = ({
   onToggleDay
 }) => {
   const location = useLocation();
-  if (location.pathname === '/simplified') {
+  if (location.pathname === '/simplified' || location.pathname === '/ops-mui') {
     return null;
   }
   return <Header currentTime={currentTime} isYesterday={isYesterday} onToggleDay={onToggleDay} />;
@@ -40,6 +41,7 @@ export function App() {
             <Route path="/operations" element={<OperationsDashboard currentTime={currentTime} isYesterday={isYesterday} />} />
             <Route path="/alternative" element={<AlternativeView currentTime={currentTime} isYesterday={isYesterday} />} />
             <Route path="/past-meetings" element={<PastMeetingsView currentTime={currentTime} isYesterday={isYesterday} />} />
+            <Route path="/ops-mui" element={<OpsMUI currentTime={currentTime} isYesterday={isYesterday} />} />
           </Routes>
         </div>
       </Router>

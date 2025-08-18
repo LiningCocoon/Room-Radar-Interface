@@ -190,7 +190,7 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           {/* Room headers - using grid layout to match the content grid layout below */}
           <div className="grid grid-cols-5 gap-2 flex-1 ml-6">
             {rooms.map(room => <div key={room} className="text-center">
-                <h2 className="text-[1.575rem] font-bold dark:text-white truncate">
+                <h2 className="text-[1.7325rem] font-bold dark:text-white truncate">
                   {room}
                 </h2>
               </div>)}
@@ -241,6 +241,10 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         </Link>
         <Link to="/alternative" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
           <span>Alternative view</span>
+          <ArrowRightIcon size={16} />
+        </Link>
+        <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
+          <span>MUI Operations</span>
           <ArrowRightIcon size={16} />
         </Link>
         <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">

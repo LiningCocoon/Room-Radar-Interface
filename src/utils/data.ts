@@ -33,6 +33,13 @@ export const getMeetingData = (): Meeting[] => {
     room: 'JFK',
     avSupport: false,
     isHighProfile: false
+  }, {
+    name: 'Stakeholder Strategy Meeting',
+    startTime: '4:30PM',
+    endTime: '5:30PM',
+    room: 'JFK',
+    avSupport: true,
+    isHighProfile: false
   },
   // Executive Room meetings
   {
@@ -56,6 +63,13 @@ export const getMeetingData = (): Meeting[] => {
     room: 'Executive',
     avSupport: true,
     isHighProfile: false
+  }, {
+    name: 'Order Implementation Workshop',
+    startTime: '5:30PM',
+    endTime: '6:30PM',
+    room: 'Executive',
+    avSupport: true,
+    isHighProfile: true
   },
   // Small Room meetings
   {
@@ -71,6 +85,13 @@ export const getMeetingData = (): Meeting[] => {
     endTime: '2:30PM',
     room: 'Small',
     avSupport: true,
+    isHighProfile: false
+  }, {
+    name: 'Cross-functional Requirements Discussion',
+    startTime: '3:00PM',
+    endTime: '4:30PM',
+    room: 'Small',
+    avSupport: false,
     isHighProfile: false
   },
   // Breakout A meetings
@@ -88,6 +109,13 @@ export const getMeetingData = (): Meeting[] => {
     room: 'Breakout 1',
     avSupport: false,
     isHighProfile: true
+  }, {
+    name: 'Quarterly Budget Planning & Review Session',
+    startTime: '5:00PM',
+    endTime: '6:00PM',
+    room: 'Breakout 1',
+    avSupport: true,
+    isHighProfile: false
   },
   // Breakout B meetings
   {
@@ -104,5 +132,12 @@ export const getMeetingData = (): Meeting[] => {
     room: 'Breakout 2',
     avSupport: true,
     isHighProfile: false
+  }, {
+    name: 'International Market Expansion Strategy',
+    startTime: '5:00PM',
+    endTime: '6:30PM',
+    room: 'Breakout 2',
+    avSupport: true,
+    isHighProfile: true
   }];
 };

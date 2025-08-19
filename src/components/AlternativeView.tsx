@@ -466,51 +466,53 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                   </div>
                 </div>
                 {/* VIP Meetings Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
-                  <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
-                    VIP Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
-                  </h2>
-                  {vipMeetingsToday.length > 0 ? <div className="space-y-2">
-                      {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
-                          <div className="flex justify-between items-start">
-                            <div>
+                <div className="col-span-1 md:col-span-2 mt-3">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
+                    <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
+                      VIP Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
+                    </h2>
+                    {vipMeetingsToday.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="flex items-center">
+                                  <div className="text-[1.86rem] font-bold dark:text-white">
+                                    {meeting.name}
+                                  </div>
+                                  <div className="ml-2 text-[1.55rem] text-gray-700 dark:text-gray-300 font-medium">
+                                    ({meeting.room})
+                                  </div>
+                                </div>
+                                <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
+                                  {formatTimeToMilitary(meeting.startTime)} -{' '}
+                                  {formatTimeToMilitary(meeting.endTime)}
+                                </div>
+                              </div>
                               <div className="flex items-center">
-                                <div className="text-[1.86rem] font-bold dark:text-white">
-                                  {meeting.name}
-                                </div>
-                                <div className="ml-2 text-[1.55rem] text-gray-700 dark:text-gray-300 font-medium">
-                                  ({meeting.room})
-                                </div>
-                              </div>
-                              <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
-                                {formatTimeToMilitary(meeting.startTime)} -{' '}
-                                {formatTimeToMilitary(meeting.endTime)}
+                                <span className="text-red-500 text-[1.86rem] mr-2 group relative">
+                                  ★{/* Tooltip */}
+                                  <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+                                    VIP meeting
+                                    <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
+                                  </div>
+                                </span>
+                                {meeting.avSupport && <AVSupportIcon size={27} className="text-red-500" />}
                               </div>
                             </div>
-                            <div className="flex items-center">
-                              <span className="text-red-500 text-[1.86rem] mr-2 group relative">
-                                ★{/* Tooltip */}
-                                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-                                  VIP meeting
-                                  <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
-                                </div>
-                              </span>
-                              {meeting.avSupport && <AVSupportIcon size={27} className="text-red-500" />}
+                            <div className="mt-1.5 flex justify-end">
+                              {getMeetingStatus(meeting) === 'active' && <div className="text-[1.38rem] font-bold text-red-700 dark:text-red-300">
+                                  In progress
+                                </div>}
+                              {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[1.38rem] font-bold text-gray-700 dark:text-gray-300">
+                                  {getTimeUntilMeeting(meeting)}
+                                </div>}
                             </div>
-                          </div>
-                          <div className="mt-1.5 flex justify-end">
-                            {getMeetingStatus(meeting) === 'active' && <div className="text-[1.38rem] font-bold text-red-700 dark:text-red-300">
-                                In progress
-                              </div>}
-                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[1.38rem] font-bold text-gray-700 dark:text-gray-300">
-                                {getTimeUntilMeeting(meeting)}
-                              </div>}
-                          </div>
-                        </div>)}
-                    </div> : <div className="text-center py-4 text-[1.55rem] text-gray-500 dark:text-gray-400">
-                      No VIP meetings scheduled{' '}
-                      {isTomorrowView ? 'for tomorrow' : 'for today'}
-                    </div>}
+                          </div>)}
+                      </div> : <div className="text-center py-4 text-[1.55rem] text-gray-500 dark:text-gray-400">
+                        No VIP meetings scheduled{' '}
+                        {isTomorrowView ? 'for tomorrow' : 'for today'}
+                      </div>}
+                  </div>
                 </div>
               </div>
               {/* Right Column - Calls Section */}
@@ -578,16 +580,12 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
 
         {/* Navigation Buttons */}
         <div className="mt-auto mb-3 flex justify-center gap-3">
-          <Link to="/simplified" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+          <Link to="/main-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
             <ArrowLeftIcon size={20} />
-            <span>Simplified view</span>
+            <span>Main Wall</span>
           </Link>
-          <Link to="/operations" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
-            <span>Operations Dashboard</span>
-            <ArrowRightIcon size={20} />
-          </Link>
-          <Link to="/past-meetings" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
-            <span>Past meetings</span>
+          <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+            <span>MUI Operations</span>
             <ArrowRightIcon size={20} />
           </Link>
         </div>

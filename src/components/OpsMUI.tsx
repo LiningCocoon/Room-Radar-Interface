@@ -202,33 +202,41 @@ const theme = createTheme({
 });
 // Helper functions
 const formatTimeToMilitary = (timeStr: string) => {
-  const time = parseTime(timeStr);
-  return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
+  try {
+    if (!timeStr) return 'N/A';
+    const time = parseTime(timeStr);
+    return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
+  } catch (error) {
+    return 'N/A';
+  }
 };
-const getVipTitle = (meeting: Meeting) => {
+const getVipTitle = (meeting: Meeting | undefined) => {
+  if (!meeting) return 'VIP';
   if (meeting.room === 'Executive') {
-    if (meeting.name.includes('Review')) return 'CEO';
-    if (meeting.name.includes('Planning')) return 'COO';
-    if (meeting.name.includes('Client')) return 'SVP';
-    if (meeting.name.includes('Board')) return 'Chairman';
+    if (meeting.name?.includes('Review')) return 'CEO';
+    if (meeting.name?.includes('Planning')) return 'COO';
+    if (meeting.name?.includes('Client')) return 'SVP';
+    if (meeting.name?.includes('Board')) return 'Chairman';
     return 'Executive';
   }
   if (meeting.room === 'JFK') {
-    if (meeting.name.includes('Planning')) return 'Director';
-    if (meeting.name.includes('Brief')) return 'VP';
+    if (meeting.name?.includes('Planning')) return 'Director';
+    if (meeting.name?.includes('Brief')) return 'VP';
     return 'Senior Manager';
   }
   return 'VIP';
 };
-const getAudience = (meeting: Meeting) => {
-  if (meeting.name.includes('Board')) return 'Executive Team';
-  if (meeting.name.includes('Client')) return 'External, Sales';
-  if (meeting.name.includes('Team')) return 'Team Members';
-  if (meeting.name.includes('Planning')) return 'Department Leads';
+const getAudience = (meeting: Meeting | undefined) => {
+  if (!meeting) return 'Internal';
+  if (meeting.name?.includes('Board')) return 'Executive Team';
+  if (meeting.name?.includes('Client')) return 'External, Sales';
+  if (meeting.name?.includes('Team')) return 'Team Members';
+  if (meeting.name?.includes('Planning')) return 'Department Leads';
   return 'Internal';
 };
-const isSecureCall = (meeting: Meeting) => {
-  return meeting.name.includes('Board') || meeting.name.includes('Executive') || meeting.name.includes('Investor');
+const isSecureCall = (meeting: Meeting | undefined) => {
+  if (!meeting) return false;
+  return meeting.name?.includes('Board') || meeting.name?.includes('Executive') || meeting.name?.includes('Investor');
 };
 interface OpsMUIProps {
   currentTime: Date;
@@ -374,26 +382,35 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
   const currentTimeInMinutes = currentHour * 60 + currentMinute;
   // Calculate meeting status
   const getMeetingStatus = (meeting: Meeting) => {
-    // If showing tomorrow or yesterday, adjust accordingly
-    if (isTomorrow) return 'upcoming';
-    if (isYesterdayView) return 'past';
-    const startTime = parseTime(meeting.startTime);
-    const endTime = meeting.endTime ? parseTime(meeting.endTime) : null;
-    const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
-    const endTimeInMinutes = endTime ? endTime.hours * 60 + endTime.minutes : startTimeInMinutes + 60;
-    if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
-      return 'active';
-    } else if (currentTimeInMinutes >= endTimeInMinutes) {
-      return 'past';
-    } else {
-      return 'upcoming';
+    try {
+      // If showing tomorrow or yesterday, adjust accordingly
+      if (isTomorrow) return 'upcoming';
+      if (isYesterdayView) return 'past';
+      const startTime = parseTime(meeting.startTime || '');
+      const endTime = meeting.endTime ? parseTime(meeting.endTime) : null;
+      const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
+      const endTimeInMinutes = endTime ? endTime.hours * 60 + endTime.minutes : startTimeInMinutes + 60;
+      if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
+        return 'active';
+      } else if (currentTimeInMinutes >= endTimeInMinutes) {
+        return 'past';
+      } else {
+        return 'upcoming';
+      }
+    } catch (error) {
+      return 'upcoming'; // Default fallback
     }
   };
   // Get minutes until a meeting starts
   const getMinutesUntilMeeting = (meeting: Meeting) => {
-    const startTime = parseTime(meeting.startTime);
-    const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
-    return startTimeInMinutes - currentTimeInMinutes;
+    try {
+      if (!meeting.startTime) return 0;
+      const startTime = parseTime(meeting.startTime);
+      const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
+      return startTimeInMinutes - currentTimeInMinutes;
+    } catch (error) {
+      return 0;
+    }
   };
   // Filter meetings by status
   const activeMeetings = meetingsToUse.filter(m => getMeetingStatus(m) === 'active');
@@ -450,7 +467,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
       return upcomingVipMeetings.map(meeting => ({
         type: 'vip-upcoming',
         meeting,
-        message: `${meeting.room}: ${meeting.name} at ${formatTimeToMilitary(meeting.startTime)} - ${getVipTitle(meeting)}`,
+        message: `${meeting.room}: ${meeting.name || 'Unnamed Meeting'} at ${formatTimeToMilitary(meeting.startTime || '')} - ${getVipTitle(meeting)}`,
         color: 'error',
         icon: meeting.isCall ? <PhoneInTalkIcon /> : <WarningIcon />
       }));
@@ -461,9 +478,13 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
   // Generate call information
   const generateCallInformation = () => {
     return meetingsToUse.filter(m => m.isCall && getMeetingStatus(m) !== 'past').sort((a, b) => {
-      const aTime = parseTime(a.startTime).hours * 60 + parseTime(a.startTime).minutes;
-      const bTime = parseTime(b.startTime).hours * 60 + parseTime(b.startTime).minutes;
-      return aTime - bTime;
+      try {
+        const aTime = a.startTime ? parseTime(a.startTime).hours * 60 + parseTime(a.startTime).minutes : 0;
+        const bTime = b.startTime ? parseTime(b.startTime).hours * 60 + parseTime(b.startTime).minutes : 0;
+        return aTime - bTime;
+      } catch (error) {
+        return 0;
+      }
     });
   };
   const callInformation = generateCallInformation();
@@ -471,13 +492,22 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
   const generateUpcomingActivity = () => {
     const threeHoursFromNow = currentTimeInMinutes + 180;
     return [...activeMeetings, ...upcomingMeetings].filter(m => {
-      const startTime = parseTime(m.startTime);
-      const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
-      return startTimeInMinutes < threeHoursFromNow;
+      try {
+        if (!m.startTime) return false;
+        const startTime = parseTime(m.startTime);
+        const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
+        return startTimeInMinutes < threeHoursFromNow;
+      } catch (error) {
+        return false;
+      }
     }).sort((a, b) => {
-      const aTime = parseTime(a.startTime).hours * 60 + parseTime(a.startTime).minutes;
-      const bTime = parseTime(b.startTime).hours * 60 + parseTime(b.startTime).minutes;
-      return aTime - bTime;
+      try {
+        const aTime = a.startTime ? parseTime(a.startTime).hours * 60 + parseTime(a.startTime).minutes : 0;
+        const bTime = b.startTime ? parseTime(b.startTime).hours * 60 + parseTime(b.startTime).minutes : 0;
+        return aTime - bTime;
+      } catch (error) {
+        return 0;
+      }
     });
   };
   const upcomingActivities = generateUpcomingActivity();
@@ -487,7 +517,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100vh',
-      bgcolor: '#ffffff' // Changed to pure white for main background
+      bgcolor: '#374151' // Changed from '#f0f0f0' to '#374151' to match other dashboard views
     }}>
         {/* Header */}
         <Box sx={{
@@ -656,7 +686,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                   fontSize: '1.35rem',
                   color: '#1b1b1b'
                 }}>
-                        {status.activeMeeting.name}
+                        {status.activeMeeting.name || 'Unnamed Meeting'}
                         {status.needsAv && <Chip label="AV" size="small" color="primary" variant="filled" sx={{
                     ml: 1,
                     height: 24,
@@ -667,7 +697,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                   display: 'flex',
                   mb: 1.5
                 }}>
-                          <Chip label={status.callType} size="small" color="info" variant="filled" sx={{
+                          <Chip label={status.callType || 'Call'} size="small" color="info" variant="filled" sx={{
                     fontSize: '0.9rem',
                     py: 0.5
                   }} />
@@ -682,7 +712,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                     color: '#1b1b1b'
                   }}>
                           Until{' '}
-                          {formatTimeToMilitary(status.activeMeeting.endTime)}
+                          {status.activeMeeting.endTime ? formatTimeToMilitary(status.activeMeeting.endTime) : 'N/A'}
                         </Typography>
                         {status.isVip && <Box sx={{
                     display: 'flex',
@@ -718,8 +748,8 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                     color: '#1b1b1b'
                   }}>
                           Next:{' '}
-                          {formatTimeToMeeting(status.nextMeeting.startTime)} -{' '}
-                          {status.nextMeeting.name}
+                          {status.nextMeeting.startTime ? formatTimeToMilitary(status.nextMeeting.startTime) : 'N/A'}{' '}
+                          - {status.nextMeeting.name || 'Unnamed Meeting'}
                         </Typography>
                       </Box>
                       {status.nextMeeting.isHighProfile && <Box sx={{
@@ -762,9 +792,9 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
               borderRadius: 1,
               bgcolor: '#ffffff'
             }}>
-                {upcomingActivities.filter(m => !m.isCall && m.isCall !== true).length > 0 ? <Stack spacing={3}>
-                    {upcomingActivities.filter(m => !m.isCall && m.isCall !== true).map((meeting, index) => {
-                  const formattedTime = formatTimeToMilitary(meeting.startTime || '');
+                {upcomingActivities.filter(m => !m.isCall).length > 0 ? <Stack spacing={3}>
+                    {upcomingActivities.filter(m => !m.isCall).map((meeting, index) => {
+                  const formattedTime = meeting.startTime ? formatTimeToMilitary(meeting.startTime) : 'N/A';
                   const isVip = meeting.isHighProfile || false;
                   return <Box key={`meeting-${index}`} sx={{
                     p: 3,
@@ -861,10 +891,10 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
               borderRadius: 1,
               bgcolor: '#ffffff'
             }}>
-                {callInformation && callInformation.length > 0 || upcomingActivities && upcomingActivities.filter(m => m.isCall === true).length > 0 ? <Stack spacing={3}>
+                {callInformation && callInformation.length > 0 || upcomingActivities && upcomingActivities.filter(m => m.isCall).length > 0 ? <Stack spacing={3}>
                     {/* Show call information first */}
                     {callInformation && callInformation.map((call, index) => {
-                  const formattedTime = formatTimeToMilitary(call.startTime || '');
+                  const formattedTime = call.startTime ? formatTimeToMilitary(call.startTime) : 'N/A';
                   const audience = getAudience(call);
                   const isSecure = isSecureCall(call);
                   const isVip = call.isHighProfile || false;
@@ -931,8 +961,8 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                           </Box>;
                 })}
                     {/* Show call activities from upcomingActivities */}
-                    {upcomingActivities && upcomingActivities.filter(m => m.isCall === true).map((call, index) => {
-                  const formattedTime = formatTimeToMilitary(call.startTime || '');
+                    {upcomingActivities && upcomingActivities.filter(m => m.isCall).map((call, index) => {
+                  const formattedTime = call.startTime ? formatTimeToMilitary(call.startTime) : 'N/A';
                   const audience = getAudience(call);
                   const isSecure = isSecureCall(call);
                   const isVip = call.isHighProfile || false;
@@ -1018,19 +1048,19 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
           justifyContent: 'center',
           gap: 3
         }}>
-            <Button component={Link} to="/simplified" variant="outlined" color="primary" startIcon={<ArrowBackIcon fontSize="large" />} sx={{
+            <Button component={Link} to="/main-wall" variant="outlined" color="primary" startIcon={<ArrowBackIcon fontSize="large" />} sx={{
             fontWeight: 'bold',
             py: 1.5,
             fontSize: '1.2rem'
           }}>
-              Simplified view
+              Main Wall
             </Button>
-            <Button component={Link} to="/operations" variant="outlined" color="primary" endIcon={<ArrowForwardIcon fontSize="large" />} sx={{
+            <Button component={Link} to="/side-wall" variant="outlined" color="primary" endIcon={<ArrowForwardIcon fontSize="large" />} sx={{
             fontWeight: 'bold',
             py: 1.5,
             fontSize: '1.2rem'
           }}>
-              Operations Dashboard
+              Side Wall
             </Button>
           </Box>
         </Box>

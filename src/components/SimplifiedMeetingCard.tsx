@@ -9,6 +9,7 @@ interface Meeting {
   status?: 'active' | 'upcoming' | 'past' | 'available';
   avSupport?: boolean;
   isHighProfile?: boolean;
+  chairperson?: string | null;
 }
 interface SimplifiedMeetingCardProps {
   meeting: Meeting;
@@ -206,27 +207,16 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const titleSize = isPastMeeting ? pastTitleSize : regularTitleSize;
   const timeSize = isPastMeeting ? pastTimeSize : regularTimeSize;
   const avIconSize = isPastMeeting ? 28 : 34;
-  // Safely typed chair name logic
-  const getChairName = (): string | null => {
-    try {
-      if (!meeting || !meeting.room || !meeting.name) return null;
-      if (meeting.room === 'JFK' || meeting.room === 'Executive') {
-        const names = ['Carlos Salazar', 'Devon Black', 'Nick Trees', 'Patty Smith'];
-        const index = Math.abs(startTimeInMinutes || 0) % 4;
-        return names[index] || null;
-      }
-      return null;
-    } catch (error) {
-      return null;
-    }
-  };
+  // Chairperson display size and color
+  const chairpersonSize = isPastMeeting ? 'text-[1.15rem]' : 'text-[1.35rem]';
+  const chairpersonColor = meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : 'text-gray-600 dark:text-gray-400';
   // Get the exact minute part of the meeting start time for display
   const getMinuteDisplay = () => {
     const minutes = parseTime(meeting.startTime).minutes;
     return minutes === 0 ? ':00' : `:${minutes}`;
   };
-  const chairName = getChairName();
-  const showChair = chairName && !isAvailable && status !== 'past' && !isYesterday;
+  // Show chairperson for important meetings when not in past view
+  const showChairperson = meeting.chairperson && !isAvailable && status !== 'past' && !isYesterday;
   return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''}`} style={!isAvailable && duration > 1 ? {
     minHeight: `${Math.min(duration * 80, 320)}px`
   } : {}}>
@@ -240,9 +230,9 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           <h3 className={`${titleSize} font-bold leading-tight ${textColorClass}`}>
             {meeting.name || 'Unknown Meeting'}
           </h3>
-          {/* Chair information moved here, right after the meeting name */}
-          {showChair && <div className="mt-1 mb-1 text-[1.25rem] text-gray-600 dark:text-gray-400 font-medium">
-              {chairName}
+          {/* Chairperson information display */}
+          {showChairperson && <div className={`mt-1 mb-1 ${chairpersonSize} font-medium ${chairpersonColor}`}>
+              {meeting.chairperson}
             </div>}
           {(!isAvailable || isAvailable && !isPastMeeting) && <p className={`${timeSize} mt-0.5 ${meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
               {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}

@@ -89,13 +89,6 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
-      {/* Only render room headers when NOT on the alternative view */}
-      <div className="border-b border-gray-300 px-3 bg-white dark:bg-gray-900 dark:border-gray-700" data-id="element-164" style={{
-      margin: '0px',
-      height: '0px',
-      overflow: 'hidden',
-      padding: '0 0 0 0'
-    }}></div>
     </div>;
 };
 export default Header;

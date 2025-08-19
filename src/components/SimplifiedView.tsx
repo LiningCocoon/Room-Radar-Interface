@@ -126,6 +126,27 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const endMinutes = endTime.hours * 60 + endTime.minutes;
     return Math.round((endMinutes - startMinutes) / 60);
   };
+  // Function to determine chairperson based on meeting type
+  const getChairperson = (meeting: any): string | null => {
+    if (meeting.isHighProfile || meeting.room === 'Executive') {
+      if (meeting.name.includes('Board')) return 'Chairman';
+      if (meeting.name.includes('Review')) return 'CEO';
+      if (meeting.name.includes('Planning')) return 'COO';
+      if (meeting.name.includes('Client')) return 'SVP Sales';
+      if (meeting.name.includes('Emergency')) return 'Security Officer';
+      if (meeting.name.includes('Investor')) return 'CFO';
+      if (meeting.name.includes('Leadership')) return 'CTO';
+      if (meeting.name.includes('All-Hands')) return 'CEO';
+      return 'Executive';
+    }
+    if (meeting.room === 'JFK') {
+      if (meeting.name.includes('Leadership')) return 'VP Operations';
+      if (meeting.name.includes('Strategy')) return 'Director';
+      if (meeting.name.includes('Team')) return 'Team Lead';
+      return 'Senior Manager';
+    }
+    return null; // No chairperson for regular meetings
+  };
   // Function to get the meeting for a room at a specific time slot
   const getMeetingForRoomAndTime = (room: string, timeSlot: string) => {
     // Get all meetings for this room
@@ -133,28 +154,26 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     // Find meetings that start in or span across this time slot
     const relevantMeetings = roomMeetings.filter(meeting => meetingSpansTimeSlot(meeting, timeSlot));
     if (relevantMeetings.length === 0) {
-      // Return an "Available" placeholder if no meetings
-      return {
-        name: 'Available',
-        startTime: timeSlot,
-        endTime: '',
-        room: room,
-        status: 'available'
-      };
+      // Return null instead of "Available" placeholder
+      return null;
     }
-    // Return the meeting with its original VIP status
-    return relevantMeetings[0];
+    // Return the meeting with chairperson information
+    const meeting = relevantMeetings[0];
+    return {
+      ...meeting,
+      chairperson: getChairperson(meeting)
+    };
   };
   // Determine if a meeting should be displayed in this time slot
   const shouldDisplayMeetingInTimeSlot = (meeting: any, timeSlot: string) => {
-    if (meeting.name === 'Available') return true;
+    if (!meeting) return false; // Skip if no meeting (previously "Available")
     const meetingStartHour = getHourFromTimeString(meeting.startTime);
     const timeSlotHour = getHourFromTimeString(timeSlot);
     return meetingStartHour === timeSlotHour;
   };
   // Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
   const getStartPositionInHour = (meeting: any) => {
-    if (meeting.name === 'Available') return 'top';
+    if (!meeting) return 'top'; // Default for empty slots
     const minutesPart = parseTime(meeting.startTime).minutes;
     return minutesPart < 30 ? 'top' : 'bottom';
   };
@@ -208,14 +227,22 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           const rowBgColor = isActive ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-900';
           // Determine if this is the cutoff slot for auto-scrolling
           const isCutoffSlot = isToday && timeSlot === getTwoHourCutoffTimeSlot();
+          // Get meetings for each room at this time slot
+          const meetingsForTimeSlot = rooms.map(room => ({
+            room,
+            meeting: getMeetingForRoomAndTime(room, timeSlot)
+          })).filter(item => item.meeting !== null);
+          // Skip rendering the entire row if there are no meetings in this time slot
+          if (meetingsForTimeSlot.length === 0) {
+            return null;
+          }
           return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800`} ref={isCutoffSlot ? scrollTargetRef : null}>
                 <div className="grid grid-cols-6 gap-2">
                   <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
                   {rooms.map(room => {
                 const meeting = getMeetingForRoomAndTime(room, timeSlot);
-                // Skip rendering if this is a continuation of a multi-hour meeting
-                // (except for the starting time slot)
-                if (!shouldDisplayMeetingInTimeSlot(meeting, timeSlot)) {
+                // Skip rendering if no meeting or if this is a continuation of a multi-hour meeting
+                if (!meeting || !shouldDisplayMeetingInTimeSlot(meeting, timeSlot)) {
                   return <div key={`${room}-${timeSlot}-empty`} className="col-span-1"></div>;
                 }
                 // Calculate meeting duration for badges
@@ -235,11 +262,11 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
 
       {/* Navigation Buttons - Updated to Operations Dashboard instead of Proportional view */}
       <div className="mt-4 mb-2 flex justify-center gap-4">
-        <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
+        <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
           <span>MUI Operations</span>
           <ArrowRightIcon size={16} />
         </Link>
-        <Link to="/side-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 md:inline-flex hidden">
+        <Link to="/side-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
           <span>Side Wall</span>
           <ArrowRightIcon size={16} />
         </Link>

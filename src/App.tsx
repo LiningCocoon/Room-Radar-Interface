@@ -12,7 +12,7 @@ const ConditionalHeader = ({
   onToggleDay
 }) => {
   const location = useLocation();
-  if (location.pathname === '/main-wall' || location.pathname === '/ops-mui') {
+  if (location.pathname === '/main-wall' || location.pathname === '/ops-mui' || location.pathname === '/side-wall') {
     return null;
   }
   return <Header currentTime={currentTime} isYesterday={isYesterday} onToggleDay={onToggleDay} />;

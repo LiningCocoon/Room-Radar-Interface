@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, UtensilsIcon, PhoneCallIcon, UsersIcon, CalendarIcon, SunIcon, MoonIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, UtensilsIcon, PhoneCallIcon, UsersIcon, CalendarIcon, StarIcon } from 'lucide-react';
 import { getMeetingData } from '../utils/data';
 import AVSupportIcon from './AVSupportIcon';
 import { parseTime } from '../utils/timeUtils';
@@ -36,10 +36,9 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date>(isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime));
   // Initialize the selected date once on component mount
   useEffect(() => {
-    // Only set initial date on first render
     const initialDate = isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime);
     setSelectedDate(initialDate);
-  }, []); // Empty dependency array means this only runs once on mount
+  }, []);
   // Calculate if we're viewing today, yesterday, tomorrow, or another day
   const isToday = selectedDate.toDateString() === new Date().toDateString();
   const isYesterdayView = selectedDate.toDateString() === new Date(new Date().setDate(new Date().getDate() - 1)).toDateString();
@@ -65,33 +64,24 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
   const goToToday = () => {
     setSelectedDate(new Date());
   };
+  // Get meeting data
   const meetingData = getMeetingData();
-  // Convert legacy room names to new names
-  const convertedMeetings = meetingData.map(meeting => {
-    let newRoom = meeting.room;
-    if (meeting.room === 'Breakout 1') newRoom = 'Breakout A';
-    if (meeting.room === 'Breakout 2') newRoom = 'Breakout B';
-    if (meeting.room === 'FDR') newRoom = 'JFK'; // Changed FDR to JFK
-    return {
-      ...meeting,
-      room: newRoom
-    };
-  });
-  const currentHour = currentTime.getHours();
-  const currentMinute = currentTime.getMinutes();
-  const currentTimeInMinutes = currentHour * 60 + currentMinute;
+  // Helper function to format time to military format
+  const formatTimeToMilitary = (timeStr: string) => {
+    const time = parseTime(timeStr);
+    return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
+  };
   // Calculate meeting status
   const getMeetingStatus = (meeting: any) => {
-    // If viewing a day other than today, adjust status accordingly
     if (isViewingPastDay) return 'past';
-    if (isTomorrowView) return 'upcoming';
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
     const startTime = parseTime(meeting.startTime);
     const endTime = meeting.endTime ? parseTime(meeting.endTime) : null;
     const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
     const endTimeInMinutes = endTime ? endTime.hours * 60 + endTime.minutes : startTimeInMinutes + 60;
-    if (meeting.name === 'Available') {
-      return 'available';
-    } else if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
+    if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
       return 'active';
     } else if (currentTimeInMinutes >= endTimeInMinutes) {
       return 'past';
@@ -99,252 +89,64 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
       return 'upcoming';
     }
   };
-  // Get minutes until a meeting starts
-  const getMinutesUntilMeeting = (meeting: any) => {
+  // Get time until meeting starts
+  const getTimeUntilMeeting = (meeting: any) => {
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
     const startTime = parseTime(meeting.startTime);
     const startTimeInMinutes = startTime.hours * 60 + startTime.minutes;
-    return startTimeInMinutes - currentTimeInMinutes;
+    const minutesUntil = startTimeInMinutes - currentTimeInMinutes;
+    if (minutesUntil <= 0) return 'Now';
+    if (minutesUntil < 60) return `${minutesUntil}m`;
+    const hours = Math.floor(minutesUntil / 60);
+    const mins = minutesUntil % 60;
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   };
-  // Calculate end time in minutes
-  const getEndTimeInMinutes = (meeting: any) => {
-    if (!meeting.endTime) return null;
+  // Get time until meeting ends
+  const getTimeUntilFree = (meeting: any) => {
+    if (!meeting.endTime) return '1h';
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
     const endTime = parseTime(meeting.endTime);
-    return endTime.hours * 60 + endTime.minutes;
+    const endTimeInMinutes = endTime.hours * 60 + endTime.minutes;
+    const minutesUntil = endTimeInMinutes - currentTimeInMinutes;
+    if (minutesUntil <= 0) return 'Now';
+    if (minutesUntil < 60) return `${minutesUntil}m`;
+    const hours = Math.floor(minutesUntil / 60);
+    const mins = minutesUntil % 60;
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   };
-  // Filter meetings by status
-  const activeMeetings = convertedMeetings.filter(m => isToday && getMeetingStatus(m) === 'active');
-  const upcomingMeetings = convertedMeetings.filter(m => getMeetingStatus(m) === 'upcoming');
-  // Find the first VIP meeting overall
-  const allVipMeetings = convertedMeetings.filter(m => m.isHighProfile);
-  const firstVipMeeting = allVipMeetings.length > 0 ? allVipMeetings[0] : null;
-  // Get all VIP meetings for the selected day (not in the past)
-  const vipMeetingsToday = convertedMeetings.filter(m => m.isHighProfile && getMeetingStatus(m) !== 'past');
-  // Process meetings to handle VIP status - only show the first VIP meeting
-  const processVipStatus = (meetings: any[]) => {
-    return meetings.map(meeting => {
-      if (meeting.isHighProfile) {
-        if (firstVipMeeting && meeting.name === firstVipMeeting.name && meeting.startTime === firstVipMeeting.startTime && meeting.room === firstVipMeeting.room) {
-          return meeting; // Keep VIP status for the first VIP meeting only
-        } else {
-          return {
-            ...meeting,
-            isHighProfile: false
-          }; // Remove VIP status
-        }
-      }
-      return meeting;
-    });
+  // Get time until next meeting
+  const getTimeUntilNextMeeting = (meeting: any) => {
+    return getTimeUntilMeeting(meeting);
   };
-  // Process all meetings to handle VIP status
-  const processedActiveMeetings = processVipStatus(activeMeetings);
-  // Sort active meetings to show VIP and AV Support meetings first
-  const sortedActiveMeetings = [...processedActiveMeetings].sort((a, b) => {
-    // VIP meetings first
-    if (a.isHighProfile && !b.isHighProfile) return -1;
-    if (!a.isHighProfile && b.isHighProfile) return 1;
-    // Then AV Support meetings
-    if (a.avSupport && !b.avSupport) return -1;
-    if (!a.avSupport && b.avSupport) return 1;
-    // Otherwise sort by room
-    return a.room.localeCompare(b.room);
-  });
-  const processedUpcomingMeetings = processVipStatus(upcomingMeetings);
-  // Updated room names and order as requested
+  // Filter meetings for today's VIP meetings
+  const vipMeetingsToday = meetingData.filter(meeting => meeting.isHighProfile);
+  // Past day meetings (for yesterday view)
+  const pastDayMeetings = isViewingPastDay ? meetingData : [];
+  // Room status calculations
   const rooms = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
-  const meetingsByRoom: Record<string, any[]> = {};
-  rooms.forEach(room => {
-    meetingsByRoom[room] = processedUpcomingMeetings.filter(m => m.room === room);
-  });
-  // Find next available room and time
-  const findNextAvailable = () => {
-    if (isViewingPastDay) return null; // No "next available" for past days
-    if (isTomorrowView) return null; // No "next available" for future days
-    // Sort all active meetings by end time
-    const sortedActive = [...processedActiveMeetings].sort((a, b) => {
-      const aEnd = getEndTimeInMinutes(a) || 0;
-      const bEnd = getEndTimeInMinutes(b) || 0;
-      return aEnd - bEnd;
-    });
-    // If there are active meetings, the next available time is after the first one ends
-    if (sortedActive.length > 0) {
-      const firstToEnd = sortedActive[0];
-      const endTimeMinutes = getEndTimeInMinutes(firstToEnd) || 0;
-      // Convert end time to military format
-      const endHour = Math.floor(endTimeMinutes / 60);
-      const endMinute = endTimeMinutes % 60;
-      return {
-        time: `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`,
-        room: firstToEnd.room,
-        minutesUntil: endTimeMinutes - currentTimeInMinutes
-      };
-    }
-    // If there are no active meetings, find rooms that are currently available
-    const availableRooms = rooms.filter(room => !processedActiveMeetings.some(m => m.room === room));
-    if (availableRooms.length > 0) {
-      return {
-        time: 'Now',
-        room: availableRooms[0],
-        minutesUntil: 0
-      };
-    }
-    return null;
-  };
-  const nextAvailable = findNextAvailable();
-  // Get hours until meeting
-  const getTimeUntilMeeting = (meeting: any) => {
-    const minutesUntil = getMinutesUntilMeeting(meeting);
-    // If less than 60 minutes, show minutes
-    if (minutesUntil < 60) {
-      return `In ${minutesUntil} min`;
-    }
-    // Otherwise show hours (with one decimal place if not whole number)
-    const hoursUntil = minutesUntil / 60;
-    if (hoursUntil === Math.floor(hoursUntil)) {
-      return `In ${hoursUntil} hr${hoursUntil !== 1 ? 's' : ''}`;
-    } else {
-      return `In ${hoursUntil.toFixed(1)} hrs`;
-    }
-  };
-  // Calculate meeting density for each hour
-  const calculateMeetingDensity = useMemo(() => {
-    const workHours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
-    const density: Record<number, {
-      count: number;
-      vip: boolean;
-      avSupport: boolean;
-    }> = {};
-    // Initialize density object
-    workHours.forEach(hour => {
-      density[hour] = {
-        count: 0,
-        vip: false,
-        avSupport: false
-      };
-    });
-    // Count meetings per hour
-    convertedMeetings.forEach(meeting => {
-      const startTime = parseTime(meeting.startTime);
-      const endTime = meeting.endTime ? parseTime(meeting.endTime) : {
-        hours: startTime.hours + 1,
-        minutes: 0
-      };
-      // For each hour this meeting spans
-      for (let h = startTime.hours; h < endTime.hours; h++) {
-        if (density[h]) {
-          density[h].count += 1;
-          density[h].vip = density[h].vip || meeting.isHighProfile || false;
-          density[h].avSupport = density[h].avSupport || meeting.avSupport || false;
-        }
-      }
-      // Special case for the ending hour - only count if it doesn't end exactly on the hour
-      if (endTime.minutes > 0 && density[endTime.hours]) {
-        density[endTime.hours].count += 1;
-        density[endTime.hours].vip = density[endTime.hours].vip || meeting.isHighProfile || false;
-        density[endTime.hours].avSupport = density[endTime.hours].avSupport || meeting.avSupport || false;
-      }
-    });
-    return density;
-  }, [convertedMeetings]);
-  // Find low activity windows
-  const findLowActivityWindows = useMemo(() => {
-    const workHours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
-    const windows = [];
-    let currentWindow: {
-      start: number;
-      end: number;
-    } | null = null;
-    // Define what counts as "low activity" (less than 2 meetings)
-    const isLowActivity = (hour: number) => calculateMeetingDensity[hour].count < 2;
-    // Find continuous low activity windows
-    for (const hour of workHours) {
-      if (isLowActivity(hour)) {
-        if (!currentWindow) {
-          currentWindow = {
-            start: hour,
-            end: hour
-          };
-        } else {
-          currentWindow.end = hour;
-        }
-      } else if (currentWindow) {
-        windows.push({
-          ...currentWindow
-        });
-        currentWindow = null;
-      }
-    }
-    // Add the last window if it exists
-    if (currentWindow) {
-      windows.push(currentWindow);
-    }
-    // Filter for windows at least 1 hour long
-    return windows.filter(w => w.end - w.start >= 1);
-  }, [calculateMeetingDensity]);
-  // Format hour to military time string
-  const formatHour = (hour: number) => {
-    return `${hour.toString().padStart(2, '0')}:00`;
-  };
-  // Find best break times
-  const findBestBreakTime = useMemo(() => {
-    if (isViewingPastDay) return 'N/A for past day';
-    if (isTomorrowView) return 'Plan for tomorrow';
-    // Current hour and next hour
-    const currentHour = currentTime.getHours();
-    const nextHour = currentHour + 1;
-    // If current time is low activity
-    if (calculateMeetingDensity[currentHour] && calculateMeetingDensity[currentHour].count < 2) {
-      return `next ${30 - currentTime.getMinutes() % 30} min`;
-    }
-    // Find next low activity period
-    for (let h = nextHour; h <= 19; h++) {
-      if (calculateMeetingDensity[h] && calculateMeetingDensity[h].count < 2) {
-        return `after ${formatHour(h).replace(':00', '')}`;
-      }
-    }
-    return 'Limited today';
-  }, [calculateMeetingDensity, currentTime, isViewingPastDay, isTomorrowView]);
-  // Find safe window text
-  const safeWindowText = useMemo(() => {
-    if (isViewingPastDay) return 'N/A for past day';
-    if (isTomorrowView) return 'Planning for tomorrow';
-    if (findLowActivityWindows.length === 0) {
-      return 'High activity all day';
-    }
-    // Find the next upcoming low activity window
-    const currentHour = currentTime.getHours();
-    const upcomingWindows = findLowActivityWindows.filter(w => w.end >= currentHour);
-    if (upcomingWindows.length === 0) {
-      return 'No more low activity periods today';
-    }
-    const nextWindow = upcomingWindows[0];
-    // If we're currently in the window
-    if (currentHour >= nextWindow.start && currentHour <= nextWindow.end) {
-      return `Low activity now until ${formatHour(nextWindow.end + 1)}`;
-    }
-    return `Low activity expected: ${formatHour(nextWindow.start)}–${formatHour(nextWindow.end + 1)}`;
-  }, [findLowActivityWindows, currentTime, isViewingPastDay, isTomorrowView]);
-  // Convert time to military format
-  const formatTimeToMilitary = (timeStr: string) => {
-    if (timeStr === 'Now') return timeStr;
-    const time = parseTime(timeStr);
-    return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
-  };
-  // For past day view, show all meetings as past
-  const pastDayMeetings = isViewingPastDay ? convertedMeetings : [];
-  // Get room status for each room
-  const getRoomStatus = () => {
+  const roomStatuses = useMemo(() => {
     return rooms.map(room => {
-      const activeInRoom = processedActiveMeetings.find(m => m.room === room);
-      const nextInRoom = processedUpcomingMeetings.filter(m => m.room === room).sort((a, b) => getMinutesUntilMeeting(a) - getMinutesUntilMeeting(b))[0];
+      const roomMeetings = meetingData.filter(m => {
+        let roomName = m.room;
+        if (m.room === 'Breakout 1') roomName = 'Breakout A';
+        if (m.room === 'Breakout 2') roomName = 'Breakout B';
+        return roomName === room;
+      });
+      const activeMeeting = roomMeetings.find(m => getMeetingStatus(m) === 'active');
+      const upcomingMeetings = roomMeetings.filter(m => getMeetingStatus(m) === 'upcoming');
+      const nextMeeting = upcomingMeetings.length > 0 ? upcomingMeetings[0] : null;
       return {
         room,
-        status: activeInRoom ? 'busy' : 'available',
-        activeMeeting: activeInRoom,
-        nextMeeting: nextInRoom
+        status: activeMeeting ? 'busy' : 'available',
+        activeMeeting,
+        nextMeeting
       };
     });
-  };
-  const roomStatuses = getRoomStatus();
+  }, [meetingData, currentTime]);
   // Mock data for calls section
   const callsData = [{
     name: 'Product Team Sync',
@@ -365,40 +167,70 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     endTime: '17:00',
     isActive: false
   }];
+  // Group calls by day
+  const groupCallsByDay = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const todayStr = today.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    const tomorrowStr = tomorrow.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    return {
+      [todayStr]: callsData.filter(call => call.isActive !== false),
+      [tomorrowStr]: [{
+        name: 'Board Review Call',
+        audience: 'Executive Team',
+        startTime: '09:30',
+        endTime: '10:30',
+        isActive: false
+      }, {
+        name: 'Partner Discussion',
+        audience: 'External, Sales',
+        startTime: '14:00',
+        endTime: '15:00',
+        isActive: false
+      }]
+    };
+  };
+  const callsByDay = groupCallsByDay();
   return <div className="flex-1 overflow-auto flex flex-col h-full">
-      {/* Header with Room Radar title and theme toggle */}
-      <div className="bg-[#1a2235] dark:bg-gray-900 text-white py-3 px-5 sticky top-0 z-[10000] flex items-center justify-between" data-id="element-164">
-        {/* Left section with live timestamp in military time */}
+      {/* Header with live timer */}
+      <div className="bg-[#1a2235] text-white py-3 px-5 sticky top-0 z-[10000] flex items-center justify-between">
+        {/* Left: Live timestamp */}
         <div className="text-2xl font-bold">{formattedTime}</div>
-        {/* Center section with date */}
+        {/* Center: Date */}
         <div className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-bold">
           {formattedDate}
-          {isToday && <span className="ml-2 px-2 py-0.5 text-sm bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-md">
+          {isToday && <span className="ml-2 px-2 py-0.5 text-sm bg-blue-50 text-blue-700 rounded-md">
               Today
             </span>}
         </div>
-        {/* Right section with title and theme toggle */}
+        {/* Right: Title */}
         <div className="flex items-center">
-          <button onClick={toggleDarkMode} className="p-1 rounded-full hover:bg-[#004b81] dark:hover:bg-gray-700 transition-colors mr-3" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
-            {isDarkMode ? <SunIcon className="h-6 w-6 text-yellow-300" /> : <MoonIcon className="h-6 w-6 text-white" />}
-          </button>
           <h1 className="text-2xl font-bold text-white">Room Radar</h1>
         </div>
       </div>
 
       {/* Main content area */}
-      <div className="p-3 flex flex-col h-full">
+      <div className="p-2.5 flex flex-col h-full">
         {/* Main content - Updated layout with calls section in right column */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mb-2.5">
           {isViewingPastDay ?
         // For past view, show past meetings
         <div className="col-span-1 md:col-span-2">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-                <h2 className="text-2xl font-bold mb-3 dark:text-white">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
+                <h2 className="text-2xl font-bold mb-2.5 dark:text-white">
                   {isYesterdayView ? "Yesterday's Meetings" : `${formattedDate} Meetings`}
                 </h2>
-                {pastDayMeetings.length > 0 ? <div className="space-y-3">
-                    {pastDayMeetings.map((meeting, idx) => <div key={idx} className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400">
+                {pastDayMeetings.length > 0 ? <div className="space-y-2">
+                    {pastDayMeetings.map((meeting, idx) => <div key={idx} className="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400">
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center">
@@ -422,22 +254,22 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                           </div>
                         </div>
                       </div>)}
-                  </div> : <div className="text-center py-5 text-[1.86rem] text-gray-500 dark:text-gray-400">
+                  </div> : <div className="text-center py-4 text-[1.86rem] text-gray-500 dark:text-gray-400">
                     No meetings found for this day
                   </div>}
               </div>
             </div> :
         // For current or future day view, show Room Status in left column and Calls in right column
         <>
-              {/* Left Column - Room Status (formerly Activity) */}
-              <div className="flex flex-col gap-3">
-                {/* Room Status Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
-                  <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
+              {/* Left Column - Room Status and VIP Meetings */}
+              <div className="flex flex-col gap-2.5">
+                {/* Room Status Section - Updated with time calculations */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2">
+                  <h2 className="text-[1.86rem] font-bold mb-1.5 dark:text-white">
                     Room Status
                   </h2>
-                  <div className="space-y-2">
-                    {roomStatuses.map(status => <div key={status.room} className={`p-2.5 rounded-lg ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500'}`}>
+                  <div className="space-y-1.5">
+                    {roomStatuses.map(status => <div key={status.room} className={`p-2 rounded-lg ${status.status === 'busy' ? status.activeMeeting?.isHighProfile ? 'bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500' : 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500'}`}>
                         <div className="flex justify-between items-center">
                           <div className="text-[1.86rem] font-bold dark:text-white">
                             {status.room}
@@ -446,81 +278,151 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                             {status.status === 'busy' ? 'In Use' : 'Available'}
                           </div>
                         </div>
-                        {status.status === 'busy' && status.activeMeeting && <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1.5">
+                        {status.status === 'busy' && status.activeMeeting && <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
                             <div className="font-medium text-[1.55rem]">
                               {status.activeMeeting.name}
                             </div>
-                            <div>
-                              Until{' '}
-                              {formatTimeToMilitary(status.activeMeeting.endTime)}
+                            <div className="flex justify-between items-center">
+                              <div>
+                                Until{' '}
+                                {formatTimeToMilitary(status.activeMeeting.endTime)}
+                              </div>
+                              <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
+                                {getTimeUntilFree(status.activeMeeting)}
+                              </div>
                             </div>
                           </div>}
-                        {status.status === 'available' && status.nextMeeting && <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1.5">
+                        {status.status === 'available' && status.nextMeeting && <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
                               <div>Next: {status.nextMeeting.name}</div>
-                              <div>
-                                At{' '}
-                                {formatTimeToMilitary(status.nextMeeting.startTime)}
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  At{' '}
+                                  {formatTimeToMilitary(status.nextMeeting.startTime)}
+                                </div>
+                                <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
+                                  {getTimeUntilNextMeeting(status.nextMeeting)}
+                                </div>
                               </div>
                             </div>}
                       </div>)}
                   </div>
                 </div>
+                {/* VIP Meetings Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2">
+                  <h2 className="text-[1.86rem] font-bold mb-1.5 dark:text-white">
+                    VIP Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
+                  </h2>
+                  {vipMeetingsToday.length > 0 ? <div className="space-y-1.5">
+                      {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="flex items-center">
+                                <div className="text-[1.55rem] font-bold dark:text-white">
+                                  {meeting.name}
+                                </div>
+                                <div className="ml-1.5 text-[1.38rem] text-gray-700 dark:text-gray-300 font-medium">
+                                  ({meeting.room})
+                                </div>
+                              </div>
+                              <div className="text-[1.25rem] text-gray-600 dark:text-gray-300 mt-0.5">
+                                {formatTimeToMilitary(meeting.startTime)} -{' '}
+                                {formatTimeToMilitary(meeting.endTime)}
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="text-red-500 mr-1.5 group relative">
+                                <StarIcon size={18} className="text-red-500 fill-red-500" />
+                                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+                                  VIP meeting
+                                  <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
+                                </div>
+                              </span>
+                              {meeting.avSupport && <AVSupportIcon size={18} className="text-red-500" />}
+                            </div>
+                          </div>
+                          <div className="mt-1 flex justify-end">
+                            {getMeetingStatus(meeting) === 'active' && <div className="text-[1.25rem] font-bold text-red-700 dark:text-red-300">
+                                In progress
+                              </div>}
+                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
+                                {getTimeUntilMeeting(meeting)}
+                              </div>}
+                          </div>
+                        </div>)}
+                    </div> : <div className="text-center py-3 text-[1.38rem] text-gray-500 dark:text-gray-400">
+                      No VIP meetings scheduled{' '}
+                      {isTomorrowView ? 'for tomorrow' : 'for today'}
+                    </div>}
+                </div>
               </div>
-              {/* Right Column - Calls Section */}
-              <div className="flex flex-col gap-3">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5">
+              {/* Right Column - Calls Section - Updated with day grouping */}
+              <div className="flex flex-col gap-2.5">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2">
                   <div className="flex items-center mb-2">
                     <PhoneCallIcon size={23} className="text-blue-500 mr-2" />
                     <h2 className="text-[1.86rem] font-bold dark:text-white">
                       Calls
                     </h2>
                   </div>
-                  {callsData.length > 0 ? <div className="space-y-2">
-                      {callsData.map((call, idx) => {
-                  // Determine if call is secure based on name
-                  const isSecure = call.name.includes('Board') || call.name.includes('Executive') || call.name.includes('Investor');
-                  return <div key={idx} className={`p-2.5 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="text-[1.86rem] font-bold dark:text-white">
-                                  {call.name}
-                                </div>
-                                <div className="flex items-center mt-1">
-                                  <UsersIcon size={17} className="text-gray-500 dark:text-gray-400 mr-1.5" />
-                                  <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
-                                    {call.audience}
-                                  </div>
-                                </div>
-                                <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
-                                  {call.startTime}
-                                </div>
-                                {/* Conference bridge details */}
-                                <div className="mt-2 text-[1.38rem] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-1.5 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="flex items-center justify-between flex-wrap gap-2">
-                                    <div className="flex items-center">
-                                      <PhoneCallIcon size={14} className="text-blue-500 mr-1.5 flex-shrink-0" />
-                                      <span>Dial-in: 888-555-{1000 + idx}</span>
+                  {Object.keys(callsByDay).length > 0 ? <div className="space-y-4">
+                      {Object.entries(callsByDay).map(([day, dayMeetings]) => <div key={day}>
+                          {/* Day Header */}
+                          <div className="border-b-2 border-gray-200 dark:border-gray-600 pb-1 mb-3">
+                            <h3 className="text-[1.55rem] font-bold text-gray-700 dark:text-gray-300">
+                              {day}
+                            </h3>
+                          </div>
+                          {/* Calls for this day */}
+                          <div className="space-y-2">
+                            {dayMeetings.map((call, idx) => {
+                      // Determine if call is secure based on name
+                      const isSecure = call.name.includes('Board') || call.name.includes('Executive') || call.name.includes('Investor');
+                      return <div key={`${day}-${idx}`} className={`p-2.5 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <div className="text-[1.55rem] font-bold dark:text-white">
+                                        {call.name}
+                                      </div>
+                                      <div className="flex items-center mt-1">
+                                        <UsersIcon size={17} className="text-gray-500 dark:text-gray-400 mr-1.5" />
+                                        <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
+                                          {call.audience}
+                                        </div>
+                                      </div>
+                                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
+                                        {call.startTime}
+                                      </div>
+                                      {/* Conference bridge details */}
+                                      <div className="mt-2 text-[1.38rem] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-1.5 rounded border border-gray-200 dark:border-gray-600">
+                                        <div className="flex items-center justify-between flex-wrap gap-2">
+                                          <div className="flex items-center">
+                                            <PhoneCallIcon size={14} className="text-blue-500 mr-1.5 flex-shrink-0" />
+                                            <span>
+                                              Dial-in: 888-555-{1000 + idx}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center">
+                                            <span className="font-medium">
+                                              Meeting ID:
+                                            </span>
+                                            <span className="ml-1.5">
+                                              {10000 + idx * 1111}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
                                     <div className="flex items-center">
-                                      <span className="font-medium">
-                                        Meeting ID:
-                                      </span>
-                                      <span className="ml-1.5">
-                                        {10000 + idx * 1111}
+                                      {/* Secure/Non-secure badge */}
+                                      <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
+                                        {isSecure ? 'SECURE' : 'NON-SECURE'}
                                       </span>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center">
-                                {/* Secure/Non-secure badge */}
-                                <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
-                                  {isSecure ? 'SECURE' : 'NON-SECURE'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>;
-                })}
+                                </div>;
+                    })}
+                          </div>
+                        </div>)}
                     </div> : <div className="text-center py-4 text-[1.55rem] text-gray-500 dark:text-gray-400">
                       No calls scheduled
                     </div>}
@@ -529,61 +431,13 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
             </>}
         </div>
 
-        {/* VIP Meetings Section - Full width */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2.5 mb-3">
-          <h2 className="text-[1.86rem] font-bold mb-2 dark:text-white">
-            VIP Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
-          </h2>
-          {vipMeetingsToday.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center">
-                        <div className="text-[1.86rem] font-bold dark:text-white">
-                          {meeting.name}
-                        </div>
-                        <div className="ml-2 text-[1.55rem] text-gray-700 dark:text-gray-300 font-medium">
-                          ({meeting.room})
-                        </div>
-                      </div>
-                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
-                        {formatTimeToMilitary(meeting.startTime)} -{' '}
-                        {formatTimeToMilitary(meeting.endTime)}
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-red-500 text-[1.86rem] mr-2 group relative">
-                        ★{/* Tooltip */}
-                        <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-                          VIP meeting
-                          <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
-                        </div>
-                      </span>
-                      {meeting.avSupport && <AVSupportIcon size={27} className="text-red-500" />}
-                    </div>
-                  </div>
-                  <div className="mt-1.5 flex justify-end">
-                    {getMeetingStatus(meeting) === 'active' && <div className="text-[1.38rem] font-bold text-red-700 dark:text-red-300">
-                        In progress
-                      </div>}
-                    {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[1.38rem] font-bold text-gray-700 dark:text-gray-300">
-                        {getTimeUntilMeeting(meeting)}
-                      </div>}
-                  </div>
-                </div>)}
-            </div> : <div className="text-center py-4 text-[1.55rem] text-gray-500 dark:text-gray-400">
-              No VIP meetings scheduled{' '}
-              {isTomorrowView ? 'for tomorrow' : 'for today'}
-            </div>}
-        </div>
-
         {/* Navigation Buttons */}
-        <div className="mt-auto mb-3 flex justify-center gap-3">
-          <Link to="/main-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+        <div className="mt-auto mb-2.5 flex justify-center gap-2.5">
+          <Link to="/main-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1.5 px-2.5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
             <ArrowLeftIcon size={20} />
             <span>Main Wall</span>
           </Link>
-          <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+          <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1.5 px-2.5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
             <span>MUI Operations</span>
             <ArrowRightIcon size={20} />
           </Link>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography, Grid, Paper, Chip, Badge, Card, CardContent, Button, Alert, AlertTitle, ThemeProvider, createTheme, CssBaseline, useMediaQuery, Stack, Divider } from '@mui/material';
 import { Star as StarIcon, Phone as PhoneIcon, PhoneInTalk as PhoneInTalkIcon, Warning as WarningIcon, CheckCircle as CheckCircleIcon, Info as InfoIcon, ArrowBack as ArrowBackIcon, ArrowForward as ArrowForwardIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, AccessTime as AccessTimeIcon, PersonOutline as PersonOutlineIcon, MeetingRoom as MeetingRoomIcon } from '@mui/icons-material';
@@ -487,7 +487,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100vh',
-      bgcolor: 'background.default'
+      bgcolor: '#ffffff' // Changed to pure white for main background
     }}>
         {/* Header */}
         <Box sx={{
@@ -609,9 +609,11 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
               borderRadius: 1,
               position: 'relative',
               borderLeft: '10px solid',
-              borderLeftColor: status.isVip ? 'error.main' : status.status === 'busy' ? 'primary.main' : 'success.main',
-              bgcolor: status.isVip ? 'error.light' : status.status === 'busy' ? 'background.paper' : 'success.light',
-              opacity: status.isVip ? 0.95 : status.status === 'busy' ? 1 : 0.9
+              borderLeftColor: status.isVip ? '#d32f2f' // Dark red for VIP
+              : status.status === 'busy' ? '#1976d2' // Strong blue for busy
+              : '#2e7d32',
+              bgcolor: '#ffffff',
+              color: '#1b1b1b' // Dark text for all cards
             }}>
                   {status.isVip && <Box sx={{
                 position: 'absolute',
@@ -619,7 +621,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                 right: 12
               }}>
                       <StarIcon sx={{
-                  color: 'error.main',
+                  color: '#d32f2f',
                   fontSize: 36
                 }} />
                     </Box>}
@@ -630,18 +632,19 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
               }}>
                     {status.status === 'busy' && status.isCall && <PhoneInTalkIcon sx={{
                   mr: 1.5,
-                  color: 'primary.main',
+                  color: '#1976d2',
                   fontSize: 32
                 }} />}
                     <Typography variant="h3" component="h3" sx={{
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  color: '#1b1b1b'
                 }}>
                       {status.room}
                     </Typography>
                   </Box>
                   <Typography variant="h5" sx={{
                 fontWeight: 'bold',
-                color: status.isVip ? 'error.dark' : status.status === 'busy' ? 'primary.main' : 'success.dark',
+                color: status.isVip ? '#d32f2f' : status.status === 'busy' ? '#1976d2' : '#2e7d32',
                 mb: 1.5
               }}>
                     {status.status === 'busy' ? 'BUSY' : 'AVAILABLE'}
@@ -650,10 +653,11 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                       <Typography variant="h6" sx={{
                   fontWeight: 'medium',
                   mb: 1,
-                  fontSize: '1.35rem'
+                  fontSize: '1.35rem',
+                  color: '#1b1b1b'
                 }}>
                         {status.activeMeeting.name}
-                        {status.needsAv && <Chip label="AV" size="small" color="primary" sx={{
+                        {status.needsAv && <Chip label="AV" size="small" color="primary" variant="filled" sx={{
                     ml: 1,
                     height: 24,
                     fontSize: '0.85rem'
@@ -663,7 +667,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                   display: 'flex',
                   mb: 1.5
                 }}>
-                          <Chip label={status.callType} size="small" color="info" sx={{
+                          <Chip label={status.callType} size="small" color="info" variant="filled" sx={{
                     fontSize: '0.9rem',
                     py: 0.5
                   }} />
@@ -674,7 +678,8 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                   alignItems: 'center'
                 }}>
                         <Typography variant="body1" sx={{
-                    fontSize: '1.2rem'
+                    fontSize: '1.2rem',
+                    color: '#1b1b1b'
                   }}>
                           Until{' '}
                           {formatTimeToMilitary(status.activeMeeting.endTime)}
@@ -685,12 +690,12 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                   }}>
                             <StarIcon sx={{
                       fontSize: 20,
-                      color: 'error.main',
+                      color: '#d32f2f',
                       mr: 0.5
                     }} />
                             <Typography variant="body1" sx={{
                       fontWeight: 'bold',
-                      color: 'error.main',
+                      color: '#d32f2f',
                       fontSize: '1.2rem'
                     }}>
                               VIP
@@ -705,14 +710,15 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                 }}>
                         {status.nextMeeting.isCall && <PhoneIcon sx={{
                     mr: 1,
-                    color: 'text.secondary',
+                    color: '#1976d2',
                     fontSize: 20
                   }} />}
                         <Typography variant="body1" sx={{
-                    fontSize: '1.2rem'
+                    fontSize: '1.2rem',
+                    color: '#1b1b1b'
                   }}>
                           Next:{' '}
-                          {formatTimeToMilitary(status.nextMeeting.startTime)} -{' '}
+                          {formatTimeToMeeting(status.nextMeeting.startTime)} -{' '}
                           {status.nextMeeting.name}
                         </Typography>
                       </Box>
@@ -723,12 +729,12 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                 }}>
                           <StarIcon sx={{
                     fontSize: 20,
-                    color: 'error.main',
+                    color: '#d32f2f',
                     mr: 0.5
                   }} />
                           <Typography variant="body1" sx={{
                     fontWeight: 'bold',
-                    color: 'error.main',
+                    color: '#d32f2f',
                     fontSize: '1.2rem'
                   }}>
                             VIP
@@ -738,173 +744,272 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                 </Paper>
               </Grid>)}
           </Grid>
-          {/* Call Information Section */}
-          {callInformation.length > 0 && <Box sx={{
+          {/* Two-column layout for Meetings and Calls */}
+          <Grid container spacing={3} sx={{
           mb: 5
         }}>
+            {/* Left Column - MEETINGS */}
+            <Grid item xs={12} md={6}>
               <Typography variant="h5" component="h2" sx={{
-            mb: 3,
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            letterSpacing: '0.05em'
-          }}>
-                CALLS
-                <PhoneInTalkIcon sx={{
-              ml: 1.5,
-              color: 'primary.main',
-              fontSize: 32
-            }} />
+              mb: 3,
+              fontWeight: 'bold',
+              letterSpacing: '0.05em'
+            }}>
+                MEETINGS
               </Typography>
               <Paper elevation={3} sx={{
-            p: 3,
-            borderRadius: 1
-          }}>
-                <Stack spacing={3}>
-                  {callInformation.map((call, index) => {
-                const formattedTime = formatTimeToMilitary(call.startTime);
-                const audience = getAudience(call);
-                const isSecure = isSecureCall(call);
-                return <Box key={`call-${index}`} sx={{
-                  p: 3,
-                  borderRadius: 1,
-                  borderLeft: '8px solid',
-                  borderLeftColor: 'primary.main',
-                  bgcolor: 'background.paper'
-                }}>
-                        <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 2
+              p: 3,
+              borderRadius: 1,
+              bgcolor: '#ffffff'
+            }}>
+                {upcomingActivities.filter(m => !m.isCall && m.isCall !== true).length > 0 ? <Stack spacing={3}>
+                    {upcomingActivities.filter(m => !m.isCall && m.isCall !== true).map((meeting, index) => {
+                  const formattedTime = formatTimeToMilitary(meeting.startTime || '');
+                  const isVip = meeting.isHighProfile || false;
+                  return <Box key={`meeting-${index}`} sx={{
+                    p: 3,
+                    borderRadius: 1,
+                    borderLeft: '8px solid',
+                    borderLeftColor: isVip ? '#d32f2f' : '#9e9e9e',
+                    bgcolor: '#ffffff'
                   }}>
-                          <Typography variant="h5" sx={{
-                      fontWeight: 'bold'
-                    }}>
-                            {formattedTime}
-                          </Typography>
-                          <Typography variant="body1" color="text.secondary" sx={{
-                      fontSize: '1.2rem'
-                    }}>
-                            {audience}
-                          </Typography>
-                          <Chip label={isSecure ? 'SECURE' : 'NON-SECURE'} color={isSecure ? 'success' : 'warning'} sx={{
-                      ml: 'auto',
-                      fontWeight: 'bold',
-                      border: 2,
-                      borderColor: isSecure ? 'success.main' : 'warning.main',
-                      py: 1,
-                      fontSize: '1rem'
-                    }} />
-                        </Box>
-                      </Box>;
-              })}
-                </Stack>
-              </Paper>
-            </Box>}
-          {/* Upcoming Activity Section */}
-          <Box sx={{
-          mb: 5
-        }}>
-            <Typography variant="h5" component="h2" sx={{
-            mb: 3,
-            fontWeight: 'bold',
-            letterSpacing: '0.05em'
-          }}>
-              {isTomorrow ? 'SCHEDULED' : isYesterdayView ? 'PAST' : 'UPCOMING'}
-            </Typography>
-            <Paper elevation={3} sx={{
-            p: 3,
-            borderRadius: 1
-          }}>
-              {upcomingActivities.length > 0 ? <Stack spacing={3}>
-                  {upcomingActivities.map((meeting, index) => {
-                const formattedTime = formatTimeToMilitary(meeting.startTime);
-                const audience = getAudience(meeting);
-                const isCall = meeting.isCall;
-                const isVip = meeting.isHighProfile;
-                const isSecure = isCall ? isSecureCall(meeting) : false;
-                return <Box key={`activity-${index}`} sx={{
-                  p: 3,
-                  borderRadius: 1,
-                  borderLeft: '8px solid',
-                  borderLeftColor: isVip ? 'error.main' : 'grey.400',
-                  bgcolor: isVip ? 'error.light' : 'background.paper'
-                }}>
-                        <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 2
-                  }}>
-                          <Typography variant="h5" sx={{
-                      fontWeight: 'bold'
-                    }}>
-                            {formattedTime}
-                          </Typography>
-                          <Divider orientation="vertical" flexItem sx={{
-                      mx: 0.5,
-                      borderRightWidth: 2
-                    }} />
-                          <Typography variant="body1" sx={{
-                      fontWeight: 'medium',
-                      fontSize: '1.2rem'
-                    }}>
-                            {isCall ? audience : meeting.room}
-                          </Typography>
-                          <Divider orientation="vertical" flexItem sx={{
-                      mx: 0.5,
-                      borderRightWidth: 2
-                    }} />
-                          {isCall && <PhoneInTalkIcon sx={{
-                      color: 'primary.main',
-                      fontSize: 28
-                    }} />}
-                          <Typography variant="body1" sx={{
-                      fontWeight: 'medium',
-                      fontSize: '1.2rem'
-                    }}>
-                            {meeting.name}
-                          </Typography>
-                          {isVip && <Box sx={{
+                            <Box sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      ml: 1
+                      flexWrap: 'wrap',
+                      gap: 2
                     }}>
-                              <StarIcon sx={{
-                        color: 'error.main',
-                        fontSize: 28,
-                        mr: 0.5
+                              <Typography variant="h5" sx={{
+                        fontWeight: 'bold',
+                        color: '#1b1b1b'
+                      }}>
+                                {formattedTime}
+                              </Typography>
+                              <Divider orientation="vertical" flexItem sx={{
+                        mx: 0.5,
+                        borderRightWidth: 2
                       }} />
                               <Typography variant="body1" sx={{
-                        fontWeight: 'bold',
-                        color: 'error.main',
-                        fontSize: '1.2rem'
+                        fontWeight: 'medium',
+                        fontSize: '1.2rem',
+                        color: '#1b1b1b'
                       }}>
-                                VIP
+                                {meeting.room || 'Unknown Room'}
                               </Typography>
-                            </Box>}
-                          {isCall && <Chip label={isSecure ? 'SECURE' : 'NON-SECURE'} color={isSecure ? 'success' : 'warning'} size="medium" sx={{
-                      ml: 'auto',
-                      fontWeight: 'bold',
-                      py: 0.75,
-                      fontSize: '0.95rem'
-                    }} />}
-                        </Box>
-                      </Box>;
-              })}
-                </Stack> : <Box sx={{
-              py: 4,
-              textAlign: 'center'
+                              <Divider orientation="vertical" flexItem sx={{
+                        mx: 0.5,
+                        borderRightWidth: 2
+                      }} />
+                              <Typography variant="body1" sx={{
+                        fontWeight: 'medium',
+                        fontSize: '1.2rem',
+                        color: '#1b1b1b'
+                      }}>
+                                {meeting.name || 'Unknown Meeting'}
+                              </Typography>
+                              {isVip && <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        ml: 1
+                      }}>
+                                  <StarIcon sx={{
+                          color: '#d32f2f',
+                          fontSize: 28,
+                          mr: 0.5
+                        }} />
+                                  <Typography variant="body1" sx={{
+                          fontWeight: 'bold',
+                          color: '#d32f2f',
+                          fontSize: '1.2rem'
+                        }}>
+                                    VIP
+                                  </Typography>
+                                </Box>}
+                            </Box>
+                          </Box>;
+                })}
+                  </Stack> : <Box sx={{
+                py: 4,
+                textAlign: 'center'
+              }}>
+                    <Typography variant="h6" color="text.secondary">
+                      No {isYesterdayView ? 'past' : 'upcoming'} meetings
+                      scheduled{' '}
+                      {isTomorrow ? 'for tomorrow' : isYesterdayView ? 'from yesterday' : 'in the next 3 hours'}
+                    </Typography>
+                  </Box>}
+              </Paper>
+            </Grid>
+            {/* Right Column - CALLS */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h5" component="h2" sx={{
+              mb: 3,
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              letterSpacing: '0.05em'
             }}>
-                  <Typography variant="h6" color="text.secondary">
-                    No {isYesterdayView ? 'past' : 'upcoming'} meetings or calls
-                    scheduled{' '}
-                    {isTomorrow ? 'for tomorrow' : isYesterdayView ? 'from yesterday' : 'in the next 3 hours'}
-                  </Typography>
-                </Box>}
-            </Paper>
-          </Box>
+                CALLS
+                <PhoneInTalkIcon sx={{
+                ml: 1.5,
+                color: '#1976d2',
+                fontSize: 32
+              }} />
+              </Typography>
+              <Paper elevation={3} sx={{
+              p: 3,
+              borderRadius: 1,
+              bgcolor: '#ffffff'
+            }}>
+                {callInformation && callInformation.length > 0 || upcomingActivities && upcomingActivities.filter(m => m.isCall === true).length > 0 ? <Stack spacing={3}>
+                    {/* Show call information first */}
+                    {callInformation && callInformation.map((call, index) => {
+                  const formattedTime = formatTimeToMilitary(call.startTime || '');
+                  const audience = getAudience(call);
+                  const isSecure = isSecureCall(call);
+                  const isVip = call.isHighProfile || false;
+                  return <Box key={`call-${index}`} sx={{
+                    p: 3,
+                    borderRadius: 1,
+                    borderLeft: '8px solid',
+                    borderLeftColor: isVip ? '#d32f2f' : '#1976d2',
+                    bgcolor: '#ffffff'
+                  }}>
+                            <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 2
+                    }}>
+                              <Typography variant="h5" sx={{
+                        fontWeight: 'bold',
+                        color: '#1b1b1b'
+                      }}>
+                                {formattedTime}
+                              </Typography>
+                              <Typography variant="body1" sx={{
+                        fontSize: '1.2rem',
+                        color: '#1b1b1b'
+                      }}>
+                                {audience}
+                              </Typography>
+                              <Chip label={isSecure ? 'SECURE' : 'NON-SECURE'} color={isSecure ? 'success' : 'warning'} variant="filled" sx={{
+                        ml: 'auto',
+                        fontWeight: 'bold',
+                        border: 2,
+                        borderColor: isSecure ? '#2e7d32' : '#ed6c02',
+                        py: 1,
+                        fontSize: '1rem'
+                      }} />
+                            </Box>
+                            <Typography variant="body1" sx={{
+                      mt: 2,
+                      fontWeight: 'medium',
+                      fontSize: '1.2rem',
+                      color: '#1b1b1b'
+                    }}>
+                              {call.name || 'Unknown Call'}
+                            </Typography>
+                            {isVip && <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      mt: 1
+                    }}>
+                                <StarIcon sx={{
+                        color: '#d32f2f',
+                        fontSize: 20,
+                        mr: 0.5
+                      }} />
+                                <Typography variant="body1" sx={{
+                        fontWeight: 'bold',
+                        color: '#d32f2f',
+                        fontSize: '1.1rem'
+                      }}>
+                                  VIP
+                                </Typography>
+                              </Box>}
+                          </Box>;
+                })}
+                    {/* Show call activities from upcomingActivities */}
+                    {upcomingActivities && upcomingActivities.filter(m => m.isCall === true).map((call, index) => {
+                  const formattedTime = formatTimeToMilitary(call.startTime || '');
+                  const audience = getAudience(call);
+                  const isSecure = isSecureCall(call);
+                  const isVip = call.isHighProfile || false;
+                  return <Box key={`call-activity-${index}`} sx={{
+                    p: 3,
+                    borderRadius: 1,
+                    borderLeft: '8px solid',
+                    borderLeftColor: isVip ? '#d32f2f' : '#1976d2',
+                    bgcolor: '#ffffff'
+                  }}>
+                              <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 2
+                    }}>
+                                <Typography variant="h5" sx={{
+                        fontWeight: 'bold',
+                        color: '#1b1b1b'
+                      }}>
+                                  {formattedTime}
+                                </Typography>
+                                <Typography variant="body1" sx={{
+                        fontSize: '1.2rem',
+                        color: '#1b1b1b'
+                      }}>
+                                  {audience}
+                                </Typography>
+                                {isVip && <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        ml: 1
+                      }}>
+                                    <StarIcon sx={{
+                          color: '#d32f2f',
+                          fontSize: 28,
+                          mr: 0.5
+                        }} />
+                                    <Typography variant="body1" sx={{
+                          fontWeight: 'bold',
+                          color: '#d32f2f',
+                          fontSize: '1.2rem'
+                        }}>
+                                      VIP
+                                    </Typography>
+                                  </Box>}
+                                <Chip label={isSecure ? 'SECURE' : 'NON-SECURE'} color={isSecure ? 'success' : 'warning'} variant="filled" sx={{
+                        ml: 'auto',
+                        fontWeight: 'bold',
+                        py: 0.75,
+                        fontSize: '0.95rem',
+                        border: 2,
+                        borderColor: isSecure ? '#2e7d32' : '#ed6c02'
+                      }} />
+                              </Box>
+                              <Typography variant="body1" sx={{
+                      mt: 2,
+                      fontWeight: 'medium',
+                      fontSize: '1.2rem',
+                      color: '#1b1b1b'
+                    }}>
+                                {call.name || 'Unknown Call'}
+                              </Typography>
+                            </Box>;
+                })}
+                  </Stack> : <Box sx={{
+                py: 4,
+                textAlign: 'center'
+              }}>
+                    <Typography variant="h6" color="text.secondary">
+                      No {isYesterdayView ? 'past' : 'upcoming'} calls scheduled{' '}
+                      {isTomorrow ? 'for tomorrow' : isYesterdayView ? 'from yesterday' : 'in the next 3 hours'}
+                    </Typography>
+                  </Box>}
+              </Paper>
+            </Grid>
+          </Grid>
           {/* Navigation Buttons */}
           <Box sx={{
           mt: 'auto',

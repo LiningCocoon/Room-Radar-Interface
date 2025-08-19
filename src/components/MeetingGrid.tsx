@@ -96,9 +96,10 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
   // Determine if a meeting should be displayed in this time slot
   // We only want to show a meeting card at its starting time slot
   const shouldDisplayMeetingInTimeSlot = (meeting: any, timeSlot: string) => {
-    if (meeting.name === 'Available') return true;
+    if (meeting.name === 'Available') return false; // Don't show Available cards
     const meetingStartHour = getHourFromTimeString(meeting.startTime);
     const timeSlotHour = getHourFromTimeString(timeSlot);
+    // Only show the meeting in its starting time slot
     return meetingStartHour === timeSlotHour;
   };
   // NEW: Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
@@ -106,6 +107,12 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
     if (meeting.name === 'Available') return 'top';
     const minutesPart = parseTime(meeting.startTime).minutes;
     return minutesPart < 30 ? 'top' : 'bottom';
+  };
+  // Mock chair data - updated to use only the four specified names
+  const getChairName = () => {
+    const chairNames = ['Devon Black', 'Nick Trees', 'Carlos Salazar', 'Patty Smith'];
+    const randomIndex = Math.floor(Math.random() * chairNames.length);
+    return chairNames[randomIndex];
   };
   return <div className="flex-1 p-2 overflow-auto flex flex-col">
       {/* Room headers are now in the Header component */}
@@ -126,7 +133,10 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
               <div className="grid grid-cols-5 gap-4">
                 <TimeSlot time={timeSlot} currentTime={currentTime} condensed={condensed} />
                 {rooms.map(room => {
-              const meetings = getMeetingsForRoomAndTimeSlot(room, timeSlot);
+              const meetings = getMeetingsForRoomAndTimeSlot(room, timeSlot).filter(m => m.name !== 'Available'); // Filter out Available cards
+              if (meetings.length === 0) {
+                return <div key={`${room}-${timeSlot}-empty`} className="col-span-1"></div>;
+              }
               // We'll only display one meeting per room/time slot
               const meeting = meetings[0];
               // Skip rendering if this is a continuation of a multi-hour meeting
@@ -140,7 +150,10 @@ const MeetingGrid: React.FC<MeetingGridProps> = ({
               // Determine vertical position based on start time
               const startPosition = getStartPositionInHour(meeting);
               return <div key={`${room}-${timeSlot}`} className={`col-span-1 relative ${!condensed && startPosition === 'bottom' ? 'pt-10' : ''}`}>
-                      <MeetingCard key={`${meeting.name}-${meeting.startTime}`} meeting={meeting} currentTime={currentTime} condensed={condensed} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} />
+                      <MeetingCard key={`${meeting.name}-${meeting.startTime}`} meeting={{
+                  ...meeting,
+                  chairperson: meeting.room === 'Executive' || meeting.room === 'JFK' || meeting.isHighProfile ? getChairName() : null
+                }} currentTime={currentTime} condensed={condensed} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} />
                     </div>;
             })}
               </div>

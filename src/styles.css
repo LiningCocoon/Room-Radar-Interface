@@ -1,0 +1,28 @@
+/* Add these CSS rules to prevent text cutoff */
+.meeting-card-content {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.meeting-card-title {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  line-height: 1.2;
+  max-width: 100%;
+}
+.meeting-card-time {
+  white-space: nowrap; /* Keep time on one line */
+}
+/* Ensure cards can expand their containers */
+.meeting-grid-row {
+  align-items: stretch; /* Make all columns same height */
+  min-height: 80px;
+}
+/* New styles to ensure full background coverage */
+.meeting-card-full-height {
+  height: 100% !important;
+  min-height: 60px;
+  box-sizing: border-box;
+}

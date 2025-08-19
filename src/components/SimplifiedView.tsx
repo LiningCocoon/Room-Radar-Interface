@@ -106,81 +106,108 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const time = parseTime(timeStr);
     return time.hours;
   };
-  // Helper to check if a meeting spans across the given time slot
-  const meetingSpansTimeSlot = (meeting: any, timeSlotStr: string) => {
-    const timeSlotHour = getHourFromTimeString(timeSlotStr);
-    const startHour = getHourFromTimeString(meeting.startTime);
-    const endHour = getHourFromTimeString(meeting.endTime);
-    // If meeting starts at this hour
-    if (startHour === timeSlotHour) return true;
-    // If meeting spans this hour (starts before and ends after)
-    if (startHour < timeSlotHour && endHour > timeSlotHour) return true;
-    return false;
+  // Convert time string to minutes since midnight for precise calculations
+  const timeToMinutesSinceMidnight = (timeStr: string): number => {
+    const time = parseTime(timeStr);
+    return time.hours * 60 + time.minutes;
   };
-  // Calculate the duration of a meeting in hours
-  const getMeetingDurationHours = (meeting: any) => {
-    if (meeting.name === 'Available') return 0;
-    const startTime = parseTime(meeting.startTime);
-    const endTime = parseTime(meeting.endTime);
-    const startMinutes = startTime.hours * 60 + startTime.minutes;
-    const endMinutes = endTime.hours * 60 + endTime.minutes;
-    return Math.round((endMinutes - startMinutes) / 60);
-  };
-  // Function to determine chairperson based on meeting type
-  const getChairperson = (meeting: any): string | null => {
-    if (meeting.isHighProfile || meeting.room === 'Executive') {
-      if (meeting.name.includes('Board')) return 'Chairman';
-      if (meeting.name.includes('Review')) return 'CEO';
-      if (meeting.name.includes('Planning')) return 'COO';
-      if (meeting.name.includes('Client')) return 'SVP Sales';
-      if (meeting.name.includes('Emergency')) return 'Security Officer';
-      if (meeting.name.includes('Investor')) return 'CFO';
-      if (meeting.name.includes('Leadership')) return 'CTO';
-      if (meeting.name.includes('All-Hands')) return 'CEO';
-      return 'Executive';
+  // Calculate the precise duration in minutes between start and end times
+  const calculatePreciseDuration = (meeting: any): number => {
+    if (!meeting || !meeting.startTime || !meeting.endTime) {
+      return 60; // Default to 1 hour if missing data
     }
-    if (meeting.room === 'JFK') {
-      if (meeting.name.includes('Leadership')) return 'VP Operations';
-      if (meeting.name.includes('Strategy')) return 'Director';
-      if (meeting.name.includes('Team')) return 'Team Lead';
-      return 'Senior Manager';
+    const startMinutes = timeToMinutesSinceMidnight(meeting.startTime);
+    const endMinutes = timeToMinutesSinceMidnight(meeting.endTime);
+    // Sanity check - ensure end is after start
+    if (endMinutes <= startMinutes) {
+      return 60; // Fallback to 1 hour for invalid times
     }
-    return null; // No chairperson for regular meetings
+    return endMinutes - startMinutes;
   };
-  // Function to get the meeting for a room at a specific time slot
-  const getMeetingForRoomAndTime = (room: string, timeSlot: string) => {
-    // Get all meetings for this room
-    const roomMeetings = convertedMeetings.filter(meeting => meeting.room === room);
-    // Find meetings that start in or span across this time slot
-    const relevantMeetings = roomMeetings.filter(meeting => meetingSpansTimeSlot(meeting, timeSlot));
-    if (relevantMeetings.length === 0) {
-      // Return null instead of "Available" placeholder
-      return null;
-    }
-    // Return the meeting with chairperson information
-    const meeting = relevantMeetings[0];
-    return {
-      ...meeting,
-      chairperson: getChairperson(meeting)
-    };
+  // Calculate the duration of a meeting in hours (decimal)
+  const getMeetingDurationHours = (meeting: any): number => {
+    if (!meeting || meeting.name === 'Available') return 0;
+    const durationMinutes = calculatePreciseDuration(meeting);
+    return durationMinutes / 60; // Return hours as decimal (e.g., 1.5 for 90 minutes)
   };
-  // Determine if a meeting should be displayed in this time slot
-  const shouldDisplayMeetingInTimeSlot = (meeting: any, timeSlot: string) => {
-    if (!meeting) return false; // Skip if no meeting (previously "Available")
+  // Helper function to calculate if a meeting starts in this time slot
+  const meetingStartsInTimeSlot = (meeting: any, timeSlot: string): boolean => {
+    if (!meeting) return false;
     const meetingStartHour = getHourFromTimeString(meeting.startTime);
-    const timeSlotHour = getHourFromTimeString(timeSlot);
+    const timeSlotHour = parseInt(timeSlot.split(':')[0]);
     return meetingStartHour === timeSlotHour;
   };
-  // Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
-  const getStartPositionInHour = (meeting: any) => {
-    if (!meeting) return 'top'; // Default for empty slots
-    const minutesPart = parseTime(meeting.startTime).minutes;
-    return minutesPart < 30 ? 'top' : 'bottom';
+  // Calculate the exact position and dimensions for a meeting card
+  const calculateMeetingCardMetrics = (meeting: any, timeSlotHour: number) => {
+    // Get start time in minutes
+    const startTime = parseTime(meeting.startTime);
+    const startHour = startTime.hours;
+    const startMinutes = startTime.minutes;
+    // Calculate exact duration in minutes
+    const durationMinutes = calculatePreciseDuration(meeting);
+    // Calculate position within the hour (minutes past the hour)
+    // Each minute = 1.67px (100px per hour / 60 minutes)
+    const topOffset = startMinutes * (100 / 60);
+    // Calculate height based on exact duration
+    // 100px per hour = 1.67px per minute
+    const cardHeight = durationMinutes * (100 / 60);
+    return {
+      topOffset,
+      cardHeight,
+      durationHours: durationMinutes / 60,
+      durationMinutes
+    };
   };
   // Check if this is the current time slot
   const isCurrentTimeSlot = (timeSlot: string) => {
     const timeSlotHour = parseInt(timeSlot.split(':')[0]);
     return timeSlotHour === currentTime.getHours() && isToday;
+  };
+  // Function to determine chairperson based on meeting type
+  const getChairperson = (meeting: any): string | null => {
+    // High-profile meetings and Executive room meetings
+    if (meeting.isHighProfile || meeting.room === 'Executive') {
+      if (meeting.name.includes('Board')) return 'Devon Black';
+      if (meeting.name.includes('Review')) return 'Devon Black';
+      if (meeting.name.includes('Planning')) return 'Nick Trees';
+      if (meeting.name.includes('Client')) return 'Nick Trees';
+      if (meeting.name.includes('Emergency')) return 'Carlos Salazar';
+      if (meeting.name.includes('Investor')) return 'Carlos Salazar';
+      if (meeting.name.includes('Leadership')) return 'Patty Smith';
+      if (meeting.name.includes('All-Hands')) return 'Patty Smith';
+      return 'Devon Black';
+    }
+    // JFK room meetings
+    if (meeting.room === 'JFK') {
+      if (meeting.name.includes('Leadership')) return 'Devon Black';
+      if (meeting.name.includes('Strategy')) return 'Nick Trees';
+      if (meeting.name.includes('Team')) return 'Carlos Salazar';
+      if (meeting.name.includes('Stakeholder')) return 'Patty Smith';
+      return 'Devon Black';
+    }
+    // Small room meetings
+    if (meeting.room === 'Small') {
+      if (meeting.name.includes('Design')) return 'Nick Trees';
+      if (meeting.name.includes('Product')) return 'Carlos Salazar';
+      if (meeting.name.includes('Requirements')) return 'Patty Smith';
+      return 'Nick Trees';
+    }
+    // Breakout A meetings
+    if (meeting.room === 'Breakout A') {
+      if (meeting.name.includes('All-Hands')) return 'Devon Black';
+      if (meeting.name.includes('Investor')) return 'Nick Trees';
+      if (meeting.name.includes('Budget')) return 'Carlos Salazar';
+      return 'Patty Smith';
+    }
+    // Breakout B meetings
+    if (meeting.room === 'Breakout B') {
+      if (meeting.name.includes('Training')) return 'Carlos Salazar';
+      if (meeting.name.includes('Partner')) return 'Patty Smith';
+      if (meeting.name.includes('Market')) return 'Devon Black';
+      return 'Nick Trees';
+    }
+    // Default chairperson for any other meetings
+    return 'Devon Black';
   };
   return <div className="flex-1 overflow-auto flex flex-col h-full">
       {/* New minimal context-aware header with vertically centered elements */}
@@ -227,31 +254,42 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           const rowBgColor = isActive ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-900';
           // Determine if this is the cutoff slot for auto-scrolling
           const isCutoffSlot = isToday && timeSlot === getTwoHourCutoffTimeSlot();
-          // Get meetings for each room at this time slot
-          const meetingsForTimeSlot = rooms.map(room => ({
-            room,
-            meeting: getMeetingForRoomAndTime(room, timeSlot)
-          })).filter(item => item.meeting !== null);
-          // Skip rendering the entire row if there are no meetings in this time slot
-          if (meetingsForTimeSlot.length === 0) {
-            return null;
-          }
-          return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800`} ref={isCutoffSlot ? scrollTargetRef : null}>
-                <div className="grid grid-cols-6 gap-2">
+          // Get the hour for this time slot
+          const timeSlotHour = parseInt(timeSlot.split(':')[0]);
+          return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800 relative meeting-grid-row`} ref={isCutoffSlot ? scrollTargetRef : null} style={{
+            height: '100px',
+            position: 'relative'
+          }}>
+                <div className="grid grid-cols-6 gap-2 relative">
                   <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
                   {rooms.map(room => {
-                const meeting = getMeetingForRoomAndTime(room, timeSlot);
-                // Skip rendering if no meeting or if this is a continuation of a multi-hour meeting
-                if (!meeting || !shouldDisplayMeetingInTimeSlot(meeting, timeSlot)) {
-                  return <div key={`${room}-${timeSlot}-empty`} className="col-span-1"></div>;
+                // Get all meetings for this room
+                const roomMeetings = convertedMeetings.filter(meeting => meeting.room === room);
+                // Find meetings that START in this hour
+                const meetingsStartingInHour = roomMeetings.filter(meeting => meetingStartsInTimeSlot(meeting, timeSlot));
+                // If no meetings start in this hour, return empty div
+                if (meetingsStartingInHour.length === 0) {
+                  return <div key={`${room}-${timeSlot}-empty`} className="col-span-1 relative"></div>;
                 }
-                // Calculate meeting duration for badges
-                const duration = getMeetingDurationHours(meeting);
-                const isLongMeeting = duration >= 2;
-                // Determine vertical position based on start time
-                const startPosition = getStartPositionInHour(meeting);
-                return <div key={`${room}-${timeSlot}`} className={`col-span-1 relative ${startPosition === 'bottom' ? 'pt-10' : ''}`}>
-                        <SimplifiedMeetingCard meeting={meeting} currentTime={currentTime} duration={duration} showDurationBadge={isLongMeeting} startPosition={startPosition} militaryTime={true} isYesterday={!isToday && isViewingPastDay} />
+                // Render all meetings that start in this hour with precise positioning
+                return <div key={`${room}-${timeSlot}`} className="col-span-1 relative" style={{
+                  height: '100px'
+                }}>
+                        {meetingsStartingInHour.map((meeting, idx) => {
+                    // Get chairperson and add to meeting
+                    const meetingWithChair = {
+                      ...meeting,
+                      chairperson: getChairperson(meeting)
+                    };
+                    // Calculate precise position and dimensions
+                    const metrics = calculateMeetingCardMetrics(meeting, timeSlotHour);
+                    return <div key={`${meeting.name}-${meeting.startTime}-${idx}`} className="absolute left-0 right-2 z-10" style={{
+                      top: `${metrics.topOffset}px`,
+                      height: `${metrics.cardHeight}px`
+                    }}>
+                              <SimplifiedMeetingCard meeting={meetingWithChair} currentTime={currentTime} duration={metrics.durationHours} showDurationBadge={metrics.durationHours >= 2} startPosition="top" militaryTime={true} isYesterday={!isToday && isViewingPastDay} absolutePositioned={true} expandable={true} />
+                            </div>;
+                  })}
                       </div>;
               })}
                 </div>

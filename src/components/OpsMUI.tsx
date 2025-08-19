@@ -92,7 +92,7 @@ const uswdsColors = {
     disabled: '#c9c9c9'
   }
 };
-// Create MUI theme with USWDS colors
+// Create MUI theme with USWDS colors and improved readability
 const theme = createTheme({
   palette: {
     primary: uswdsColors.primary,
@@ -108,47 +108,49 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Source Sans Pro", "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif',
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '3rem',
       fontWeight: 700
     },
     h2: {
+      fontSize: '2.5rem',
+      fontWeight: 700,
+      letterSpacing: '0.02em'
+    },
+    h3: {
       fontSize: '2rem',
       fontWeight: 700
     },
-    h3: {
-      fontSize: '1.5rem',
-      fontWeight: 700
-    },
     h4: {
-      fontSize: '1.25rem',
+      fontSize: '1.75rem',
       fontWeight: 700
     },
     h5: {
-      fontSize: '1.125rem',
-      fontWeight: 700
+      fontSize: '1.5rem',
+      fontWeight: 700,
+      letterSpacing: '0.01em'
     },
     h6: {
-      fontSize: '1rem',
+      fontSize: '1.25rem',
       fontWeight: 700
     },
     subtitle1: {
-      fontSize: '1.125rem',
+      fontSize: '1.25rem',
       fontWeight: 400
     },
     subtitle2: {
-      fontSize: '1rem',
+      fontSize: '1.125rem',
       fontWeight: 500
     },
     body1: {
-      fontSize: '1rem',
+      fontSize: '1.125rem',
       fontWeight: 400
     },
     body2: {
-      fontSize: '0.875rem',
+      fontSize: '1rem',
       fontWeight: 400
     },
     button: {
-      fontSize: '1rem',
+      fontSize: '1.125rem',
       fontWeight: 700,
       textTransform: 'none'
     }
@@ -158,7 +160,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '4px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          boxShadow: '0 3px 6px rgba(0,0,0,0.15)'
         }
       }
     },
@@ -166,7 +168,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '4px',
-          fontWeight: 600
+          fontWeight: 600,
+          fontSize: '0.9rem'
         }
       }
     },
@@ -174,8 +177,24 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '4px',
-          padding: '8px 16px',
-          fontWeight: 700
+          padding: '10px 20px',
+          fontWeight: 700,
+          borderWidth: '2px'
+        }
+      }
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 3px 6px rgba(0,0,0,0.15)'
+        }
+      }
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: {
+          borderRadius: '4px',
+          fontSize: '1.125rem'
         }
       }
     }
@@ -482,7 +501,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: 70
+        height: 80
       }}>
           <Typography variant="h4" component="div">
             {formattedTime}
@@ -495,8 +514,8 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
           alignItems: 'center'
         }}>
             <Button onClick={goToPreviousDay} disabled={isYesterdayView} sx={{
-            minWidth: 40,
-            height: 40,
+            minWidth: 48,
+            height: 48,
             mr: 2,
             bgcolor: 'rgba(255,255,255,0.1)',
             color: 'white',
@@ -508,14 +527,14 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
               color: 'rgba(255,255,255,0.5)'
             }
           }}>
-              <ChevronLeftIcon />
+              <ChevronLeftIcon fontSize="large" />
             </Button>
-            <Typography variant="h4" component="div">
+            <Typography variant="h3" component="div">
               {formattedDate}
             </Typography>
             <Button onClick={goToNextDay} disabled={isTomorrow} sx={{
-            minWidth: 40,
-            height: 40,
+            minWidth: 48,
+            height: 48,
             ml: 2,
             bgcolor: 'rgba(255,255,255,0.1)',
             color: 'white',
@@ -527,10 +546,10 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
               color: 'rgba(255,255,255,0.5)'
             }
           }}>
-              <ChevronRightIcon />
+              <ChevronRightIcon fontSize="large" />
             </Button>
           </Box>
-          <Typography variant="h4" component="div">
+          <Typography variant="h3" component="div">
             Room Radar
           </Typography>
         </Box>
@@ -541,17 +560,18 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
       }}>
           {/* Alert Section */}
           {alertStatuses && <Box sx={{
-          mb: 3
+          mb: 4
         }}>
               {Array.isArray(alertStatuses) ? <Stack spacing={2}>
                   {alertStatuses.map((status, index) => <Alert key={`alert-${index}`} severity={status.color as 'error' | 'warning' | 'info' | 'success'} icon={status.icon} sx={{
               '& .MuiAlert-icon': {
-                fontSize: 28,
+                fontSize: 32,
                 alignItems: 'center'
-              }
+              },
+              py: 2
             }}>
                       <AlertTitle sx={{
-                fontSize: '1.2rem',
+                fontSize: '1.5rem',
                 fontWeight: 'bold'
               }}>
                         {status.message}
@@ -559,12 +579,13 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                     </Alert>)}
                 </Stack> : <Alert severity={alertStatuses.color as 'error' | 'warning' | 'info' | 'success'} icon={alertStatuses.icon} sx={{
             '& .MuiAlert-icon': {
-              fontSize: 28,
+              fontSize: 32,
               alignItems: 'center'
-            }
+            },
+            py: 2
           }}>
                   <AlertTitle sx={{
-              fontSize: '1.2rem',
+              fontSize: '1.5rem',
               fontWeight: 'bold'
             }}>
                     {alertStatuses.message}
@@ -573,20 +594,21 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
             </Box>}
           {/* Room Status Grid */}
           <Typography variant="h5" component="h2" sx={{
-          mb: 2,
-          fontWeight: 'bold'
+          mb: 3,
+          fontWeight: 'bold',
+          letterSpacing: '0.05em'
         }}>
             ROOM STATUS
           </Typography>
           <Grid container spacing={3} sx={{
-          mb: 4
+          mb: 5
         }}>
             {roomStatuses.map(status => <Grid item xs={12} sm={6} md={4} key={status.room}>
-                <Paper elevation={2} sx={{
+                <Paper elevation={3} sx={{
               p: 3,
               borderRadius: 1,
               position: 'relative',
-              borderLeft: '8px solid',
+              borderLeft: '10px solid',
               borderLeftColor: status.isVip ? 'error.main' : status.status === 'busy' ? 'primary.main' : 'success.main',
               bgcolor: status.isVip ? 'error.light' : status.status === 'busy' ? 'background.paper' : 'success.light',
               opacity: status.isVip ? 0.95 : status.status === 'busy' ? 1 : 0.9
@@ -598,20 +620,20 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
               }}>
                       <StarIcon sx={{
                   color: 'error.main',
-                  fontSize: 32
+                  fontSize: 36
                 }} />
                     </Box>}
                   <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
-                mb: 1
+                mb: 1.5
               }}>
                     {status.status === 'busy' && status.isCall && <PhoneInTalkIcon sx={{
                   mr: 1.5,
                   color: 'primary.main',
-                  fontSize: 28
+                  fontSize: 32
                 }} />}
-                    <Typography variant="h4" component="h3" sx={{
+                    <Typography variant="h3" component="h3" sx={{
                   fontWeight: 'bold'
                 }}>
                       {status.room}
@@ -620,28 +642,30 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                   <Typography variant="h5" sx={{
                 fontWeight: 'bold',
                 color: status.isVip ? 'error.dark' : status.status === 'busy' ? 'primary.main' : 'success.dark',
-                mb: 1
+                mb: 1.5
               }}>
                     {status.status === 'busy' ? 'BUSY' : 'AVAILABLE'}
                   </Typography>
                   {status.status === 'busy' && status.activeMeeting && <Box>
                       <Typography variant="h6" sx={{
                   fontWeight: 'medium',
-                  mb: 0.5
+                  mb: 1,
+                  fontSize: '1.35rem'
                 }}>
                         {status.activeMeeting.name}
                         {status.needsAv && <Chip label="AV" size="small" color="primary" sx={{
                     ml: 1,
-                    height: 20,
-                    fontSize: '0.7rem'
+                    height: 24,
+                    fontSize: '0.85rem'
                   }} />}
                       </Typography>
                       {status.isCall && <Box sx={{
                   display: 'flex',
-                  mb: 1
+                  mb: 1.5
                 }}>
                           <Chip label={status.callType} size="small" color="info" sx={{
-                    fontSize: '0.75rem'
+                    fontSize: '0.9rem',
+                    py: 0.5
                   }} />
                         </Box>}
                       <Box sx={{
@@ -649,7 +673,9 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}>
-                        <Typography variant="body1">
+                        <Typography variant="body1" sx={{
+                    fontSize: '1.2rem'
+                  }}>
                           Until{' '}
                           {formatTimeToMilitary(status.activeMeeting.endTime)}
                         </Typography>
@@ -658,13 +684,14 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                     alignItems: 'center'
                   }}>
                             <StarIcon sx={{
-                      fontSize: 16,
+                      fontSize: 20,
                       color: 'error.main',
                       mr: 0.5
                     }} />
-                            <Typography variant="body2" sx={{
+                            <Typography variant="body1" sx={{
                       fontWeight: 'bold',
-                      color: 'error.main'
+                      color: 'error.main',
+                      fontSize: '1.2rem'
                     }}>
                               VIP
                             </Typography>
@@ -679,9 +706,11 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                         {status.nextMeeting.isCall && <PhoneIcon sx={{
                     mr: 1,
                     color: 'text.secondary',
-                    fontSize: 18
+                    fontSize: 20
                   }} />}
-                        <Typography variant="body1">
+                        <Typography variant="body1" sx={{
+                    fontSize: '1.2rem'
+                  }}>
                           Next:{' '}
                           {formatTimeToMilitary(status.nextMeeting.startTime)} -{' '}
                           {status.nextMeeting.name}
@@ -690,16 +719,17 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                       {status.nextMeeting.isHighProfile && <Box sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  mt: 0.5
+                  mt: 1
                 }}>
                           <StarIcon sx={{
-                    fontSize: 16,
+                    fontSize: 20,
                     color: 'error.main',
                     mr: 0.5
                   }} />
-                          <Typography variant="body2" sx={{
+                          <Typography variant="body1" sx={{
                     fontWeight: 'bold',
-                    color: 'error.main'
+                    color: 'error.main',
+                    fontSize: '1.2rem'
                   }}>
                             VIP
                           </Typography>
@@ -710,33 +740,35 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
           </Grid>
           {/* Call Information Section */}
           {callInformation.length > 0 && <Box sx={{
-          mb: 4
+          mb: 5
         }}>
               <Typography variant="h5" component="h2" sx={{
-            mb: 2,
+            mb: 3,
             fontWeight: 'bold',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            letterSpacing: '0.05em'
           }}>
                 CALLS
                 <PhoneInTalkIcon sx={{
-              ml: 1,
-              color: 'primary.main'
+              ml: 1.5,
+              color: 'primary.main',
+              fontSize: 32
             }} />
               </Typography>
-              <Paper elevation={2} sx={{
-            p: 2,
+              <Paper elevation={3} sx={{
+            p: 3,
             borderRadius: 1
           }}>
-                <Stack spacing={2}>
+                <Stack spacing={3}>
                   {callInformation.map((call, index) => {
                 const formattedTime = formatTimeToMilitary(call.startTime);
                 const audience = getAudience(call);
                 const isSecure = isSecureCall(call);
                 return <Box key={`call-${index}`} sx={{
-                  p: 2,
+                  p: 3,
                   borderRadius: 1,
-                  borderLeft: '6px solid',
+                  borderLeft: '8px solid',
                   borderLeftColor: 'primary.main',
                   bgcolor: 'background.paper'
                 }}>
@@ -746,19 +778,23 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                     flexWrap: 'wrap',
                     gap: 2
                   }}>
-                          <Typography variant="h6" sx={{
+                          <Typography variant="h5" sx={{
                       fontWeight: 'bold'
                     }}>
                             {formattedTime}
                           </Typography>
-                          <Typography variant="body1" color="text.secondary">
+                          <Typography variant="body1" color="text.secondary" sx={{
+                      fontSize: '1.2rem'
+                    }}>
                             {audience}
                           </Typography>
                           <Chip label={isSecure ? 'SECURE' : 'NON-SECURE'} color={isSecure ? 'success' : 'warning'} sx={{
                       ml: 'auto',
                       fontWeight: 'bold',
                       border: 2,
-                      borderColor: isSecure ? 'success.main' : 'warning.main'
+                      borderColor: isSecure ? 'success.main' : 'warning.main',
+                      py: 1,
+                      fontSize: '1rem'
                     }} />
                         </Box>
                       </Box>;
@@ -768,19 +804,20 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
             </Box>}
           {/* Upcoming Activity Section */}
           <Box sx={{
-          mb: 4
+          mb: 5
         }}>
             <Typography variant="h5" component="h2" sx={{
-            mb: 2,
-            fontWeight: 'bold'
+            mb: 3,
+            fontWeight: 'bold',
+            letterSpacing: '0.05em'
           }}>
               {isTomorrow ? 'SCHEDULED' : isYesterdayView ? 'PAST' : 'UPCOMING'}
             </Typography>
-            <Paper elevation={2} sx={{
-            p: 2,
+            <Paper elevation={3} sx={{
+            p: 3,
             borderRadius: 1
           }}>
-              {upcomingActivities.length > 0 ? <Stack spacing={2}>
+              {upcomingActivities.length > 0 ? <Stack spacing={3}>
                   {upcomingActivities.map((meeting, index) => {
                 const formattedTime = formatTimeToMilitary(meeting.startTime);
                 const audience = getAudience(meeting);
@@ -788,9 +825,9 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                 const isVip = meeting.isHighProfile;
                 const isSecure = isCall ? isSecureCall(meeting) : false;
                 return <Box key={`activity-${index}`} sx={{
-                  p: 2,
+                  p: 3,
                   borderRadius: 1,
-                  borderLeft: '6px solid',
+                  borderLeft: '8px solid',
                   borderLeftColor: isVip ? 'error.main' : 'grey.400',
                   bgcolor: isVip ? 'error.light' : 'background.paper'
                 }}>
@@ -800,28 +837,32 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                     flexWrap: 'wrap',
                     gap: 2
                   }}>
-                          <Typography variant="h6" sx={{
+                          <Typography variant="h5" sx={{
                       fontWeight: 'bold'
                     }}>
                             {formattedTime}
                           </Typography>
                           <Divider orientation="vertical" flexItem sx={{
-                      mx: 0.5
+                      mx: 0.5,
+                      borderRightWidth: 2
                     }} />
                           <Typography variant="body1" sx={{
-                      fontWeight: 'medium'
+                      fontWeight: 'medium',
+                      fontSize: '1.2rem'
                     }}>
                             {isCall ? audience : meeting.room}
                           </Typography>
                           <Divider orientation="vertical" flexItem sx={{
-                      mx: 0.5
+                      mx: 0.5,
+                      borderRightWidth: 2
                     }} />
                           {isCall && <PhoneInTalkIcon sx={{
                       color: 'primary.main',
-                      fontSize: 24
+                      fontSize: 28
                     }} />}
                           <Typography variant="body1" sx={{
-                      fontWeight: 'medium'
+                      fontWeight: 'medium',
+                      fontSize: '1.2rem'
                     }}>
                             {meeting.name}
                           </Typography>
@@ -832,147 +873,36 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
                     }}>
                               <StarIcon sx={{
                         color: 'error.main',
-                        fontSize: 24,
+                        fontSize: 28,
                         mr: 0.5
                       }} />
                               <Typography variant="body1" sx={{
                         fontWeight: 'bold',
-                        color: 'error.main'
+                        color: 'error.main',
+                        fontSize: '1.2rem'
                       }}>
                                 VIP
                               </Typography>
                             </Box>}
-                          {isCall && <Chip label={isSecure ? 'SECURE' : 'NON-SECURE'} color={isSecure ? 'success' : 'warning'} size="small" sx={{
+                          {isCall && <Chip label={isSecure ? 'SECURE' : 'NON-SECURE'} color={isSecure ? 'success' : 'warning'} size="medium" sx={{
                       ml: 'auto',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      py: 0.75,
+                      fontSize: '0.95rem'
                     }} />}
                         </Box>
                       </Box>;
               })}
                 </Stack> : <Box sx={{
-              py: 3,
+              py: 4,
               textAlign: 'center'
             }}>
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography variant="h6" color="text.secondary">
                     No {isYesterdayView ? 'past' : 'upcoming'} meetings or calls
                     scheduled{' '}
                     {isTomorrow ? 'for tomorrow' : isYesterdayView ? 'from yesterday' : 'in the next 3 hours'}
                   </Typography>
                 </Box>}
-            </Paper>
-          </Box>
-          {/* Technical Specifications Section */}
-          <Box sx={{
-          mb: 4
-        }}>
-            <Typography variant="h5" component="h2" sx={{
-            mb: 2,
-            fontWeight: 'bold'
-          }}>
-              TECHNICAL SPECIFICATIONS
-            </Typography>
-            <Paper elevation={2} sx={{
-            p: 3,
-            borderRadius: 1
-          }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{
-                  mb: 2,
-                  fontWeight: 'bold'
-                }}>
-                    Visual Design Specifications
-                  </Typography>
-                  <Box sx={{
-                  mb: 2
-                }}>
-                    <Typography variant="subtitle1" sx={{
-                    fontWeight: 'bold'
-                  }}>
-                      USWDS Color Codes
-                    </Typography>
-                    <Grid container spacing={1} sx={{
-                    mt: 1
-                  }}>
-                      {Object.entries(uswdsColors.primary).map(([key, value]) => <Grid item key={`primary-${key}`}>
-                            <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}>
-                              <Box sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: value,
-                          borderRadius: '50%',
-                          border: '1px solid',
-                          borderColor: 'grey.300'
-                        }} />
-                              <Typography variant="caption">{key}</Typography>
-                            </Box>
-                          </Grid>)}
-                    </Grid>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{
-                    fontWeight: 'bold'
-                  }}>
-                      Typography Hierarchy
-                    </Typography>
-                    <Typography variant="body2">
-                      H1: 2.5rem (40px) - Page titles
-                      <br />
-                      H2: 2rem (32px) - Section headers
-                      <br />
-                      H3: 1.5rem (24px) - Subsection headers
-                      <br />
-                      Body: 1rem (16px) - Main content
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{
-                  mb: 2,
-                  fontWeight: 'bold'
-                }}>
-                    Component Details
-                  </Typography>
-                  <Box sx={{
-                  mb: 2
-                }}>
-                    <Typography variant="subtitle1" sx={{
-                    fontWeight: 'bold'
-                  }}>
-                      Card Design
-                    </Typography>
-                    <Typography variant="body2">
-                      Border radius: 4px
-                      <br />
-                      Shadow: 0 2px 4px rgba(0,0,0,0.1)
-                      <br />
-                      Left border accent: 6-8px width
-                      <br />
-                      Padding: 16-24px (responsive)
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{
-                    fontWeight: 'bold'
-                  }}>
-                      Responsive Behavior
-                    </Typography>
-                    <Typography variant="body2">
-                      Mobile: Single column layout
-                      <br />
-                      Tablet: Two column grid
-                      <br />
-                      Desktop: Three column grid
-                      <br />
-                      Font scaling: -10% on mobile
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
             </Paper>
           </Box>
           {/* Navigation Buttons */}
@@ -981,17 +911,19 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
           mb: 2,
           display: 'flex',
           justifyContent: 'center',
-          gap: 2
+          gap: 3
         }}>
-            <Button component={Link} to="/simplified" variant="outlined" color="primary" startIcon={<ArrowBackIcon />} sx={{
+            <Button component={Link} to="/simplified" variant="outlined" color="primary" startIcon={<ArrowBackIcon fontSize="large" />} sx={{
             fontWeight: 'bold',
-            py: 1
+            py: 1.5,
+            fontSize: '1.2rem'
           }}>
               Simplified view
             </Button>
-            <Button component={Link} to="/operations" variant="outlined" color="primary" endIcon={<ArrowForwardIcon />} sx={{
+            <Button component={Link} to="/operations" variant="outlined" color="primary" endIcon={<ArrowForwardIcon fontSize="large" />} sx={{
             fontWeight: 'bold',
-            py: 1
+            py: 1.5,
+            fontSize: '1.2rem'
           }}>
               Operations Dashboard
             </Button>

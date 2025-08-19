@@ -543,12 +543,19 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                 </div>
                                 {/* Conference bridge details */}
                                 <div className="mt-2 text-[1.38rem] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-1.5 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="flex items-center">
-                                    <PhoneCallIcon size={14} className="text-blue-500 mr-1.5" />
-                                    <span>Dial-in: 888-555-{1000 + idx}</span>
-                                  </div>
-                                  <div className="ml-6">
-                                    Meeting ID: {10000 + idx * 1111}
+                                  <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center">
+                                      <PhoneCallIcon size={14} className="text-blue-500 mr-1.5 flex-shrink-0" />
+                                      <span>Dial-in: 888-555-{1000 + idx}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <span className="font-medium">
+                                        Meeting ID:
+                                      </span>
+                                      <span className="ml-1.5">
+                                        {10000 + idx * 1111}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>

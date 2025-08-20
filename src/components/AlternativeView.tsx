@@ -379,13 +379,14 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                     <div className="w-full">
                                       {/* Time | Audience */}
                                       <div className="flex items-center mb-2">
-                                        <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 font-medium">
+                                        <div className="text-[2.06rem] text-black dark:text-white font-bold">
                                           {call.startTime}
                                         </div>
-                                        <div className="mx-2 text-gray-500 dark:text-gray-400">
+                                        <div className="mx-2 text-gray-500 dark:text-gray-300 font-bold">
                                           |
                                         </div>
-                                        <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
+                                        <div className="flex items-center text-[2.06rem] text-black dark:text-white font-bold">
+                                          <UsersIcon size={24} className="mr-2 text-black dark:text-white" />
                                           {call.audience}
                                         </div>
                                         {/* Secure/Non-secure badge */}
@@ -396,7 +397,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                         </div>
                                       </div>
                                       {/* Call name */}
-                                      <div className="text-[1.55rem] font-bold dark:text-white mb-3">
+                                      <div className="text-[1.55rem] font-normal dark:text-white mb-3">
                                         {call.name}
                                       </div>
                                       {/* Conference bridge details */}

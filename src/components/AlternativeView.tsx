@@ -343,7 +343,9 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                             </div>
                             <div className="flex items-center">
                               <span className="text-red-500 mr-1.5 group relative">
-                                <StarIcon size={18} className="text-red-500 fill-red-500" />
+                                <span className="text-[0.88rem] font-bold bg-red-500 text-white px-1.8 py-0.6 rounded">
+                                  {meeting.name.includes('Board') ? 'CEO' : meeting.name.includes('Planning') ? 'COO' : meeting.name.includes('Strategy') ? 'COS' : meeting.name.includes('Review') ? 'VP' : 'SVP'}
+                                </span>
                                 <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
                                   VIP meeting
                                   <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
@@ -407,11 +409,11 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                         {/* Status badges */}
                                         <div className="ml-auto flex gap-2">
                                           {/* Call progress status */}
-                                          <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${getCallStatus(call, day, currentTime) === 'Proposed' ? 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 border border-blue-500' : getCallStatus(call, day, currentTime) === 'Confirmed' ? 'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200 border border-purple-500' : getCallStatus(call, day, currentTime) === 'In progress' ? 'bg-orange-100 dark:bg-orange-800 text-orange-800 dark:text-orange-200 border border-orange-500' : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 border border-red-500'}`}>
+                                          <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${getCallStatus(call, day, currentTime) === 'Proposed' ? 'bg-blue-100 dark:bg-blue-800/80 text-blue-800 dark:text-blue-100 border border-blue-500' : getCallStatus(call, day, currentTime) === 'Confirmed' ? 'bg-green-100 dark:bg-green-800/80 text-green-800 dark:text-green-100 border border-green-500' : getCallStatus(call, day, currentTime) === 'In progress' ? 'bg-yellow-100 dark:bg-yellow-800/80 text-yellow-800 dark:text-yellow-100 border border-yellow-500' : 'bg-red-100 dark:bg-red-800/80 text-red-800 dark:text-red-100 border border-red-500'}`}>
                                             {getCallStatus(call, day, currentTime).toUpperCase()}
                                           </span>
                                           {/* Secure/Non-secure badge */}
-                                          <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
+                                          <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-teal-100 dark:bg-teal-800/80 text-teal-800 dark:text-teal-100 border border-teal-500' : 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-100 border border-gray-500'}`}>
                                             {isSecure ? 'SECURE' : 'NON-SECURE'}
                                           </span>
                                         </div>

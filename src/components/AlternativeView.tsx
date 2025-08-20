@@ -200,6 +200,19 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     };
   };
   const callsByDay = groupCallsByDay();
+  const getCallStatus = (call, day, currentTime) => {
+    // Determine status based on call name or other criteria
+    if (call.name.includes('Board') || call.name.includes('Executive')) {
+      return 'Confirmed';
+    }
+    if (call.isActive) {
+      return 'In progress';
+    }
+    if (call.name.includes('Client')) {
+      return 'Proposed';
+    }
+    return 'Confirmed';
+  };
   return <div className="flex-1 overflow-auto flex flex-col h-full">
       {/* Header with live timer */}
       <div className="bg-[#1a2235] text-white py-3 px-5 sticky top-0 z-[10000] flex items-center justify-between">
@@ -285,6 +298,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                 {formatTimeToMilitary(status.activeMeeting.endTime)}
                               </div>
                               <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
+                                Busy for{' '}
                                 {getTimeUntilFree(status.activeMeeting)}
                               </div>
                             </div>
@@ -297,6 +311,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                   {formatTimeToMilitary(status.nextMeeting.startTime)}
                                 </div>
                                 <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
+                                  Free for{' '}
                                   {getTimeUntilNextMeeting(status.nextMeeting)}
                                 </div>
                               </div>
@@ -389,8 +404,13 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                           <UsersIcon size={24} className="mr-2 text-black dark:text-white" />
                                           {call.audience}
                                         </div>
-                                        {/* Secure/Non-secure badge */}
-                                        <div className="ml-auto">
+                                        {/* Status badges */}
+                                        <div className="ml-auto flex gap-2">
+                                          {/* Call progress status */}
+                                          <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${getCallStatus(call, day, currentTime) === 'Proposed' ? 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 border border-blue-500' : getCallStatus(call, day, currentTime) === 'Confirmed' ? 'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200 border border-purple-500' : getCallStatus(call, day, currentTime) === 'In progress' ? 'bg-orange-100 dark:bg-orange-800 text-orange-800 dark:text-orange-200 border border-orange-500' : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 border border-red-500'}`}>
+                                            {getCallStatus(call, day, currentTime).toUpperCase()}
+                                          </span>
+                                          {/* Secure/Non-secure badge */}
                                           <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
                                             {isSecure ? 'SECURE' : 'NON-SECURE'}
                                           </span>

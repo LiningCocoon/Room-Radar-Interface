@@ -10,8 +10,8 @@ const AVSupportIcon: React.FC<AVSupportIconProps> = ({
 }) => {
   // Calculate the inner icon size to maintain the requested size visual appearance
   // when accounting for the 8px of total padding (4px on each side)
-  // Then increase the size by 15%
-  const innerSize = typeof size === 'number' ? (size - 8) * 1.15 : size;
+  // Then increase the size by 44% (1.2 * 1.2 = 1.44) for an additional 20% increase
+  const innerSize = typeof size === 'number' ? (size - 8) * 1.44 : size;
   return <div className="p-1 relative group" style={{
     display: 'inline-flex',
     borderRadius: '50%'

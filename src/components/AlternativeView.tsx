@@ -208,9 +208,6 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
         {/* Center: Date */}
         <div className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-bold">
           {formattedDate}
-          {isToday && <span className="ml-2 px-2 py-0.5 text-sm bg-blue-50 text-blue-700 rounded-md">
-              Today
-            </span>}
         </div>
         {/* Right: Title */}
         <div className="flex items-center">
@@ -310,7 +307,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                 {/* VIP Meetings Section */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2">
                   <h2 className="text-[1.86rem] font-bold mb-1.5 dark:text-white">
-                    VIP Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
+                    Principal Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
                   </h2>
                   {vipMeetingsToday.length > 0 ? <div className="space-y-1.5">
                       {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
@@ -379,44 +376,45 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                       const isSecure = call.name.includes('Board') || call.name.includes('Executive') || call.name.includes('Investor');
                       return <div key={`${day}-${idx}`} className={`p-2.5 rounded-lg ${call.isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : 'bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-400'}`}>
                                   <div className="flex justify-between items-start">
-                                    <div>
-                                      <div className="text-[1.55rem] font-bold dark:text-white">
-                                        {call.name}
-                                      </div>
-                                      <div className="flex items-center mt-1">
-                                        <UsersIcon size={17} className="text-gray-500 dark:text-gray-400 mr-1.5" />
+                                    <div className="w-full">
+                                      {/* Time | Audience */}
+                                      <div className="flex items-center mb-2">
+                                        <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 font-medium">
+                                          {call.startTime}
+                                        </div>
+                                        <div className="mx-2 text-gray-500 dark:text-gray-400">
+                                          |
+                                        </div>
                                         <div className="text-[1.38rem] text-gray-600 dark:text-gray-300">
                                           {call.audience}
                                         </div>
+                                        {/* Secure/Non-secure badge */}
+                                        <div className="ml-auto">
+                                          <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
+                                            {isSecure ? 'SECURE' : 'NON-SECURE'}
+                                          </span>
+                                        </div>
                                       </div>
-                                      <div className="text-[1.38rem] text-gray-600 dark:text-gray-300 mt-1">
-                                        {call.startTime}
+                                      {/* Call name */}
+                                      <div className="text-[1.55rem] font-bold dark:text-white mb-3">
+                                        {call.name}
                                       </div>
                                       {/* Conference bridge details */}
                                       <div className="mt-2 text-[1.38rem] text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-1.5 rounded border border-gray-200 dark:border-gray-600">
-                                        <div className="flex items-center justify-between flex-wrap gap-2">
-                                          <div className="flex items-center">
-                                            <PhoneCallIcon size={14} className="text-blue-500 mr-1.5 flex-shrink-0" />
+                                        <div className="flex flex-col gap-1.5">
+                                          <div>
                                             <span>
-                                              Dial-in: 888-555-{1000 + idx}
+                                              Bridge: 888-555-{1000 + idx}
                                             </span>
                                           </div>
-                                          <div className="flex items-center">
+                                          <div>
                                             <span className="font-medium">
-                                              Meeting ID:
+                                              Meeting ID:{' '}
                                             </span>
-                                            <span className="ml-1.5">
-                                              {10000 + idx * 1111}
-                                            </span>
+                                            <span>{10000 + idx * 1111}</span>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                    <div className="flex items-center">
-                                      {/* Secure/Non-secure badge */}
-                                      <span className={`px-2 py-1 rounded-full text-[0.82rem] font-medium ${isSecure ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 border border-green-500' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 border border-yellow-500'}`}>
-                                        {isSecure ? 'SECURE' : 'NON-SECURE'}
-                                      </span>
                                     </div>
                                   </div>
                                 </div>;

@@ -106,62 +106,25 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const time = parseTime(timeStr);
     return time.hours;
   };
-  // Convert time string to minutes since midnight for precise calculations
-  const timeToMinutesSinceMidnight = (timeStr: string): number => {
-    const time = parseTime(timeStr);
-    return time.hours * 60 + time.minutes;
+  // Helper to check if a meeting spans across the given time slot
+  const meetingSpansTimeSlot = (meeting: any, timeSlotStr: string) => {
+    const timeSlotHour = getHourFromTimeString(timeSlotStr);
+    const startHour = getHourFromTimeString(meeting.startTime);
+    const endHour = getHourFromTimeString(meeting.endTime);
+    // If meeting starts at this hour
+    if (startHour === timeSlotHour) return true;
+    // If meeting spans this hour (starts before and ends after)
+    if (startHour < timeSlotHour && endHour > timeSlotHour) return true;
+    return false;
   };
-  // Calculate the precise duration in minutes between start and end times
-  const calculatePreciseDuration = (meeting: any): number => {
-    if (!meeting || !meeting.startTime || !meeting.endTime) {
-      return 60; // Default to 1 hour if missing data
-    }
-    const startMinutes = timeToMinutesSinceMidnight(meeting.startTime);
-    const endMinutes = timeToMinutesSinceMidnight(meeting.endTime);
-    // Sanity check - ensure end is after start
-    if (endMinutes <= startMinutes) {
-      return 60; // Fallback to 1 hour for invalid times
-    }
-    return endMinutes - startMinutes;
-  };
-  // Calculate the duration of a meeting in hours (decimal)
-  const getMeetingDurationHours = (meeting: any): number => {
-    if (!meeting || meeting.name === 'Available') return 0;
-    const durationMinutes = calculatePreciseDuration(meeting);
-    return durationMinutes / 60; // Return hours as decimal (e.g., 1.5 for 90 minutes)
-  };
-  // Helper function to calculate if a meeting starts in this time slot
-  const meetingStartsInTimeSlot = (meeting: any, timeSlot: string): boolean => {
-    if (!meeting) return false;
-    const meetingStartHour = getHourFromTimeString(meeting.startTime);
-    const timeSlotHour = parseInt(timeSlot.split(':')[0]);
-    return meetingStartHour === timeSlotHour;
-  };
-  // Calculate the exact position and dimensions for a meeting card
-  const calculateMeetingCardMetrics = (meeting: any, timeSlotHour: number) => {
-    // Get start time in minutes
+  // Calculate the duration of a meeting in hours
+  const getMeetingDurationHours = (meeting: any) => {
+    if (meeting.name === 'Available') return 0;
     const startTime = parseTime(meeting.startTime);
-    const startHour = startTime.hours;
-    const startMinutes = startTime.minutes;
-    // Calculate exact duration in minutes
-    const durationMinutes = calculatePreciseDuration(meeting);
-    // Calculate position within the hour (minutes past the hour)
-    // Each minute = 1.67px (100px per hour / 60 minutes)
-    const topOffset = startMinutes * (100 / 60);
-    // Calculate height based on exact duration
-    // 100px per hour = 1.67px per minute
-    const cardHeight = durationMinutes * (100 / 60);
-    return {
-      topOffset,
-      cardHeight,
-      durationHours: durationMinutes / 60,
-      durationMinutes
-    };
-  };
-  // Check if this is the current time slot
-  const isCurrentTimeSlot = (timeSlot: string) => {
-    const timeSlotHour = parseInt(timeSlot.split(':')[0]);
-    return timeSlotHour === currentTime.getHours() && isToday;
+    const endTime = parseTime(meeting.endTime);
+    const startMinutes = startTime.hours * 60 + startTime.minutes;
+    const endMinutes = endTime.hours * 60 + endTime.minutes;
+    return Math.round((endMinutes - startMinutes) / 60);
   };
   // Function to determine chairperson based on meeting type
   const getChairperson = (meeting: any): string | null => {
@@ -208,6 +171,58 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     }
     // Default chairperson for any other meetings
     return 'Devon Black';
+  };
+  // Function to get the meeting for a room at a specific time slot
+  const getMeetingForRoomAndTime = (room: string, timeSlot: string) => {
+    // Get all meetings for this room
+    const roomMeetings = convertedMeetings.filter(meeting => meeting.room === room);
+    // Find meetings that start in or span across this time slot
+    const relevantMeetings = roomMeetings.filter(meeting => meetingSpansTimeSlot(meeting, timeSlot));
+    if (relevantMeetings.length === 0) {
+      // Return null instead of "Available" placeholder
+      return null;
+    }
+    // Return the meeting with chairperson information and duration
+    const meeting = relevantMeetings[0];
+    const duration = getMeetingDurationHours(meeting);
+    return {
+      ...meeting,
+      chairperson: getChairperson(meeting),
+      duration: duration
+    };
+  };
+  // Determine if a meeting should be displayed in this time slot
+  // We only want to show a meeting card at its starting time slot
+  const shouldDisplayMeetingInTimeSlot = (meeting: any, timeSlot: string) => {
+    if (!meeting) return false; // Skip if no meeting
+    const meetingStartHour = getHourFromTimeString(meeting.startTime);
+    const timeSlotHour = getHourFromTimeString(timeSlot);
+    return meetingStartHour === timeSlotHour;
+  };
+  // Determine if a meeting starts in the first half (:00/:15) or second half (:30/:45) of the hour
+  const getStartPositionInHour = (meeting: any) => {
+    if (!meeting) return 'top'; // Default for empty slots
+    const minutesPart = parseTime(meeting.startTime).minutes;
+    return minutesPart < 30 ? 'top' : 'bottom';
+  };
+  // Check if this is the current time slot
+  const isCurrentTimeSlot = (timeSlot: string) => {
+    const timeSlotHour = parseInt(timeSlot.split(':')[0]);
+    return timeSlotHour === currentTime.getHours() && isToday;
+  };
+  // Calculate the exact position based on minutes within the hour
+  const calculatePositionOffset = (meeting: any) => {
+    const startTime = parseTime(meeting.startTime);
+    return startTime.minutes;
+  };
+  // Calculate the precise duration in minutes
+  const getMeetingDurationMinutes = (meeting: any) => {
+    if (!meeting || !meeting.endTime) return 60; // Default to 1 hour
+    const startTime = parseTime(meeting.startTime);
+    const endTime = parseTime(meeting.endTime);
+    const startMinutes = startTime.hours * 60 + startTime.minutes;
+    const endMinutes = endTime.hours * 60 + endTime.minutes;
+    return endMinutes - startMinutes;
   };
   return <div className="flex-1 overflow-auto flex flex-col h-full">
       {/* New minimal context-aware header with vertically centered elements */}
@@ -257,37 +272,46 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           // Get the hour for this time slot
           const timeSlotHour = parseInt(timeSlot.split(':')[0]);
           return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800 relative meeting-grid-row`} ref={isCutoffSlot ? scrollTargetRef : null} style={{
-            height: '100px',
+            minHeight: '100px',
             position: 'relative'
           }}>
                 <div className="grid grid-cols-6 gap-2 relative">
                   <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
                   {rooms.map(room => {
-                // Get all meetings for this room
+                // Get all meetings that start in this hour for this room
                 const roomMeetings = convertedMeetings.filter(meeting => meeting.room === room);
-                // Find meetings that START in this hour
-                const meetingsStartingInHour = roomMeetings.filter(meeting => meetingStartsInTimeSlot(meeting, timeSlot));
+                // Find meetings that start in this hour
+                const meetingsInHour = roomMeetings.filter(meeting => {
+                  const meetingStartHour = getHourFromTimeString(meeting.startTime);
+                  return meetingStartHour === timeSlotHour;
+                });
                 // If no meetings start in this hour, return empty div
-                if (meetingsStartingInHour.length === 0) {
+                if (meetingsInHour.length === 0) {
                   return <div key={`${room}-${timeSlot}-empty`} className="col-span-1 relative"></div>;
                 }
                 // Render all meetings that start in this hour with precise positioning
                 return <div key={`${room}-${timeSlot}`} className="col-span-1 relative" style={{
-                  height: '100px'
+                  minHeight: '100px'
                 }}>
-                        {meetingsStartingInHour.map((meeting, idx) => {
+                        {meetingsInHour.map((meeting, idx) => {
                     // Get chairperson and add to meeting
                     const meetingWithChair = {
                       ...meeting,
                       chairperson: getChairperson(meeting)
                     };
-                    // Calculate precise position and dimensions
-                    const metrics = calculateMeetingCardMetrics(meeting, timeSlotHour);
-                    return <div key={`${meeting.name}-${meeting.startTime}-${idx}`} className="absolute left-0 right-2 z-10" style={{
-                      top: `${metrics.topOffset}px`,
-                      height: `${metrics.cardHeight}px`
+                    // Calculate precise position and height
+                    const startMinutes = calculatePositionOffset(meeting);
+                    const durationMinutes = getMeetingDurationMinutes(meeting);
+                    const durationHours = durationMinutes / 60;
+                    // Calculate position within the hour (1.67px per minute)
+                    const topOffset = startMinutes * 1.67;
+                    // Calculate height based on exact duration (1.67px per minute)
+                    const cardHeight = Math.max(100, durationMinutes * 1.67);
+                    return <div key={`${meeting.startTime}-${idx}`} className="absolute left-0 right-2 z-10" style={{
+                      top: `${topOffset}px`,
+                      height: `${cardHeight}px`
                     }}>
-                              <SimplifiedMeetingCard meeting={meetingWithChair} currentTime={currentTime} duration={metrics.durationHours} showDurationBadge={metrics.durationHours >= 2} startPosition="top" militaryTime={true} isYesterday={!isToday && isViewingPastDay} absolutePositioned={true} expandable={true} />
+                              <SimplifiedMeetingCard meeting={meetingWithChair} currentTime={currentTime} duration={durationHours} showDurationBadge={durationHours >= 2} startPosition="top" militaryTime={true} isYesterday={!isToday && isViewingPastDay} absolutePositioned={true} expandable={true} />
                             </div>;
                   })}
                       </div>;

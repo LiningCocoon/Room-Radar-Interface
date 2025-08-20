@@ -150,8 +150,8 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   }
   // Determine if this is a past meeting
   const isPastMeeting = status === 'past' || isYesterday;
-  // Base styling - updated to ensure full background coverage
-  let cardClasses = 'rounded-lg border text-left transition-all duration-300 relative overflow-hidden';
+  // Base styling
+  let cardClasses = 'rounded-lg border text-left transition-all duration-300 relative p-3 meeting-card-content';
   // Don't add mb-2 margin if absolutely positioned
   if (!absolutePositioned) {
     cardClasses += ' mb-2';
@@ -218,46 +218,48 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   // Chairperson display size and color
   const chairpersonSize = isPastMeeting ? 'text-[1.15rem]' : 'text-[1.35rem]';
   const chairpersonColor = meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : isPastMeeting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300';
+  // Get the exact minute part of the meeting start time for display
+  const getMinuteDisplay = () => {
+    const minutes = parseTime(meeting.startTime).minutes;
+    return minutes === 0 ? ':00' : `:${minutes}`;
+  };
   // Show chairperson for all meetings (not just important ones)
   const showChairperson = meeting.chairperson && !isAvailable;
-  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''} ${expandable ? 'overflow-visible' : 'h-full'} meeting-card-full-height`} style={{
-    height: '100%',
-    width: '100%',
-    minHeight: '60px',
-    display: 'flex',
-    flexDirection: 'column'
+  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''} ${expandable ? 'overflow-visible' : 'h-full'}`} style={{
+    ...(absolutePositioned ? {
+      position: 'relative',
+      overflow: expandable ? 'visible' : 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
+    } : duration > 1 && !isAvailable ? {
+      minHeight: `${Math.min(duration * 120, 400)}px`,
+      position: 'relative',
+      zIndex: duration > 1 ? 10 : 1
+    } : {})
   }}>
-      {/* VIP Star Icon - positioned absolutely */}
-      {meeting.isHighProfile && !isPastMeeting && <div className="absolute top-2 right-2 z-10">
+      {/* VIP Star Icon - adjusted for tall cards */}
+      {meeting.isHighProfile && !isPastMeeting && <div className="absolute top-2 right-2">
           <StarIcon size={24} className="text-white animate-pulse" aria-label="VIP meeting" />
         </div>}
 
-      {/* Main content area with flex layout for proper distribution */}
-      <div className="flex flex-col justify-between h-full p-3">
-        {/* Top section - Meeting title and chairperson */}
-        <div className="flex-1 min-h-0">
-          <h3 className={`${titleSize} font-bold leading-tight ${textColorClass} mb-1`}>
+      <div className="flex justify-between items-start">
+        <div className="flex-1 pr-6">
+          <h3 className={`${titleSize} font-bold leading-tight ${textColorClass} meeting-card-title`}>
             {meeting.name || 'Unknown Meeting'}
           </h3>
-          {/* Chairperson information */}
-          {showChairperson && <div className={`mb-2 ${chairpersonSize} font-medium ${chairpersonColor}`}>
+          {/* Chairperson information display - no "Chair:" prefix */}
+          {showChairperson && <div className={`mt-2 mb-2 ${chairpersonSize} font-medium ${chairpersonColor}`}>
               {meeting.chairperson}
             </div>}
-        </div>
-
-        {/* Bottom section - Time information and AV support icon */}
-        <div className="mt-auto flex justify-between items-end">
-          {/* Time information */}
-          {(!isAvailable || isAvailable && !isPastMeeting) && <p className={`${timeSize} ${meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
+          {(!isAvailable || isAvailable && !isPastMeeting) && <p className={`${timeSize} mt-1 mb-2 meeting-card-time ${meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
               {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}
             </p>}
-
-          {/* AV Support Icon */}
-          {meeting.avSupport && !isAvailable && <div>
-              <AVSupportIcon size={avIconSize} className={getAvIconColor()} />
-            </div>}
         </div>
       </div>
+
+      {meeting.avSupport && !isAvailable && <div className="absolute bottom-2 right-2">
+          <AVSupportIcon size={avIconSize} className={getAvIconColor()} />
+        </div>}
     </div>;
 };
 export default SimplifiedMeetingCard;

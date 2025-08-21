@@ -331,30 +331,19 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="flex items-center">
-                                <div className="text-[clamp(1.2rem,3vw,4rem)] font-bold dark:text-white">
+                                <div className="text-[1.55rem] font-bold dark:text-white">
                                   {meeting.name}
                                 </div>
-                                <div className="ml-1.5 text-[clamp(1.1rem,2.5vw,3.5rem)] text-gray-700 dark:text-gray-300 font-medium">
+                                <div className="ml-1.5 text-[1.38rem] text-gray-700 dark:text-gray-300 font-medium">
                                   ({meeting.room})
                                 </div>
                               </div>
-                              <div className="text-[clamp(1rem,2vw,3rem)] text-gray-600 dark:text-gray-300 mt-0.5">
+                              <div className="text-[1.25rem] text-gray-600 dark:text-gray-300 mt-0.5">
                                 {formatTimeToMilitary(meeting.startTime).replace(':', '')}{' '}
                                 -{' '}
                                 {formatTimeToMilitary(meeting.endTime).replace(':', '')}
                               </div>
-                              {/* VIP badge moved to bottom left */}
-                              <div className="mt-2 flex items-center">
-                                <span className="text-red-500 group relative">
-                                  <span className="text-[clamp(0.8rem,1.5vw,2rem)] font-bold bg-red-500 text-white px-3 py-1.5 rounded-full border border-red-600">
-                                    {meeting.name.includes('Board') ? 'CEO' : meeting.name.includes('Planning') ? 'COO' : meeting.name.includes('Strategy') ? 'COS' : meeting.name.includes('Review') ? 'VP' : 'SVP'}
-                                  </span>
-                                  <div className="absolute bottom-full left-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-                                    VIP meeting
-                                    <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-800"></div>
-                                  </div>
-                                </span>
-                              </div>
+                              {/* VIP badge removed from here */}
                             </div>
                             <div className="flex items-center space-x-2">
                               {/* Enlarged AV support icon */}
@@ -363,7 +352,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                               {meeting.name.toLowerCase().includes('call') && <PhoneCallIcon size={28} className="text-red-500" />}
                             </div>
                           </div>
-                          {/* Combined footer with VIP badge and status/countdown aligned on same line */}
+                          {/* Modified to include VIP badge and countdown on same line */}
                           <div className="mt-2 flex justify-between items-center">
                             {/* VIP badge on the left */}
                             <span className="text-red-500 group relative">
@@ -376,10 +365,10 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                               </div>
                             </span>
                             {/* Status/countdown on the right */}
-                            {getMeetingStatus(meeting) === 'active' && <div className="text-[clamp(1rem,2vw,3rem)] font-bold text-red-700 dark:text-red-300">
+                            {getMeetingStatus(meeting) === 'active' && <div className="text-[1.25rem] font-bold text-red-700 dark:text-red-300">
                                 In progress
                               </div>}
-                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[clamp(1rem,2vw,3rem)] font-bold text-gray-700 dark:text-gray-300">
+                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
                                 {getTimeUntilMeeting(meeting)}
                               </div>}
                           </div>

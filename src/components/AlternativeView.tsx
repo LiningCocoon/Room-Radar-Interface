@@ -224,7 +224,9 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
         </div>
         {/* Right: Title */}
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-white">Room Radar</h1>
+          <h1 className="text-2xl font-bold text-white">
+            Calls and Room Radar
+          </h1>
         </div>
       </div>
 
@@ -295,7 +297,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                             <div className="flex justify-between items-center">
                               <div>
                                 Until{' '}
-                                {formatTimeToMilitary(status.activeMeeting.endTime)}
+                                {formatTimeToMilitary(status.activeMeeting.endTime).replace(':', '')}
                               </div>
                               <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
                                 Busy for{' '}
@@ -308,7 +310,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                               <div className="flex justify-between items-center">
                                 <div>
                                   At{' '}
-                                  {formatTimeToMilitary(status.nextMeeting.startTime)}
+                                  {formatTimeToMilitary(status.nextMeeting.startTime).replace(':', '')}
                                 </div>
                                 <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
                                   Free for{' '}
@@ -337,21 +339,28 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                 </div>
                               </div>
                               <div className="text-[1.25rem] text-gray-600 dark:text-gray-300 mt-0.5">
-                                {formatTimeToMilitary(meeting.startTime)} -{' '}
-                                {formatTimeToMilitary(meeting.endTime)}
+                                {formatTimeToMilitary(meeting.startTime).replace(':', '')}{' '}
+                                -{' '}
+                                {formatTimeToMilitary(meeting.endTime).replace(':', '')}
+                              </div>
+                              {/* VIP badge moved to bottom left */}
+                              <div className="mt-2 flex items-center">
+                                <span className="text-red-500 group relative">
+                                  <span className="text-[1rem] font-bold bg-red-500 text-white px-3 py-1.5 rounded-full border border-red-600">
+                                    {meeting.name.includes('Board') ? 'CEO' : meeting.name.includes('Planning') ? 'COO' : meeting.name.includes('Strategy') ? 'COS' : meeting.name.includes('Review') ? 'VP' : 'SVP'}
+                                  </span>
+                                  <div className="absolute bottom-full left-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+                                    VIP meeting
+                                    <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-800"></div>
+                                  </div>
+                                </span>
                               </div>
                             </div>
-                            <div className="flex items-center">
-                              <span className="text-red-500 mr-1.5 group relative">
-                                <span className="text-[0.88rem] font-bold bg-red-500 text-white px-1.8 py-0.6 rounded">
-                                  {meeting.name.includes('Board') ? 'CEO' : meeting.name.includes('Planning') ? 'COO' : meeting.name.includes('Strategy') ? 'COS' : meeting.name.includes('Review') ? 'VP' : 'SVP'}
-                                </span>
-                                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-                                  VIP meeting
-                                  <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
-                                </div>
-                              </span>
-                              {meeting.avSupport && <AVSupportIcon size={18} className="text-red-500" />}
+                            <div className="flex items-center space-x-2">
+                              {/* Enlarged AV support icon */}
+                              {meeting.avSupport && <AVSupportIcon size={28} className="text-red-500" />}
+                              {/* New Phone icon */}
+                              {meeting.name.toLowerCase().includes('call') && <PhoneCallIcon size={28} className="text-red-500" />}
                             </div>
                           </div>
                           <div className="mt-1 flex justify-end">
@@ -397,7 +406,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                       {/* Time | Audience */}
                                       <div className="flex items-center mb-2">
                                         <div className="text-[2.06rem] text-black dark:text-white font-bold">
-                                          {call.startTime}
+                                          {formatTimeToMilitary(call.startTime).replace(':', '')}
                                         </div>
                                         <div className="mx-2 text-gray-500 dark:text-gray-300 font-bold">
                                           |
@@ -458,9 +467,8 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
             <ArrowLeftIcon size={20} />
             <span>Main Wall</span>
           </Link>
-          <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1.5 px-2.5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
-            <span>MUI Operations</span>
-            <ArrowRightIcon size={20} />
+          <Link to="/calls-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1.5 px-2.5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
+            <span>Calls Radar</span>
           </Link>
         </div>
       </div>

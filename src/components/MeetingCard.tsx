@@ -37,6 +37,13 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
       minutes: minutes || 0
     };
   };
+  // Format time to 4-digit military format without colon
+  const formatToMilitaryTime = (timeStr: string) => {
+    const parsedTime = parseTime(timeStr);
+    const hours = parsedTime.hours.toString().padStart(2, '0');
+    const minutes = parsedTime.minutes.toString().padStart(2, '0');
+    return `${hours}${minutes}`;
+  };
   const startTime = parseTime(meeting.startTime);
   const endTime = meeting.endTime ? parseTime(meeting.endTime) : null;
   const currentHour = currentTime.getHours();
@@ -180,7 +187,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
             {meeting.name}
           </h3>
           <p className={`${isCondensed ? 'text-[0.7875rem]' : 'text-[1.125rem]'} mt-1 dark:text-gray-200`}>
-            {!isAvailable ? `${meeting.startTime} - ${meeting.endTime}` : meeting.startTime}
+            {!isAvailable ? `${formatToMilitaryTime(meeting.startTime)} - ${formatToMilitaryTime(meeting.endTime)}` : formatToMilitaryTime(meeting.startTime)}
           </p>
           {/* Chair information with increased font size by 25% */}
           {showChair && <div className="mt-1 text-[1.25rem] text-gray-600 dark:text-gray-400 font-medium">

@@ -19,9 +19,16 @@ const SimplifiedTimeSlot: React.FC<SimplifiedTimeSlotProps> = ({
   // Set the text size based on whether the timeslot is past, current, or future
   // Current and future timeslots are enlarged by 15%
   const textSizeClass = isPastHour ? 'text-3xl' : 'text-[3.45rem]'; // 3xl * 1.15 = ~3.45rem
+  // Format time to 4-digit military format without colon
+  const formatToMilitaryTime = (timeStr: string) => {
+    const parts = timeStr.split(':');
+    const hours = parts[0].padStart(2, '0');
+    const minutes = parts.length > 1 ? parts[1] : '00';
+    return `${hours}${minutes}`;
+  };
   return <div className="col-span-1 flex items-start justify-center p-2">
-      <div className={`${textSizeClass} font-bold ${isCurrentHour ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
-        {time}
+      <div className={`${textSizeClass} font-bold text-gray-700 dark:text-gray-300`}>
+        {formatToMilitaryTime(time)}
       </div>
     </div>;
 };

@@ -137,14 +137,14 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   // Properly typed time formatting function
   const formatTimeToMilitary = (timeStr: string) => {
     try {
-      if (!timeStr) return '00:00';
+      if (!timeStr) return '0000';
       if (militaryTime) {
         const time = parseTime(timeStr);
-        return `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`;
+        return `${String(time.hours).padStart(2, '0')}${String(time.minutes).padStart(2, '0')}`;
       }
       return String(timeStr);
     } catch (error) {
-      return '00:00';
+      return '0000';
     }
   };
   // Safe time calculations

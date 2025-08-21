@@ -580,7 +580,7 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
             </Button>
           </Box>
           <Typography variant="h3" component="div">
-            Room Radar
+            Calls and Room Radar
           </Typography>
         </Box>
         {/* Main Content */}
@@ -1054,6 +1054,13 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
             fontSize: '1.2rem'
           }}>
               Main Wall
+            </Button>
+            <Button component={Link} to="/calls-wall" variant="outlined" color="primary" sx={{
+            fontWeight: 'bold',
+            py: 1.5,
+            fontSize: '1.2rem'
+          }}>
+              Calls Wall
             </Button>
             <Button component={Link} to="/side-wall" variant="outlined" color="primary" endIcon={<ArrowForwardIcon fontSize="large" />} sx={{
             fontWeight: 'bold',

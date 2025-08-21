@@ -49,6 +49,13 @@ const ProportionalMeetingCard: React.FC<ProportionalMeetingCardProps> = ({
       minutes: minutes || 0
     };
   };
+  // Format time to 4-digit military format without colon
+  const formatToMilitaryTime = (timeStr: string) => {
+    const parsedTime = parseTime(timeStr);
+    const hours = parsedTime.hours.toString().padStart(2, '0');
+    const minutes = parsedTime.minutes.toString().padStart(2, '0');
+    return `${hours}${minutes}`;
+  };
   const startTime = parseTime(meeting.startTime);
   const endTime = meeting.endTime ? parseTime(meeting.endTime) : null;
   const currentHour = currentTime.getHours();
@@ -91,14 +98,6 @@ const ProportionalMeetingCard: React.FC<ProportionalMeetingCardProps> = ({
   } else if (status === 'past' || isYesterday) {
     textColorClass = 'text-gray-500 dark:text-gray-400';
   }
-  // Format time for display
-  const formatTime = (timeStr: string) => {
-    if (militaryTime) {
-      const time = parseTime(timeStr);
-      return `${time.hours.toString().padStart(2, '0')}:${time.minutes.toString().padStart(2, '0')}`;
-    }
-    return timeStr;
-  };
   // Get AV icon color
   const getAvIconColor = () => {
     if (isYesterday) return 'text-gray-500 dark:text-gray-400';
@@ -124,7 +123,8 @@ const ProportionalMeetingCard: React.FC<ProportionalMeetingCardProps> = ({
             {meeting.name}
           </h3>
           <p className={`text-xs mt-1 ${meeting.isHighProfile && status !== 'past' && !isYesterday ? 'text-white' : 'dark:text-gray-200'}`}>
-            {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
+            {formatToMilitaryTime(meeting.startTime)} -{' '}
+            {formatToMilitaryTime(meeting.endTime)}
           </p>
           {duration >= 2 && !isYesterday && <div className="mt-1 inline-flex items-center px-1 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium">
               <ClockIcon size={10} className="mr-1" />

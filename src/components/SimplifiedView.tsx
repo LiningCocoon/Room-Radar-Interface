@@ -324,8 +324,8 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
 
       {/* Navigation Buttons - Updated to Operations Dashboard instead of Proportional view */}
       <div className="mt-4 mb-2 flex justify-center gap-4">
-        <Link to="/ops-mui" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
-          <span>MUI Operations</span>
+        <Link to="/calls-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
+          <span>Calls Radar</span>
           <ArrowRightIcon size={16} />
         </Link>
         <Link to="/side-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">

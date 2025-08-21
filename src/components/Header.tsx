@@ -54,7 +54,9 @@ const Header: React.FC<HeaderProps> = ({
             <button onClick={toggleDarkMode} className="p-1 rounded-full hover:bg-[#004b81] dark:hover:bg-gray-700 transition-colors mr-2" aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
               {isDarkMode ? <SunIcon className="h-6 w-6 text-yellow-300" /> : <MoonIcon className="h-6 w-6 text-white" />}
             </button>
-            <h1 className="text-2xl font-bold text-white">Room Radar</h1>
+            <h1 className="text-2xl font-bold text-white">
+              Calls and Room Radar
+            </h1>
           </div>
         </div>
         {/* Mobile layout - with 25% smaller text */}
@@ -63,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({
             <div>
               {/* Room Radar title with 25% smaller text - changed from all caps to title case */}
               <h1 className="text-[1.65rem] font-bold text-white leading-tight">
-                Room Radar
+                Calls and Room Radar
               </h1>
               {/* Date with 25% smaller text */}
               <div className="flex items-center">

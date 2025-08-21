@@ -424,7 +424,7 @@ const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
             <ChevronRightIcon className="h-6 w-6 text-white" />
           </button>
         </div>
-        <div className="text-3xl font-bold">Room Radar</div>
+        <div className="text-3xl font-bold">Calls and Room Radar</div>
       </div>
 
       <div className="p-4 flex-1 flex flex-col gap-4">

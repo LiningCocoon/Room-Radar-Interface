@@ -1,17 +1,12 @@
 /* ... existing code ... */
-/* Ensure header and content columns align perfectly */
-.fixed-header-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.5rem;
+/* Future meeting styling */
+.far-future-meeting {
+  opacity: 0.75;
+  transform: scale(0.95);
+  transform-origin: center top;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
-.vertical-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.5rem;
-}
-/* Ensure consistent column widths */
-.col-span-1 {
-  grid-column: span 1;
+.meeting-card-transition {
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 /* ... existing code ... */

@@ -267,14 +267,9 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
               Today
             </button>}
 
-          {/* Room headers - using grid layout that EXACTLY matches the content grid layout below */}
-          <div className="grid grid-cols-6 gap-2 flex-1 ml-6">
-            {/* Empty cell for time column */}
-            <div className="col-span-1"></div>
-            {rooms.map((room, index) => <div key={room} className="col-span-1 text-center relative" style={{
-            paddingLeft: '0.5rem',
-            paddingRight: '0.5rem'
-          }}>
+          {/* Room headers - using grid layout to match the content grid layout below */}
+          <div className="grid grid-cols-5 gap-2 flex-1 ml-6">
+            {rooms.map((room, index) => <div key={room} className={`text-center ${index > 0 ? 'border-l border-dashed border-gray-300 dark:border-gray-600' : ''}`}>
                 <h2 className="text-[1.7325rem] font-bold dark:text-white truncate">
                   {room}
                 </h2>
@@ -316,16 +311,15 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
 
                 {/* Enhanced grid with vertical lines */}
                 <div className="grid grid-cols-6 gap-2 relative vertical-grid">
-                  <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} className="time-labels col-span-1" />
+                  <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} className="time-labels" />
 
-                  {/* Vertical column separators - ensure perfect alignment */}
+                  {/* Vertical column separators - THE KEY ADDITION */}
                   <div className="absolute inset-0 pointer-events-none grid grid-cols-6 gap-2" style={{
                 zIndex: 1
               }}>
-                    <div className="col-span-1"></div>{' '}
-                    {/* Time column - no left border */}
-                    {rooms.map((room, roomIndex) => <div key={`${room}-border`} className="col-span-1 h-full" style={{
-                  borderLeft: `1px dashed rgba(156, 163, 175, ${opacity * 0.5})`
+                    <div></div> {/* Time column - no left border */}
+                    {rooms.map((room, roomIndex) => <div key={`${room}-border`} className="h-full column-separator" style={{
+                  borderLeft: `1px solid rgba(156, 163, 175, ${opacity * 0.5})`
                 }} />)}
                   </div>
 

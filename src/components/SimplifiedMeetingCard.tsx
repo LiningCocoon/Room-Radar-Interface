@@ -326,15 +326,6 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
     maxHeight: '180px',
     transition: 'transform 0.2s ease, opacity 0.2s ease'
   }}>
-      {/* Replace VIP Star Icon with text badge */}
-      {meeting.isHighProfile && !isPastMeeting && <div className="absolute top-2 right-2">
-          <span className="px-2 py-1 text-xs font-bold bg-red-600 text-white rounded-md shadow-sm" style={{
-        fontSize: isFarFuture ? '0.65rem' : '0.75rem'
-      }}>
-            {getVipTitle(meeting)}
-          </span>
-        </div>}
-
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0 pr-6">
           <h3 className={`${adjustedFontSize} ${textStrategy.lineHeight} font-bold ${textColorClass} meeting-card-title break-words hyphens-auto overflow-hidden`} style={{
@@ -355,9 +346,17 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
         </div>
       </div>
 
-      {meeting.avSupport && !isAvailable && <div className="absolute bottom-2 right-2">
-          <AVSupportIcon size={isPastMeeting ? 24 : isFarFuture ? 26 : 28} className={getAvIconColor()} />
-        </div>}
+      {/* Badges at the bottom right - combine A/V and VIP badges */}
+      <div className="absolute bottom-2 right-2 flex items-center space-x-2">
+        {/* VIP badge - now positioned next to A/V badge */}
+        {meeting.isHighProfile && !isPastMeeting && <span className="px-2 py-1 text-xs font-bold bg-red-600 text-white rounded-md shadow-sm" style={{
+        fontSize: isFarFuture ? '0.65rem' : '0.75rem'
+      }}>
+            {getVipTitle(meeting)}
+          </span>}
+        {/* A/V Support Icon */}
+        {meeting.avSupport && !isAvailable && <AVSupportIcon size={isPastMeeting ? 24 : isFarFuture ? 26 : 28} className={getAvIconColor()} />}
+      </div>
     </div>;
 };
 export default SimplifiedMeetingCard;

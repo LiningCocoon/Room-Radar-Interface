@@ -78,7 +78,8 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   militaryTime = false,
   isYesterday = false,
   absolutePositioned = false,
-  expandable = false
+  expandable = false,
+  additionalClasses = ''
 }) => {
   // Early return with safe defaults if meeting is invalid
   if (!meeting || typeof meeting !== 'object') {
@@ -267,7 +268,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const showChairperson = meeting.chairperson && !isAvailable;
   // AV icon size
   const avIconSize = isPastMeeting ? 28 : 34;
-  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''} ${expandable ? 'overflow-visible' : 'h-full'} meeting-card-grounded`} style={{
+  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''} ${expandable ? 'overflow-visible' : 'h-full'} ${additionalClasses || ''}`} style={{
     ...(absolutePositioned ? {
       position: 'relative',
       overflow: expandable ? 'visible' : 'hidden',

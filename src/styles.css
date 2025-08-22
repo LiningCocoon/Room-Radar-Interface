@@ -1,81 +1,99 @@
-/* Add these CSS rules to prevent text cutoff */
-.meeting-card-content {
-  min-height: 80px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-.meeting-card-title {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-  line-height: 1.2;
-  max-width: 100%;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.meeting-card-time {
-  white-space: nowrap; /* Keep time on one line */
-}
-/* Ensure cards can expand their containers */
-.meeting-grid-row {
-  align-items: stretch; /* Make all columns same height */
-  min-height: 80px;
-}
-/* Vertical grid lines for meeting schedule */
-.vertical-grid > div:not(:first-child) {
-  border-left: 1px dashed rgb(209 213 219); /* gray-300 */
-}
-.dark .vertical-grid > div:not(:first-child) {
-  border-left: 1px dashed rgb(75 85 99); /* gray-600 */
-}
-/* Vertical grid lines for calendar */
-.calendar-vertical-grid {
-  border-left: 1px dashed rgba(156, 163, 175, 0.4); /* gray-400 with opacity */
-}
-.dark .calendar-vertical-grid {
-  border-left: 1px dashed rgba(107, 114, 128, 0.4); /* gray-500 with opacity */
-}
-/* Alternative: More visible lines if needed */
-.calendar-vertical-grid-visible {
-  border-left: 1px solid rgb(229, 231, 235); /* gray-200 */
-}
-.dark .calendar-vertical-grid-visible {
-  border-left: 1px solid rgb(75, 85, 99); /* gray-600 */
-}
-/* Grid foundation for horizontal lines */
-.grid-line-horizontal {
-  border-bottom: 1px solid rgba(156, 163, 175, var(--grid-opacity, 0.2));
+/* ... existing code ... */
+/* Grid anchoring system styles */
+.meeting-card-grounded {
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   position: relative;
-  transition: border-color 0.2s ease;
+  z-index: 5;
 }
-/* Half-hour indicators */
-.grid-line-half-hour {
+.current-time-row {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 94, 162, 0.1) 0%,
+    rgba(0, 94, 162, 0.05) 50%,
+    rgba(0, 94, 162, 0.1) 100%
+  );
+  position: relative;
+}
+.active-meeting {
+  border-color: #005ea2 !important;
+  background: #e6f3ff !important;
+  box-shadow: 0 4px 12px rgba(0, 94, 162, 0.3);
+}
+.vip-meeting {
+  border-color: #9b2c2c !important;
+  background: #bc4b4b !important;
+  box-shadow: 0 4px 12px rgba(155, 44, 44, 0.4);
+}
+.meeting-grid-row {
+  position: relative;
+  background: rgba(255, 255, 255, var(--grid-opacity, 0.1));
+}
+.grid-transition {
+  transition: background-color 0.3s ease;
+}
+.hour-grid-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, var(--grid-opacity, 0.1));
+  z-index: 1;
+}
+.half-hour-guide::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, calc(var(--grid-opacity, 0.1) * 0.5));
+  z-index: 1;
+}
+.current-time-line {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
-  border-bottom: 1px dashed rgba(156, 163, 175, calc(var(--grid-opacity, 0.2) * 0.7));
+  height: 3px;
+  background: #005ea2;
+  z-index: 20;
+  border-radius: 2px;
 }
-/* Current time emphasis */
-.current-time-line {
-  border-bottom: 2px solid rgba(59, 130, 246, 0.7);
-  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
-  z-index: 5;
+.current-time-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: rgba(0, 94, 162, 0.3);
+  z-index: 19;
+  border-radius: 3px;
+  filter: blur(2px);
 }
-/* Meeting card grounding */
-.meeting-card-grounded {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(156, 163, 175, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.calendar-vertical-grid {
+  position: relative;
 }
-.meeting-card-grounded:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+.column-separator::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, var(--grid-opacity, 0.1));
+  z-index: 2;
 }
-/* Grid hover effect */
-.grid-line-horizontal:hover {
-  --grid-opacity: calc(var(--grid-opacity, 0.2) * 1.3);
+.meeting-cards {
+  pointer-events: auto;
 }
+.time-labels {
+  z-index: 10;
+  position: relative;
+}
+/* ... existing code ... */

@@ -3,11 +3,13 @@ interface SimplifiedTimeSlotProps {
   time: string;
   currentTime: Date;
   militaryTime?: boolean;
+  className?: string;
 }
 const SimplifiedTimeSlot: React.FC<SimplifiedTimeSlotProps> = ({
   time,
   currentTime,
-  militaryTime = false
+  militaryTime = false,
+  className = ''
 }) => {
   // Parse the time to check if it's the current hour
   const timeHour = parseInt(time.split(':')[0]);
@@ -26,8 +28,8 @@ const SimplifiedTimeSlot: React.FC<SimplifiedTimeSlotProps> = ({
     const minutes = parts.length > 1 ? parts[1] : '00';
     return `${hours}${minutes}`;
   };
-  return <div className="col-span-1 flex items-start justify-center p-2">
-      <div className={`${textSizeClass} font-bold text-gray-700 dark:text-gray-300`}>
+  return <div className={`col-span-1 flex items-start justify-center p-2 ${className}`}>
+      <div className={`${textSizeClass} font-bold text-gray-700 dark:text-gray-300 ${isCurrentHour ? 'text-blue-600 dark:text-blue-400' : ''}`}>
         {formatToMilitaryTime(time)}
       </div>
     </div>;

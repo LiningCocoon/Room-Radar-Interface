@@ -1,33 +1,17 @@
-/* Add these CSS rules to prevent text cutoff */
-.meeting-card-content {
-  min-height: 80px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+/* ... existing code ... */
+/* Ensure header and content columns align perfectly */
+.fixed-header-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
 }
-.meeting-card-title {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-  line-height: 1.2;
-  max-width: 100%;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.vertical-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
 }
-.meeting-card-time {
-  white-space: nowrap; /* Keep time on one line */
+/* Ensure consistent column widths */
+.col-span-1 {
+  grid-column: span 1;
 }
-/* Ensure cards can expand their containers */
-.meeting-grid-row {
-  align-items: stretch; /* Make all columns same height */
-  min-height: 80px;
-}
-/* Vertical grid lines for meeting schedule */
-.vertical-grid > div:not(:first-child) {
-  border-left: 1px dashed rgb(209 213 219); /* gray-300 */
-}
-.dark .vertical-grid > div:not(:first-child) {
-  border-left: 1px dashed rgb(75 85 99); /* gray-600 */
-}
+/* ... existing code ... */

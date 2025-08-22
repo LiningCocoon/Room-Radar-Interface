@@ -21,6 +21,7 @@ interface SimplifiedMeetingCardProps {
   isYesterday?: boolean;
   absolutePositioned?: boolean;
   expandable?: boolean;
+  isFarFuture?: boolean;
 }
 // Helper function to determine text strategy based on name length
 const getTextStrategy = (nameLength: number) => {
@@ -69,6 +70,36 @@ const formatMeetingName = (name: string) => {
     };
   }
 };
+// Add a function to determine VIP title based on meeting name and room
+const getVipTitle = (meeting: Meeting) => {
+  if (!meeting) return 'VIP';
+  // Executive room meetings
+  if (meeting.room === 'Executive') {
+    if (meeting.name.includes('Board')) return 'CEO';
+    if (meeting.name.includes('Review')) return 'CTO'; // Map to VP instead
+    if (meeting.name.includes('Planning')) return 'COO';
+    if (meeting.name.includes('Client')) return 'VP';
+    if (meeting.name.includes('Emergency')) return 'COS';
+    if (meeting.name.includes('Investor')) return 'VP';
+    return 'VP';
+  }
+  // JFK room meetings
+  if (meeting.room === 'JFK') {
+    if (meeting.name.includes('Leadership')) return 'VP';
+    if (meeting.name.includes('Strategy')) return 'COS';
+    if (meeting.name.includes('Team')) return 'VP';
+    if (meeting.name.includes('Stakeholder')) return 'VP';
+    return 'VP';
+  }
+  // Small room or Breakout rooms
+  if (meeting.room === 'Small' || meeting.room.includes('Breakout')) {
+    if (meeting.name.includes('Design')) return 'VP';
+    if (meeting.name.includes('Product')) return 'VP';
+    if (meeting.name.includes('Budget')) return 'VP';
+    return 'VP';
+  }
+  return 'VP';
+};
 const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   meeting,
   currentTime,
@@ -78,7 +109,8 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   militaryTime = false,
   isYesterday = false,
   absolutePositioned = false,
-  expandable = false
+  expandable = false,
+  isFarFuture = false
 }) => {
   // Early return with safe defaults if meeting is invalid
   if (!meeting || typeof meeting !== 'object') {
@@ -251,6 +283,11 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const textStrategy = useMemo(() => {
     return getTextStrategy(meeting.name?.length || 0);
   }, [meeting.name]);
+  // Adjust font size for far future meetings
+  const adjustedFontSize = isFarFuture ? `${textStrategy.fontSize.replace(/\d+(\.\d+)?rem/, match => {
+    const size = parseFloat(match);
+    return `${(size * 0.9).toFixed(2)}rem`;
+  })}` : textStrategy.fontSize;
   // Format meeting name with possible truncation
   const formattedName = useMemo(() => {
     return formatMeetingName(meeting.name || 'Unknown Meeting');
@@ -267,28 +304,40 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const showChairperson = meeting.chairperson && !isAvailable;
   // AV icon size
   const avIconSize = isPastMeeting ? 28 : 34;
-  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''} ${expandable ? 'overflow-visible' : 'h-full'}`} style={{
+  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : isFarFuture ? 'opacity-75' : ''} ${expandable ? 'overflow-visible' : 'h-full'}`} style={{
     ...(absolutePositioned ? {
       position: 'relative',
       overflow: expandable ? 'visible' : 'hidden',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      transform: isFarFuture ? 'scale(0.95)' : 'scale(1)',
+      transformOrigin: 'center top'
     } : duration > 1 && !isAvailable ? {
       minHeight: `${Math.min(duration * 120, 400)}px`,
       position: 'relative',
-      zIndex: duration > 1 ? 10 : 1
-    } : {}),
+      zIndex: duration > 1 ? 10 : 1,
+      transform: isFarFuture ? 'scale(0.95)' : 'scale(1)',
+      transformOrigin: 'center top'
+    } : {
+      transform: isFarFuture ? 'scale(0.95)' : 'scale(1)',
+      transformOrigin: 'center top'
+    }),
     minHeight: '120px',
-    maxHeight: '180px'
+    maxHeight: '180px',
+    transition: 'transform 0.2s ease, opacity 0.2s ease'
   }}>
-      {/* VIP Star Icon - adjusted for tall cards */}
+      {/* Replace VIP Star Icon with text badge */}
       {meeting.isHighProfile && !isPastMeeting && <div className="absolute top-2 right-2">
-          <StarIcon size={24} className="text-white animate-pulse" aria-label="VIP meeting" />
+          <span className="px-2 py-1 text-xs font-bold bg-red-600 text-white rounded-md shadow-sm" style={{
+        fontSize: isFarFuture ? '0.65rem' : '0.75rem'
+      }}>
+            {getVipTitle(meeting)}
+          </span>
         </div>}
 
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0 pr-6">
-          <h3 className={`${textStrategy.fontSize} ${textStrategy.lineHeight} font-bold ${textColorClass} meeting-card-title break-words hyphens-auto overflow-hidden`} style={{
+          <h3 className={`${adjustedFontSize} ${textStrategy.lineHeight} font-bold ${textColorClass} meeting-card-title break-words hyphens-auto overflow-hidden`} style={{
           display: '-webkit-box',
           WebkitLineClamp: textStrategy.maxLines,
           WebkitBoxOrient: 'vertical'
@@ -300,14 +349,14 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           {showChairperson && <div className={`mt-2 mb-2 ${chairpersonSize} font-medium ${chairpersonColor} truncate`}>
               {meeting.chairperson}
             </div>}
-          {(!isAvailable || isAvailable && !isPastMeeting) && <p className={`text-[1.45rem] mt-1 mb-2 meeting-card-time ${meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'}`}>
+          {(!isAvailable || isAvailable && !isPastMeeting) && <p className={`text-[1.45rem] mt-1 mb-2 meeting-card-time ${meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'} ${isFarFuture ? 'text-[1.3rem]' : ''}`}>
               {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}
             </p>}
         </div>
       </div>
 
       {meeting.avSupport && !isAvailable && <div className="absolute bottom-2 right-2">
-          <AVSupportIcon size={avIconSize} className={getAvIconColor()} />
+          <AVSupportIcon size={isPastMeeting ? 24 : isFarFuture ? 26 : 28} className={getAvIconColor()} />
         </div>}
     </div>;
 };

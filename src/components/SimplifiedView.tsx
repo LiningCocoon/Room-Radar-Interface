@@ -224,6 +224,25 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const endMinutes = endTime.hours * 60 + endTime.minutes;
     return endMinutes - startMinutes;
   };
+  // Calculate grid opacity based on proximity to current hour
+  const calculateGridOpacity = (timeSlotHour: number, currentHour: number, isToday: boolean) => {
+    if (!isToday) return 0.15; // Consistent grounding for past/future days
+    const distance = Math.abs(timeSlotHour - currentHour);
+    if (distance === 0) return 0.6; // Current hour
+    if (distance === 1) return 0.45; // Adjacent hours
+    if (distance === 2) return 0.3; // Near current time
+    if (distance === 3) return 0.2; // Supporting structure
+    return 0.1; // Distant grounding
+  };
+  // Function to determine if a meeting is far in the future (more than 2 hours away)
+  const isFarFutureMeeting = (meeting: any) => {
+    if (!isToday || isYesterday) return false; // Only apply to today's view
+    const meetingStartTime = parseTime(meeting.startTime);
+    const meetingStartMinutes = meetingStartTime.hours * 60 + meetingStartTime.minutes;
+    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+    // More than 2 hours away (120 minutes)
+    return meetingStartMinutes - currentMinutes > 120;
+  };
   return <div className="flex-1 overflow-auto flex flex-col h-full">
       {/* New minimal context-aware header with vertically centered elements */}
       <div className="fixed top-0 left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 shadow-md">
@@ -248,9 +267,14 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
               Today
             </button>}
 
-          {/* Room headers - using grid layout to match the content grid layout below */}
-          <div className="grid grid-cols-5 gap-2 flex-1 ml-6">
-            {rooms.map((room, index) => <div key={room} className={`text-center ${index > 0 ? 'border-l border-dashed border-gray-300 dark:border-gray-600' : ''}`}>
+          {/* Room headers - using grid layout that EXACTLY matches the content grid layout below */}
+          <div className="grid grid-cols-6 gap-2 flex-1 ml-6">
+            {/* Empty cell for time column */}
+            <div className="col-span-1"></div>
+            {rooms.map((room, index) => <div key={room} className="col-span-1 text-center relative" style={{
+            paddingLeft: '0.5rem',
+            paddingRight: '0.5rem'
+          }}>
                 <h2 className="text-[1.7325rem] font-bold dark:text-white truncate">
                   {room}
                 </h2>
@@ -266,17 +290,46 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           {allTimeSlots.map((timeSlot, index) => {
           // Only use dark blue for current time slot
           const isActive = isCurrentTimeSlot(timeSlot);
+          const timeSlotHour = parseInt(timeSlot.split(':')[0]);
+          const currentHour = currentTime.getHours();
+          const opacity = calculateGridOpacity(timeSlotHour, currentHour, isToday);
           const rowBgColor = isActive ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-900';
           // Determine if this is the cutoff slot for auto-scrolling
           const isCutoffSlot = isToday && timeSlot === getTwoHourCutoffTimeSlot();
-          // Get the hour for this time slot
-          const timeSlotHour = parseInt(timeSlot.split(':')[0]);
-          return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800 relative meeting-grid-row`} ref={isCutoffSlot ? scrollTargetRef : null} style={{
+          return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800 relative meeting-grid-row hour-grid-line grid-transition`} ref={isCutoffSlot ? scrollTargetRef : null} style={{
             minHeight: '100px',
-            position: 'relative'
+            position: 'relative',
+            '--grid-opacity': opacity
           }}>
+                {/* Half-hour guide */}
+                <div className="half-hour-guide"></div>
+
+                {/* Current time indicator with glow effect */}
+                {isActive && isToday && <>
+                    <div className="current-time-line" style={{
+                top: `${currentTime.getMinutes() / 60 * 100}px`
+              }}></div>
+                    <div className="current-time-glow" style={{
+                top: `${currentTime.getMinutes() / 60 * 100}px`
+              }}></div>
+                  </>}
+
+                {/* Enhanced grid with vertical lines */}
                 <div className="grid grid-cols-6 gap-2 relative vertical-grid">
-                  <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
+                  <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} className="time-labels col-span-1" />
+
+                  {/* Vertical column separators - ensure perfect alignment */}
+                  <div className="absolute inset-0 pointer-events-none grid grid-cols-6 gap-2" style={{
+                zIndex: 1
+              }}>
+                    <div className="col-span-1"></div>{' '}
+                    {/* Time column - no left border */}
+                    {rooms.map((room, roomIndex) => <div key={`${room}-border`} className="col-span-1 h-full" style={{
+                  borderLeft: `1px dashed rgba(156, 163, 175, ${opacity * 0.5})`
+                }} />)}
+                  </div>
+
+                  {/* Room columns with meetings */}
                   {rooms.map(room => {
                 // Get all meetings that start in this hour for this room
                 const roomMeetings = convertedMeetings.filter(meeting => meeting.room === room);
@@ -287,11 +340,15 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
                 });
                 // If no meetings start in this hour, return empty div
                 if (meetingsInHour.length === 0) {
-                  return <div key={`${room}-${timeSlot}-empty`} className="col-span-1 relative"></div>;
+                  return <div key={`${room}-${timeSlot}-empty`} className="col-span-1 relative calendar-vertical-grid column-separator" style={{
+                    '--grid-opacity': opacity,
+                    minHeight: '100px'
+                  }}></div>;
                 }
                 // Render all meetings that start in this hour with precise positioning
-                return <div key={`${room}-${timeSlot}`} className="col-span-1 relative" style={{
-                  minHeight: '100px'
+                return <div key={`${room}-${timeSlot}`} className="col-span-1 relative calendar-vertical-grid column-separator" style={{
+                  minHeight: '100px',
+                  '--grid-opacity': opacity
                 }}>
                         {meetingsInHour.map((meeting, idx) => {
                     // Get chairperson and add to meeting
@@ -307,11 +364,13 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
                     const topOffset = startMinutes * 1.67;
                     // Calculate height based on exact duration (1.67px per minute)
                     const cardHeight = Math.max(100, durationMinutes * 1.67);
-                    return <div key={`${meeting.startTime}-${idx}`} className="absolute left-0 right-2 z-10" style={{
+                    // Determine if this meeting is far in the future
+                    const isFarFuture = isFarFutureMeeting(meeting);
+                    return <div key={`${meeting.startTime}-${idx}`} className="absolute left-0 right-2 z-10 meeting-cards" style={{
                       top: `${topOffset}px`,
                       height: `${cardHeight}px`
                     }}>
-                              <SimplifiedMeetingCard meeting={meetingWithChair} currentTime={currentTime} duration={durationHours} showDurationBadge={durationHours >= 2} startPosition="top" militaryTime={true} isYesterday={!isToday && isViewingPastDay} absolutePositioned={true} expandable={true} />
+                              <SimplifiedMeetingCard meeting={meetingWithChair} currentTime={currentTime} duration={durationHours} showDurationBadge={durationHours >= 2} startPosition="top" militaryTime={true} isYesterday={!isToday && isViewingPastDay} absolutePositioned={true} expandable={true} isFarFuture={isFarFuture} />
                             </div>;
                   })}
                       </div>;

@@ -267,7 +267,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const showChairperson = meeting.chairperson && !isAvailable;
   // AV icon size
   const avIconSize = isPastMeeting ? 28 : 34;
-  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''} ${expandable ? 'overflow-visible' : 'h-full'}`} style={{
+  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : ''} ${expandable ? 'overflow-visible' : 'h-full'} meeting-card-grounded`} style={{
     ...(absolutePositioned ? {
       position: 'relative',
       overflow: expandable ? 'visible' : 'hidden',

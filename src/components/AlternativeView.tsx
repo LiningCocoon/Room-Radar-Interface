@@ -356,7 +356,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                           <div className="mt-2 flex justify-between items-center">
                             {/* VIP badge on the left */}
                             <span className="text-red-500 group relative">
-                              <span className="text-[clamp(0.8rem,1.5vw,2rem)] font-bold bg-red-500 text-white px-3 py-1.5 rounded-full border border-red-600">
+                              <span className="text-[0.75rem] font-semibold bg-red-500 text-white px-2.5 py-1 rounded-full shadow-sm">
                                 {meeting.name.includes('Board') ? 'CEO' : meeting.name.includes('Planning') ? 'COO' : meeting.name.includes('Strategy') ? 'COS' : meeting.name.includes('Review') ? 'VP' : 'SVP'}
                               </span>
                               <div className="absolute bottom-full left-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">

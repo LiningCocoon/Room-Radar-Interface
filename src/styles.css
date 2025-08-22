@@ -24,3 +24,58 @@
   align-items: stretch; /* Make all columns same height */
   min-height: 80px;
 }
+/* Vertical grid lines for meeting schedule */
+.vertical-grid > div:not(:first-child) {
+  border-left: 1px dashed rgb(209 213 219); /* gray-300 */
+}
+.dark .vertical-grid > div:not(:first-child) {
+  border-left: 1px dashed rgb(75 85 99); /* gray-600 */
+}
+/* Vertical grid lines for calendar */
+.calendar-vertical-grid {
+  border-left: 1px dashed rgba(156, 163, 175, 0.4); /* gray-400 with opacity */
+}
+.dark .calendar-vertical-grid {
+  border-left: 1px dashed rgba(107, 114, 128, 0.4); /* gray-500 with opacity */
+}
+/* Alternative: More visible lines if needed */
+.calendar-vertical-grid-visible {
+  border-left: 1px solid rgb(229, 231, 235); /* gray-200 */
+}
+.dark .calendar-vertical-grid-visible {
+  border-left: 1px solid rgb(75, 85, 99); /* gray-600 */
+}
+/* Grid foundation for horizontal lines */
+.grid-line-horizontal {
+  border-bottom: 1px solid rgba(156, 163, 175, var(--grid-opacity, 0.2));
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+/* Half-hour indicators */
+.grid-line-half-hour {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-bottom: 1px dashed rgba(156, 163, 175, calc(var(--grid-opacity, 0.2) * 0.7));
+}
+/* Current time emphasis */
+.current-time-line {
+  border-bottom: 2px solid rgba(59, 130, 246, 0.7);
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+  z-index: 5;
+}
+/* Meeting card grounding */
+.meeting-card-grounded {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.meeting-card-grounded:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+/* Grid hover effect */
+.grid-line-horizontal:hover {
+  --grid-opacity: calc(var(--grid-opacity, 0.2) * 1.3);
+}

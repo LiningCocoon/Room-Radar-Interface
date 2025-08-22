@@ -224,6 +224,19 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     const endMinutes = endTime.hours * 60 + endTime.minutes;
     return endMinutes - startMinutes;
   };
+  // Calculate grid opacity based on proximity to current hour
+  const calculateGridOpacity = (timeSlotHour: number) => {
+    if (!isToday) return 0.15; // Consistent grounding for past/future days
+    const currentHour = currentTime.getHours();
+    const distance = Math.abs(timeSlotHour - currentHour);
+    // Focus zone - most prominent grounding
+    if (distance === 0) return 0.6; // Current hour
+    if (distance === 1) return 0.45; // Adjacent hours
+    if (distance === 2) return 0.3; // Near current time
+    // Background structure - subtle but present
+    if (distance === 3) return 0.2; // Supporting structure
+    return 0.1; // Distant grounding
+  };
   return <div className="flex-1 overflow-auto flex flex-col h-full">
       {/* New minimal context-aware header with vertically centered elements */}
       <div className="fixed top-0 left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 shadow-md">
@@ -250,7 +263,7 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
 
           {/* Room headers - using grid layout to match the content grid layout below */}
           <div className="grid grid-cols-5 gap-2 flex-1 ml-6">
-            {rooms.map(room => <div key={room} className="text-center">
+            {rooms.map((room, index) => <div key={room} className={`text-center ${index > 0 ? 'calendar-vertical-grid' : ''}`}>
                 <h2 className="text-[1.7325rem] font-bold dark:text-white truncate">
                   {room}
                 </h2>
@@ -266,16 +279,24 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
           {allTimeSlots.map((timeSlot, index) => {
           // Only use dark blue for current time slot
           const isActive = isCurrentTimeSlot(timeSlot);
+          const timeSlotHour = parseInt(timeSlot.split(':')[0]);
+          const gridOpacity = calculateGridOpacity(timeSlotHour);
           const rowBgColor = isActive ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-900';
           // Determine if this is the cutoff slot for auto-scrolling
           const isCutoffSlot = isToday && timeSlot === getTwoHourCutoffTimeSlot();
-          // Get the hour for this time slot
-          const timeSlotHour = parseInt(timeSlot.split(':')[0]);
-          return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800 relative meeting-grid-row`} ref={isCutoffSlot ? scrollTargetRef : null} style={{
+          return <div key={timeSlot} className={`${rowBgColor} w-full py-2 border-b border-gray-200 dark:border-gray-800 relative meeting-grid-row grid-line-horizontal`} ref={isCutoffSlot ? scrollTargetRef : null} style={{
             minHeight: '100px',
-            position: 'relative'
+            position: 'relative',
+            '--grid-opacity': gridOpacity
           }}>
-                <div className="grid grid-cols-6 gap-2 relative">
+                {/* Half-hour indicator */}
+                <div className="grid-line-half-hour"></div>
+                {/* Current time indicator */}
+                {isActive && isToday && <div className="current-time-line absolute left-0 right-0" style={{
+              top: `${currentTime.getMinutes() / 60 * 100}px`,
+              zIndex: 5
+            }}></div>}
+                <div className="grid grid-cols-6 gap-2 relative vertical-grid">
                   <SimplifiedTimeSlot time={timeSlot} currentTime={currentTime} militaryTime={true} />
                   {rooms.map(room => {
                 // Get all meetings that start in this hour for this room
@@ -287,10 +308,10 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
                 });
                 // If no meetings start in this hour, return empty div
                 if (meetingsInHour.length === 0) {
-                  return <div key={`${room}-${timeSlot}-empty`} className="col-span-1 relative"></div>;
+                  return <div key={`${room}-${timeSlot}-empty`} className="col-span-1 relative calendar-vertical-grid"></div>;
                 }
                 // Render all meetings that start in this hour with precise positioning
-                return <div key={`${room}-${timeSlot}`} className="col-span-1 relative" style={{
+                return <div key={`${room}-${timeSlot}`} className="col-span-1 relative calendar-vertical-grid" style={{
                   minHeight: '100px'
                 }}>
                         {meetingsInHour.map((meeting, idx) => {
@@ -322,12 +343,8 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
         </div>
       </div>
 
-      {/* Navigation Buttons - Updated to Operations Dashboard instead of Proportional view */}
+      {/* Navigation Buttons - Updated to only show Side Wall */}
       <div className="mt-4 mb-2 flex justify-center gap-4">
-        <Link to="/calls-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
-          <span>Calls Radar</span>
-          <ArrowRightIcon size={16} />
-        </Link>
         <Link to="/side-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
           <span>Side Wall</span>
           <ArrowRightIcon size={16} />

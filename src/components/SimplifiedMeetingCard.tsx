@@ -20,27 +20,27 @@ interface SimplifiedMeetingCardProps {
   isYesterday?: boolean;
   absolutePositioned?: boolean;
   expandable?: boolean;
-  isFarFuture?: boolean;
+  futureScale?: number;
 }
 // Helper function to determine text strategy based on name length
 const getTextStrategy = (nameLength: number) => {
   if (nameLength <= 15) {
     return {
-      fontSize: 'text-[2rem]',
+      fontSize: 'text-[2.2rem]',
       lineHeight: 'leading-tight',
       maxLines: 1,
       strategy: 'single-line-large'
     };
   } else if (nameLength <= 25) {
     return {
-      fontSize: 'text-[1.75rem]',
+      fontSize: 'text-[1.925rem]',
       lineHeight: 'leading-tight',
       maxLines: 2,
       strategy: 'two-line-medium'
     };
   } else {
     return {
-      fontSize: 'text-[1.5rem]',
+      fontSize: 'text-[1.65rem]',
       lineHeight: 'leading-snug',
       maxLines: 2,
       strategy: 'two-line-compact'
@@ -99,7 +99,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   isYesterday = false,
   absolutePositioned = false,
   expandable = false,
-  isFarFuture = false
+  futureScale = 1.0
 }) => {
   // Early return with safe defaults if meeting is invalid
   if (!meeting || typeof meeting !== 'object') {
@@ -235,7 +235,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   } else if (meeting.isHighProfile && !isPastMeeting) {
     cardClasses += ' border-[#9b2c2c] bg-[#bc4b4b] dark:bg-[#8b3a3a] dark:border-[#9b2c2c] shadow-lg border-2';
   } else if (status === 'active' && !isYesterday) {
-    cardClasses += ' border-[#005ea2] bg-[#e6f3ff] dark:bg-[#0a2e4f] dark:border-[#2c79c7] shadow-lg border-2';
+    cardClasses += ' border-[#04c585] bg-[#538200] dark:bg-[#538200] dark:border-[#04c585] shadow-lg border-3 border-opacity-45 dark:border-opacity-45 bg-opacity-45 dark:bg-opacity-45';
   } else if (isPastMeeting) {
     cardClasses += ' border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700';
   } else if (meeting.avSupport && isStartingSoon && !isYesterday) {
@@ -255,7 +255,7 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   } else if (meeting.isHighProfile && !isPastMeeting) {
     textColorClass = 'text-white';
   } else if (status === 'active' && !isYesterday) {
-    textColorClass = 'text-[#005ea2] dark:text-[#4d9eff] font-extrabold';
+    textColorClass = 'text-white dark:text-white font-extrabold';
   } else if (isPastMeeting) {
     textColorClass = 'text-gray-500 dark:text-gray-400';
   }
@@ -263,11 +263,16 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const textStrategy = useMemo(() => {
     return getTextStrategy(meeting.name?.length || 0);
   }, [meeting.name]);
-  // Adjust font size for far future meetings - make 10% LARGER instead of smaller
-  const adjustedFontSize = isFarFuture ? `${textStrategy.fontSize.replace(/\d+(\.\d+)?rem/, match => {
-    const size = parseFloat(match);
-    return `${(size * 1.1).toFixed(2)}rem`;
-  })}` : textStrategy.fontSize;
+  // Adjust font size for future meetings based on scaling factor
+  const adjustedFontSize = futureScale !== 1.0 ? (() => {
+    const sizeMatch = textStrategy.fontSize.match(/text-\[(\d+(?:\.\d+)?)rem\]/);
+    if (sizeMatch) {
+      const currentSize = parseFloat(sizeMatch[1]);
+      const newSize = (currentSize * futureScale).toFixed(3);
+      return `text-[${newSize}rem]`;
+    }
+    return textStrategy.fontSize;
+  })() : textStrategy.fontSize;
   // Format meeting name with possible truncation
   const formattedName = useMemo(() => {
     return formatMeetingName(meeting.name || 'Unknown Meeting');
@@ -277,23 +282,34 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
   const chairpersonColor = meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : isPastMeeting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300';
   // Show chairperson for all meetings (not just important ones)
   const showChairperson = meeting.chairperson && !isAvailable;
-  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : isFarFuture ? 'opacity-75' : ''} ${expandable ? 'overflow-visible' : 'h-full'}`} style={{
+  // Determine if this is a scaled future meeting
+  const isScaledFuture = futureScale !== 1.0;
+  return <div className={`${cardClasses} ${isPastMeeting ? 'opacity-35' : isScaledFuture ? 'opacity-75' : ''} ${expandable ? 'overflow-visible' : 'h-full'}`} style={{
     ...(absolutePositioned ? {
       position: 'relative',
       overflow: expandable ? 'visible' : 'hidden',
       display: 'flex',
       flexDirection: 'column',
-      transform: isFarFuture ? 'scale(0.95)' : 'scale(1)',
-      transformOrigin: 'center top'
+      transform: isScaledFuture ? `scale(${0.95 + (futureScale - 1.0) * 0.5})` : 'scale(1)',
+      transformOrigin: 'center top',
+      ...(status === 'active' && !isYesterday ? {
+        borderWidth: '3px'
+      } : {})
     } : duration > 1 && !isAvailable ? {
       minHeight: `${Math.min(duration * 120, 400)}px`,
       position: 'relative',
       zIndex: duration > 1 ? 10 : 1,
-      transform: isFarFuture ? 'scale(0.95)' : 'scale(1)',
-      transformOrigin: 'center top'
+      transform: isScaledFuture ? `scale(${0.95 + (futureScale - 1.0) * 0.5})` : 'scale(1)',
+      transformOrigin: 'center top',
+      ...(status === 'active' && !isYesterday ? {
+        borderWidth: '3px'
+      } : {})
     } : {
-      transform: isFarFuture ? 'scale(0.95)' : 'scale(1)',
-      transformOrigin: 'center top'
+      transform: isScaledFuture ? `scale(${0.95 + (futureScale - 1.0) * 0.5})` : 'scale(1)',
+      transformOrigin: 'center top',
+      ...(status === 'active' && !isYesterday ? {
+        borderWidth: '3px'
+      } : {})
     }),
     minHeight: '120px',
     maxHeight: '180px',
@@ -313,27 +329,27 @@ const SimplifiedMeetingCard: React.FC<SimplifiedMeetingCardProps> = ({
           {showChairperson && <div className={`mt-2 mb-2 ${chairpersonSize} font-medium ${chairpersonColor} truncate`}>
               {meeting.chairperson}
             </div>}
-          {(!isAvailable || isAvailable && !isPastMeeting) && <p className={`text-[1.45rem] mt-1 mb-2 meeting-card-time ${meeting.isHighProfile && !isPastMeeting ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'} ${isFarFuture ? 'text-[1.3rem]' : ''}`}>
+          {(!isAvailable || isAvailable && !isPastMeeting) && <p className={`text-[1.45rem] mt-1 mb-2 meeting-card-time ${meeting.isHighProfile && !isPastMeeting || status === 'active' && !isYesterday ? 'text-white dark:text-white dark:opacity-90' : 'dark:text-gray-200'} ${futureScale > 1.0 ? 'text-[1.3rem]' : ''}`}>
               {!isAvailable ? `${formatTimeToMilitary(meeting.startTime)}${meeting.endTime ? ` - ${formatTimeToMilitary(meeting.endTime)}` : ''}` : formatTimeToMilitary(meeting.startTime)}
             </p>}
         </div>
       </div>
 
-      {/* Badges at the bottom right - A/V and VIP badges side by side */}
-      <div className="absolute bottom-2 right-2 flex items-center space-x-2">
-        {/* VIP badge */}
-        {meeting.isHighProfile && !isPastMeeting && <span className="px-2 py-1 text-xs font-bold bg-red-600 text-white rounded-md shadow-sm" style={{
-        fontSize: isFarFuture ? '0.65rem' : '0.75rem'
-      }}>
-            {getVipTitle(meeting)}
-          </span>}
-        {/* A/V Badge (replacing icon) */}
-        {meeting.avSupport && !isAvailable && <span className="px-2 py-1 text-xs font-bold bg-blue-600 text-white rounded-md shadow-sm" style={{
-        fontSize: isFarFuture ? '0.65rem' : '0.75rem'
-      }}>
-            A/V
-          </span>}
-      </div>
+      {/* Computer icon for A/V support - limited to 3 specific meetings */}
+      {meeting.avSupport && !isAvailable && (meeting.name.includes('Client Presentation') || meeting.name.includes('Board Review') || meeting.name.includes('Emergency Response')) && <div className="absolute bottom-2 right-2 group">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={futureScale > 1.0 ? 18 : 20} height={futureScale > 1.0 ? 18 : 20} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${meeting.isHighProfile && !isPastMeeting ? 'text-white' : isPastMeeting ? 'text-gray-500 dark:text-gray-400' : 'text-blue-600 dark:text-blue-400'}`}>
+              {/* Computer monitor */}
+              <rect x="3" y="3" width="18" height="12" rx="2" ry="2" />
+              {/* Computer stand */}
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="15" x2="12" y2="21" />
+            </svg>
+            {/* Tooltip */}
+            <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+              A/V Support
+              <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-800"></div>
+            </div>
+          </div>}
     </div>;
 };
 export default SimplifiedMeetingCard;

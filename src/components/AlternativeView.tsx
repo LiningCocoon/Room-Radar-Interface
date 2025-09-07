@@ -25,13 +25,8 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-  // Format current time as HH:MM:SS in military time (24-hour format)
-  const formattedTime = currentDateTime.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
+  // Format current time as HH:MM in military time (24-hour format without seconds)
+  const formattedTime = `${currentDateTime.getHours().toString().padStart(2, '0')}:${currentDateTime.getMinutes().toString().padStart(2, '0')}`;
   // State for tracking the selected date
   const [selectedDate, setSelectedDate] = useState<Date>(isYesterday ? new Date(currentTime.getTime() - 24 * 60 * 60 * 1000) : new Date(currentTime));
   // Initialize the selected date once on component mount
@@ -327,7 +322,7 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                     Principal Meetings {isTomorrowView ? 'Tomorrow' : 'Today'}
                   </h2>
                   {vipMeetingsToday.length > 0 ? <div className="space-y-1.5">
-                      {vipMeetingsToday.map((meeting, idx) => <div key={idx} className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500">
+                      {vipMeetingsToday.slice(0, 3).map((meeting, idx) => <div key={idx} className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 relative">
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="flex items-center">
@@ -343,35 +338,23 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
                                 -{' '}
                                 {formatTimeToMilitary(meeting.endTime).replace(':', '')}
                               </div>
-                              {/* VIP badge removed from here */}
+                              {/* New content line for title/name */}
+                              <div className="text-[1.25rem] font-medium text-gray-600 dark:text-gray-300 mt-1">
+                                {meeting.name.includes('Board') ? 'CEO' : meeting.name.includes('Planning') ? 'VP' : meeting.name.includes('Strategy') ? 'COS Smith' : meeting.name.includes('Review') ? 'HSA Paulson' : 'VP'}
+                              </div>
                             </div>
                             <div className="flex items-center space-x-2">
                               {/* Enlarged AV support icon */}
                               {meeting.avSupport && <AVSupportIcon size={28} className="text-red-500" />}
-                              {/* New Phone icon */}
-                              {meeting.name.toLowerCase().includes('call') && <PhoneCallIcon size={28} className="text-red-500" />}
                             </div>
                           </div>
-                          {/* Modified to include VIP badge and countdown on same line */}
-                          <div className="mt-2 flex justify-between items-center">
-                            {/* VIP badge on the left */}
-                            <span className="text-red-500 group relative">
-                              <span className="text-[0.75rem] font-semibold bg-red-500 text-white px-2.5 py-1 rounded-full shadow-sm">
-                                {meeting.name.includes('Board') ? 'CEO' : meeting.name.includes('Planning') ? 'COO' : meeting.name.includes('Strategy') ? 'COS' : meeting.name.includes('Review') ? 'VP' : 'SVP'}
-                              </span>
-                              <div className="absolute bottom-full left-0 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
-                                VIP meeting
-                                <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-800"></div>
-                              </div>
-                            </span>
-                            {/* Status/countdown on the right */}
-                            {getMeetingStatus(meeting) === 'active' && <div className="text-[1.25rem] font-bold text-red-700 dark:text-red-300">
-                                In progress
-                              </div>}
-                            {getMeetingStatus(meeting) === 'upcoming' && <div className="text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
-                                {getTimeUntilMeeting(meeting)}
-                              </div>}
-                          </div>
+                          {/* Status/countdown moved to bottom right */}
+                          {getMeetingStatus(meeting) === 'active' && <div className="absolute bottom-2 right-2 text-[1.25rem] font-bold text-red-700 dark:text-red-300">
+                              In progress
+                            </div>}
+                          {getMeetingStatus(meeting) === 'upcoming' && <div className="absolute bottom-2 right-2 text-[1.25rem] font-bold text-gray-700 dark:text-gray-300">
+                              {getTimeUntilMeeting(meeting)}
+                            </div>}
                         </div>)}
                     </div> : <div className="text-center py-3 text-[1.38rem] text-gray-500 dark:text-gray-400">
                       No VIP meetings scheduled{' '}
@@ -467,9 +450,6 @@ const AlternativeView: React.FC<AlternativeViewProps> = ({
           <Link to="/main-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1.5 px-2.5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
             <ArrowLeftIcon size={20} />
             <span>Main Wall</span>
-          </Link>
-          <Link to="/calls-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1.5 px-2.5 rounded-lg border-2 border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:flex hidden">
-            <span>Calls Radar</span>
           </Link>
         </div>
       </div>

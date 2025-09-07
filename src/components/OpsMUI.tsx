@@ -1055,13 +1055,6 @@ const OpsMUI: React.FC<OpsMUIProps> = ({
           }}>
               Main Wall
             </Button>
-            <Button component={Link} to="/calls-wall" variant="outlined" color="primary" sx={{
-            fontWeight: 'bold',
-            py: 1.5,
-            fontSize: '1.2rem'
-          }}>
-              Calls Wall
-            </Button>
             <Button component={Link} to="/side-wall" variant="outlined" color="primary" endIcon={<ArrowForwardIcon fontSize="large" />} sx={{
             fontWeight: 'bold',
             py: 1.5,

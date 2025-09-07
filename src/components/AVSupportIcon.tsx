@@ -1,5 +1,4 @@
 import React from 'react';
-import { PresentationIcon } from 'lucide-react';
 interface AVSupportIconProps {
   className?: string;
   size?: number;
@@ -8,15 +7,20 @@ const AVSupportIcon: React.FC<AVSupportIconProps> = ({
   className = '',
   size = 24
 }) => {
-  // Calculate the inner icon size to maintain the requested size visual appearance
-  // when accounting for the 8px of total padding (4px on each side)
-  // Then increase the size by 44% (1.2 * 1.2 = 1.44) for an additional 20% increase
-  const innerSize = typeof size === 'number' ? (size - 8) * 1.44 : size;
-  return <div className="p-1 relative group" style={{
-    display: 'inline-flex',
-    borderRadius: '50%'
-  }} aria-label="Requires A/V support" role="img">
-      <PresentationIcon size={innerSize} className={className} />
+  // Calculate dimensions based on the icon size
+  const iconSize = typeof size === 'number' ? size : 24;
+  return <div className={`relative group absolute bottom-1 left-1 ${className}`} aria-label="Requires A/V support" role="img" style={{
+    width: `${iconSize}px`,
+    height: `${iconSize}px`
+  }}>
+      {/* W3-style computer icon SVG */}
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={iconSize} height={iconSize} fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {/* Computer monitor */}
+        <rect x="3" y="3" width="18" height="12" rx="2" ry="2" />
+        {/* Computer stand */}
+        <line x1="8" y1="21" x2="16" y2="21" />
+        <line x1="12" y1="15" x2="12" y2="21" />
+      </svg>
       {/* Tooltip */}
       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
         Requires A/V support

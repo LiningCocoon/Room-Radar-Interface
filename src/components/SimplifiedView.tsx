@@ -51,7 +51,7 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
   // Updated room names: Reordered to put Small after Executive and before Breakout A
   const rooms = ['JFK', 'Executive', 'Small', 'Breakout A', 'Breakout B'];
   // Updated time slots to military time
-  const allTimeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
+  const allTimeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
   // Reference for auto-scrolling
   const scrollTargetRef = useRef<HTMLDivElement>(null);
   // Function to calculate the 2-hour cutoff time slot
@@ -234,14 +234,17 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
     if (distance === 3) return 0.2; // Supporting structure
     return 0.1; // Distant grounding
   };
-  // Function to determine if a meeting is far in the future (more than 2 hours away)
-  const isFarFutureMeeting = (meeting: any) => {
-    if (!isToday || isYesterday) return false; // Only apply to today's view
+  // Function to determine font scaling for future meetings based on time distance
+  const getFutureMeetingScale = (meeting: any) => {
+    if (!isToday || isYesterday) return 1.0; // No scaling for non-today views
     const meetingStartTime = parseTime(meeting.startTime);
     const meetingStartMinutes = meetingStartTime.hours * 60 + meetingStartTime.minutes;
     const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-    // More than 2 hours away (120 minutes)
-    return meetingStartMinutes - currentMinutes > 120;
+    const hoursAway = (meetingStartMinutes - currentMinutes) / 60;
+    // Progressive scaling based on hours away
+    if (hoursAway >= 5) return 1.05; // 5+ hours: 5% larger
+    if (hoursAway >= 3) return 1.1; // 3+ hours: 10% larger
+    return 1.0; // 0-2 hours: current size
   };
   return <div className="flex-1 overflow-auto flex flex-col h-full">
       {/* New minimal context-aware header with vertically centered elements */}
@@ -359,12 +362,12 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
                     // Calculate height based on exact duration (1.67px per minute)
                     const cardHeight = Math.max(100, durationMinutes * 1.67);
                     // Determine if this meeting is far in the future
-                    const isFarFuture = isFarFutureMeeting(meeting);
+                    const futureScale = getFutureMeetingScale(meeting);
                     return <div key={`${meeting.startTime}-${idx}`} className="absolute left-0 right-2 z-10 meeting-cards" style={{
                       top: `${topOffset}px`,
                       height: `${cardHeight}px`
                     }}>
-                              <SimplifiedMeetingCard meeting={meetingWithChair} currentTime={currentTime} duration={durationHours} showDurationBadge={durationHours >= 2} startPosition="top" militaryTime={true} isYesterday={!isToday && isViewingPastDay} absolutePositioned={true} expandable={true} isFarFuture={isFarFuture} />
+                              <SimplifiedMeetingCard meeting={meetingWithChair} currentTime={currentTime} duration={durationHours} showDurationBadge={durationHours >= 2} startPosition="top" militaryTime={true} isYesterday={!isToday && isViewingPastDay} absolutePositioned={true} expandable={true} futureScale={futureScale} />
                             </div>;
                   })}
                       </div>;
@@ -377,10 +380,6 @@ const SimplifiedView: React.FC<SimplifiedViewProps> = ({
 
       {/* Navigation Buttons - Updated to Operations Dashboard instead of Proportional view */}
       <div className="mt-4 mb-2 flex justify-center gap-4">
-        <Link to="/calls-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
-          <span>Calls Radar</span>
-          <ArrowRightIcon size={16} />
-        </Link>
         <Link to="/side-wall" className="text-[#005ea2] hover:text-[#003d6a] dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-2 py-1 px-3 rounded-lg border border-[#005ea2] dark:border-blue-400 hover:bg-[#f0f7fc] dark:hover:bg-gray-800 text-xl font-bold md:inline-flex hidden">
           <span>Side Wall</span>
           <ArrowRightIcon size={16} />

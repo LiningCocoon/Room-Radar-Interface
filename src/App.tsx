@@ -4,7 +4,6 @@ import Header from './components/Header';
 import SideWall from './components/AlternativeView';
 import MainWall from './components/SimplifiedView';
 import OpsMUI from './components/OpsMUI';
-import CallsMainWall from './components/CallsMainWall';
 import { ThemeProvider } from './components/ThemeContext';
 // Conditional Header component
 const ConditionalHeader = ({
@@ -13,7 +12,7 @@ const ConditionalHeader = ({
   onToggleDay
 }) => {
   const location = useLocation();
-  if (location.pathname === '/main-wall' || location.pathname === '/ops-mui' || location.pathname === '/side-wall' || location.pathname === '/calls-wall') {
+  if (location.pathname === '/main-wall' || location.pathname === '/ops-mui' || location.pathname === '/side-wall') {
     return null;
   }
   return <Header currentTime={currentTime} isYesterday={isYesterday} onToggleDay={onToggleDay} />;
@@ -39,7 +38,6 @@ export function App() {
             <Route path="/main-wall" element={<MainWall currentTime={currentTime} isYesterday={isYesterday} />} />
             <Route path="/side-wall" element={<SideWall currentTime={currentTime} isYesterday={isYesterday} />} />
             <Route path="/ops-mui" element={<OpsMUI currentTime={currentTime} isYesterday={isYesterday} />} />
-            <Route path="/calls-wall" element={<CallsMainWall currentTime={currentTime} isYesterday={isYesterday} />} />
           </Routes>
         </div>
       </Router>
